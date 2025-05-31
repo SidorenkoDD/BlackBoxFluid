@@ -1,0 +1,12 @@
+import json
+
+database = {
+    "C1": {"shift": 1, "ac": 2},
+    "C2": {"shift": 3, "ac": 4},
+}
+
+# Запись в файл
+with open("database.json", "w") as f:
+    json.dump(database, f)
+
+
