@@ -155,9 +155,9 @@ class EOS_PR:
 
     def calc_cubic_eos_numpy(self):
         coefs = [1, 
-                 (1-self.B_linear_mixed), 
+                 -(1-self.B_linear_mixed), 
                  (self.mixed_A - 3 * math.pow(self.B_linear_mixed, 2) - 2* self.B_linear_mixed), 
-                 (self.mixed_A * self.B_linear_mixed - math.pow(self.B_linear_mixed, 2) - math.pow(self.B_linear_mixed, 3))]
+                 -(self.mixed_A * self.B_linear_mixed - math.pow(self.B_linear_mixed, 2) - math.pow(self.B_linear_mixed, 3))]
 
         roots = np.roots(coefs)
         return roots
@@ -165,9 +165,9 @@ class EOS_PR:
 
     def calc_cubic_eos_cardano(self):
         a = 1
-        b = 1-self.B_linear_mixed
+        b = -(1-self.B_linear_mixed)
         c = (self.mixed_A - 3 * math.pow(self.B_linear_mixed, 2) - 2* self.B_linear_mixed)
-        d = (self.mixed_A * self.B_linear_mixed - math.pow(self.B_linear_mixed, 2) - math.pow(self.B_linear_mixed, 3))
+        d = -(self.mixed_A * self.B_linear_mixed - math.pow(self.B_linear_mixed, 2) - math.pow(self.B_linear_mixed, 3))
         # Приводим уравнение к виду x³ + px² + qx + r = 0
         p = b / a
         q = c / a
@@ -209,11 +209,16 @@ class EOS_PR:
         x3 = y3 - p3
     
         return [x1, x2, x3]
+    
+    
+    # Метод расчета летучести
+    def calc_fugacity(self):
+        ...
 
 
 
 if __name__ == '__main__':
-    eos = EOS_PR({'C1': 100}, 100, 100)
+    eos = EOS_PR({'C1': 80, 'C2':10, 'C3': 10}, 150, 100)
     print(eos.all_params_a)
     print(eos.all_params_b)
     print(eos.all_params_A)
