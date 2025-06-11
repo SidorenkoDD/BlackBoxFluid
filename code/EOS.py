@@ -100,14 +100,21 @@ class EOS_PR:
                 if root > 0:
                     fugacity_by_components = {}
                     for component in self.zi.keys():
-                        fugacity_by_components[component] = self.calc_fugacity_for_component(component, root)
+                        fugacity_by_components[component] = self.calc_fugacity_for_component(component, root) * root * self.p
                     self.fugacity_by_roots[root] = fugacity_by_components
                 else:
-                    continue
+                    pass
 
         except Exception as e:
             logger.log.error('Расчет летучести для компонентов не проведен')
 
+        # Расчет приведенной энергии Гиббса
+
+        try:
+            self.normalized_gibbs_energy = self.calc_normalized_gibbs_energy()
+
+        except Exception as e:
+            logger.log.error('Расчет энергии Гиббса не проведен')
 
     # Метод  расчета параметра а для компоненты
     def calc_a(self, component, omega_a = 0.45724):
@@ -261,17 +268,27 @@ class EOS_PR:
         return math.pow(math.e, ln_fi_i)
 
 
-    def calc_gibbs_energy(self):
-        pass
+    def calc_normalized_gibbs_energy(self):
+        normalized_gibbs_energy = {}
+        for root in self.fugacity_by_roots:
+            gibbs_energy_by_roots = []
+            for component in self.fugacity_by_roots[root].keys():
+                gibbs_energy_by_roots.append(self.zi[component]/100 * math.log(self.fugacity_by_roots[root][component]))
+            
+            normalized_gibbs_energy[root] = sum(gibbs_energy_by_roots)
+
+        return normalized_gibbs_energy    
 
 if __name__ == '__main__':
-    eos = EOS_PR({'C1': 5, 'C2':10, 'C3': 85}, 100, 100)
+    eos = EOS_PR({'C1': 100}, 120, 80)
     print(eos.all_params_a)
     print(eos.all_params_b)
     print(eos.all_params_A)
     print(eos.all_params_B)
     print(eos.B_linear_mixed)
     print(eos.fugacity_by_roots)
+    print('===')
+    print(eos.normalized_gibbs_energy)
     # print(eos.calc_mixed_A())
     # print(eos.calc_cubic_eos_numpy())
     # print(eos.calc_cubic_eos_cardano())
