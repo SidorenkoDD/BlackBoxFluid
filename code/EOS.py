@@ -94,6 +94,15 @@ class EOS_PR:
         except Exception as e:
             logger.log.error('УРС не решено')
 
+        # Расчет летучести для всех компонент
+        try:
+            self.fugacity_by_components = {}
+            for component in self.zi.keys():
+                self.fugacity_by_components[component] = self.calc_fugacity_for_component(component, self.real_roots_eos[0])
+
+        except Exception as e:
+            logger.log.error('Расчет летучести для компонентов не проведен')
+
 
     # Метод  расчета параметра а для компоненты
     def calc_a(self, component, omega_a = 0.45724):
@@ -232,23 +241,30 @@ class EOS_PR:
     # Метод расчета летучести
     ##TODO: используем Z, полученный в результате расчета УРС. Их может быть несколько, надо уточнить как быть.
     def calc_fugacity_for_component(self, component, eos_root):
-        sum_zi_Ai = []
+        zi_Ai = []
+        for comp in [x for x in self.zi.keys() if x != component]:
+            zi_Ai.append(self.zi[comp] / 100 * 
+                             (1 - self.db['bip'][component][comp]) * 
+                             math.sqrt(self.all_params_A[component] * self.all_params_A[comp]))
+        sum_zi_Ai = sum(zi_Ai)
+
         ln_fi_i = (self.all_params_B[component] / self.B_linear_mixed *
-                    (eos_root - 1) - math.log(eos_root - self.B_linear_mixed)+ 
+                    (eos_root - 1) - math.log(eos_root - self.B_linear_mixed) + 
                     (self.mixed_A / (2 * math.sqrt(2) * self.B_linear_mixed)) * 
                     ((self.all_params_B[component] / self.B_linear_mixed) - (2/self.mixed_A) * sum_zi_Ai) * 
                     math.log((eos_root + (1 - math.sqrt(2))*self.B_linear_mixed)/(eos_root - (1 - math.sqrt(2))*self.B_linear_mixed)))
-        ...
+        return math.pow(math.e, ln_fi_i)
 
 
 
 if __name__ == '__main__':
-    eos = EOS_PR({'C1': 80, 'C2':10, 'C3': 10}, 150, 100)
+    eos = EOS_PR({'C1': 80, 'C2':10, 'C3': 10}, 100, 100)
     print(eos.all_params_a)
     print(eos.all_params_b)
     print(eos.all_params_A)
     print(eos.all_params_B)
     print(eos.B_linear_mixed)
+    print(eos.fugacity_by_components)
     # print(eos.calc_mixed_A())
     # print(eos.calc_cubic_eos_numpy())
     # print(eos.calc_cubic_eos_cardano())
