@@ -280,7 +280,7 @@ class EOS_PR:
         return normalized_gibbs_energy    
 
 if __name__ == '__main__':
-    eos = EOS_PR({'C1': 100}, 120, 80)
+    eos = EOS_PR({'C1':100}, 60, 60)
     print(eos.all_params_a)
     print(eos.all_params_b)
     print(eos.all_params_A)
@@ -290,5 +290,5 @@ if __name__ == '__main__':
     print('===')
     print(eos.normalized_gibbs_energy)
     # print(eos.calc_mixed_A())
-    # print(eos.calc_cubic_eos_numpy())
-    # print(eos.calc_cubic_eos_cardano())
+    print(eos.calc_cubic_eos_numpy())
+    print(eos.calc_cubic_eos_cardano())
