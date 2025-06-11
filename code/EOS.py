@@ -86,6 +86,15 @@ class EOS_PR:
             logger.log.error('Mixed A не рассчитан')
 
 
+        # Решение УРС по Кардано
+        try:
+            self.real_roots_eos = self.calc_cubic_eos_cardano()[0]
+            logger.log.info(f'УРС решено, получен {len(self.real_roots_eos)} действительный корень: {self.real_roots_eos}')
+
+        except Exception as e:
+            logger.log.error('УРС не решено')
+
+
     # Метод  расчета параметра а для компоненты
     def calc_a(self, component, omega_a = 0.45724):
         '''
@@ -144,15 +153,8 @@ class EOS_PR:
         for i, b in enumerate(list(self.all_params_B.values())):
             linear_mixed_B.append(b * list(self.zi.values())[i]/ 100)
             return sum(linear_mixed_B)
-
-    ##TODO: НЕ РАБОТАЕТ
-    def calc_cubic_eos_sympy(self):
-        z = smp.symbols('z')
-        equation = smp.Eq(math.pow(z, 3) - (1-self.B_linear_mixed) * math.pow(z,2) + (self.mixed_A - 3 * math.pow(self.B_linear_mixed, 2) - 2* self.B_linear_mixed) - (self.mixed_A * self.B_linear_mixed - math.pow(self.B_linear_mixed, 2) - math.pow(self.B_linear_mixed, 3)), 0)
-        solution = smp.solve(equation, z)
-        return solution
     
-
+    # Метод расчета УРС через numpy
     def calc_cubic_eos_numpy(self):
         coefs = [1, 
                  -(1-self.B_linear_mixed), 
@@ -162,7 +164,7 @@ class EOS_PR:
         roots = np.roots(coefs)
         return roots
     
-
+    # Метод расчета УРС по Кардано
     def calc_cubic_eos_cardano(self):
         a = 1
         b = -(1-self.B_linear_mixed)
@@ -207,12 +209,35 @@ class EOS_PR:
         x1 = y1 - p3
         x2 = y2 - p3
         x3 = y3 - p3
-    
-        return [x1, x2, x3]
+        
+        roots = [x1, x2, x3]
+
+        real_roots = []
+        complex_roots = []
+        
+        for root in roots:
+            if isinstance(root, (float, int)):  # Если корень уже чисто вещественный
+                real_roots.append(root)
+            else:
+                # Проверяем, близка ли мнимая часть к нулю (с учетом погрешности вычислений)
+                if abs(root.imag) < 1e-10:  # Порог можно настроить
+                    real_roots.append(root.real)
+                else:
+                    complex_roots.append(root)
+        
+        return real_roots, complex_roots
+        
     
     
     # Метод расчета летучести
-    def calc_fugacity(self):
+    ##TODO: используем Z, полученный в результате расчета УРС. Их может быть несколько, надо уточнить как быть.
+    def calc_fugacity_for_component(self, component, eos_root):
+        sum_zi_Ai = []
+        ln_fi_i = (self.all_params_B[component] / self.B_linear_mixed *
+                    (eos_root - 1) - math.log(eos_root - self.B_linear_mixed)+ 
+                    (self.mixed_A / (2 * math.sqrt(2) * self.B_linear_mixed)) * 
+                    ((self.all_params_B[component] / self.B_linear_mixed) - (2/self.mixed_A) * sum_zi_Ai) * 
+                    math.log((eos_root + (1 - math.sqrt(2))*self.B_linear_mixed)/(eos_root - (1 - math.sqrt(2))*self.B_linear_mixed)))
         ...
 
 
@@ -224,6 +249,6 @@ if __name__ == '__main__':
     print(eos.all_params_A)
     print(eos.all_params_B)
     print(eos.B_linear_mixed)
-    print(eos.calc_mixed_A())
-    print(eos.calc_cubic_eos_numpy())
-    print(eos.calc_cubic_eos_cardano())
+    # print(eos.calc_mixed_A())
+    # print(eos.calc_cubic_eos_numpy())
+    # print(eos.calc_cubic_eos_cardano())
