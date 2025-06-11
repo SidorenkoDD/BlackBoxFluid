@@ -14,9 +14,9 @@ class EOS_PR:
         param: p - давление, бар
         param: t - температура, С
         '''
-
+        # Читаем .yaml файл с данными по компонентам
         try:
-            # Читаем .yaml файл с данными по компонентам
+            
             with open('code/db.yaml', 'r') as db_file:
                 self.db = yaml.safe_load(db_file)
             logger.log.info('Данные компонент из .yaml прочитаны успешно') 
@@ -70,7 +70,6 @@ class EOS_PR:
         logger.log.info('Параметры А и В УРС рассчитаны для всех компонент')
 
         # Параметр В linear mixed
-
         try:
             self.B_linear_mixed = self.calc_linear_mixed_B()
             logger.log.info('Взвешенный параметр В рассчитан для УРС')
@@ -96,9 +95,15 @@ class EOS_PR:
 
         # Расчет летучести для всех компонент
         try:
-            self.fugacity_by_components = {}
-            for component in self.zi.keys():
-                self.fugacity_by_components[component] = self.calc_fugacity_for_component(component, self.real_roots_eos[0])
+            self.fugacity_by_roots = {}
+            for root in self.real_roots_eos:
+                if root > 0:
+                    fugacity_by_components = {}
+                    for component in self.zi.keys():
+                        fugacity_by_components[component] = self.calc_fugacity_for_component(component, root)
+                    self.fugacity_by_roots[root] = fugacity_by_components
+                else:
+                    continue
 
         except Exception as e:
             logger.log.error('Расчет летучести для компонентов не проведен')
@@ -256,15 +261,17 @@ class EOS_PR:
         return math.pow(math.e, ln_fi_i)
 
 
+    def calc_gibbs_energy(self):
+        pass
 
 if __name__ == '__main__':
-    eos = EOS_PR({'C1': 80, 'C2':10, 'C3': 10}, 100, 100)
+    eos = EOS_PR({'C1': 5, 'C2':10, 'C3': 85}, 100, 100)
     print(eos.all_params_a)
     print(eos.all_params_b)
     print(eos.all_params_A)
     print(eos.all_params_B)
     print(eos.B_linear_mixed)
-    print(eos.fugacity_by_components)
+    print(eos.fugacity_by_roots)
     # print(eos.calc_mixed_A())
     # print(eos.calc_cubic_eos_numpy())
     # print(eos.calc_cubic_eos_cardano())
