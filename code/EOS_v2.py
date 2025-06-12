@@ -121,6 +121,13 @@ class EOS_PR:
             logger.log.error('Расчет энергии Гиббса не проведен')
 
 
+        # Выбор корня УРС по наименьшей энергии Гиббса
+        try:
+            self.choosen_eos_root = self.choose_eos_root_by_gibbs_energy()
+
+        except Exception as e:
+            logger.log.error('Корень по наименьшей энергии Гиббса не выбран', e)
+
     # Метод  расчета параметра а для компоненты
     def calc_a(self, component, omega_a = 0.45724):
         '''

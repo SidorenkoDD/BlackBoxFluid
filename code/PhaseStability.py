@@ -38,7 +38,7 @@ class PhaseStability:
 
         # Расчет Xi_Yi
         try:
-            self.Yi_Xi = self.calc_Yi_v_and_Xi_l()
+            self.Yi_Xi = self.calc_Yi_v_and_Xi_l(zi= self.zi, k_vals= self.initial_k_values)
 
         except Exception as e:
             logger.log.error('Не удалось рассчитать Yi Xi', e)
@@ -46,7 +46,7 @@ class PhaseStability:
 
         # Расчет суммы мольных долей
         try:
-            self.sum_mole_fractions = self.summerize_mole_fractions()
+            self.sum_mole_fractions = self.summerize_mole_fractions(Yi_Xi= self.Yi_Xi)
 
         except Exception as e:
             logger.log.error('Расчет суммы мольных долей жидкой и газовой фазы не проведен', e)
@@ -54,7 +54,7 @@ class PhaseStability:
 
         # Расчет нормализованных мольных долей в жидкости и в газе
         try:
-            self.normalized_mole_fractions = self.normalize_mole_fraction()
+            self.normalized_mole_fractions = self.normalize_mole_fraction(self.zi, self.Yi_Xi, self.sum_mole_fractions)
 
         except Exception as e:
             logger.log.error('Расчет нормализованных мольных долей не проведен', e)
@@ -69,34 +69,34 @@ class PhaseStability:
 
     # Метод для расчета Yi_v и Xi_l
     ##TODO: в чем разница между К_vapour и K_liquid?
-    def calc_Yi_v_and_Xi_l(self):
+    def calc_Yi_v_and_Xi_l(self, zi:dict, k_vals):
         Yi_and_Xi = {}
         vapour = {}
         liquid = {}
-        for component in list(self.zi.keys()):
-            vapour[component] = self.zi[component] / 100 * self.initial_k_values[component]
-            liquid[component] = self.zi[component] / (100 * self.initial_k_values[component])
+        for component in list(zi.keys()):
+            vapour[component] = self.zi[component] / 100 * k_vals[component]
+            liquid[component] = self.zi[component] / (100 * k_vals[component])
         Yi_and_Xi['vapour'] = vapour
         Yi_and_Xi['liquid'] = liquid
         return  Yi_and_Xi
 
     # метод расчета суммы мольных долей
-    def summerize_mole_fractions(self):
-        sum_mole_fractions = {'vapour': sum(list(self.Yi_Xi['vapour'].values())),
-                              'liquid': sum(list(self.Yi_Xi['liquid'].values()))}
+    def summerize_mole_fractions(self, Yi_Xi):
+        sum_mole_fractions = {'vapour': sum(list(Yi_Xi['vapour'].values())),
+                              'liquid': sum(list(Yi_Xi['liquid'].values()))}
         return sum_mole_fractions
 
 
     # Метод для нормализации мольных долей
-    def normalize_mole_fraction(self):
+    def normalize_mole_fraction(self, zi, Yi_Xi, sum_mole_fractions):
         normalized_mole_fractions = {}
         normalized_vapour_fractions = {}
         normalized_liquid_fractions = {}
-        for component in list(self.zi.keys()):
-            normalized_vapour_fractions[component] = round(self.Yi_Xi['vapour'][component] / self.sum_mole_fractions['vapour'] * 100, 3)
+        for component in list(zi.keys()):
+            normalized_vapour_fractions[component] = round(Yi_Xi['vapour'][component] / sum_mole_fractions['vapour'] * 100, 3)
 
-        for component in list(self.zi.keys()):
-            normalized_liquid_fractions[component] = round(self.Yi_Xi['liquid'][component] / self.sum_mole_fractions['liquid'] * 100, 3)
+        for component in list(zi.keys()):
+            normalized_liquid_fractions[component] = round(Yi_Xi['liquid'][component] / sum_mole_fractions['liquid'] * 100, 3)
 
         normalized_mole_fractions['vapour'] = normalized_vapour_fractions
         normalized_mole_fractions['liquid'] = normalized_liquid_fractions
@@ -105,10 +105,18 @@ class PhaseStability:
 
     def analyse_stability_pipeline(self):
         eos_for_liquid = EOS_PR(self.normalized_mole_fractions['liquid'], self.p, self.t)
-        print(f'eos_for_liq: {eos_for_liquid.normalized_gibbs_energy}')
+        print(f'eos_for_liq: {eos_for_liquid.fugacity_by_roots}')
         eos_for_vapour = EOS_PR(self.normalized_mole_fractions['vapour'], self.p, self.t)
-        print(f'eos_for_liq: {eos_for_vapour.normalized_gibbs_energy}')
+        print(f'eos_for_vap: {eos_for_vapour.fugacity_by_roots}')
+        print(f'choosen_root: {eos_for_vapour.choosen_eos_root}')
+        
+        ri_v = []
+        ri_l = []
 
+        for component in eos_for_vapour.fugacity_by_roots[eos_for_vapour.choosen_eos_root]:
+            ri_v.append(self.initial_eos_solve.fugacity_by_roots[self.initial_eos_solve.choosen_eos_root][component] / 
+                        eos_for_vapour.fugacity_by_roots[eos_for_vapour.choosen_eos_root][component])
+            
 
 
 if __name__ == '__main__':
