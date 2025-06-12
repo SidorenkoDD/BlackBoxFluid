@@ -104,16 +104,18 @@ class EOS_PR:
                     self.fugacity_by_roots[root] = fugacity_by_components
                 else:
                     pass
+        
         except Exception as e:
             logger.log.error('Расчет летучести для компонентов не проведен', e)
 
         # Расчет приведенной энергии Гиббса
-
         try:
             self.normalized_gibbs_energy = self.calc_normalized_gibbs_energy()
 
         except Exception as e:
             logger.log.error('Расчет энергии Гиббса не проведен')
+
+
 
     # Метод  расчета параметра а для компоненты
     def calc_a(self, component, omega_a = 0.45724):
@@ -306,10 +308,11 @@ class EOS_PR:
         min_gibbs_energy = min(self.normalized_gibbs_energy.values())
         return [k for k, v in self.normalized_gibbs_energy.items() if v == min_gibbs_energy][0]
     
+    # Метод для расчета начальных констант равновесия 
     def calc_k_initial(self, p_crit_i, t_crit_i, acentric_factor_i):
         return math.pow(math.e, (5.37*(1+acentric_factor_i)*(1-(t_crit_i/self.t)))) / (self.p/p_crit_i)
     
-    
+
 
 
     def analyse_stability_pipeline(self):
