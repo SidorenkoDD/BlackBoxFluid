@@ -103,13 +103,12 @@ class EOS_PR:
         try:
             self.fugacity_by_roots = {}
             for root in self.real_roots_eos:
-                if root > 0:
-                    fugacity_by_components = {}
-                    for component in self.zi.keys():
-                        fugacity_by_components[component] = self.calc_fugacity_for_component_PR(component, root) #* self.zi[component] /100 * self.p
-                    self.fugacity_by_roots[root] = fugacity_by_components
-                else:
-                    pass
+
+                fugacity_by_components = {}
+                for component in self.zi.keys():
+                    fugacity_by_components[component] = self.calc_fugacity_for_component_PR(component, root) #* self.zi[component] /100 * self.p
+                self.fugacity_by_roots[root] = fugacity_by_components
+
         
         except Exception as e:
             logger.log.error('Расчет летучести для компонентов не проведен', e)
@@ -270,11 +269,13 @@ class EOS_PR:
         sum_zi_Ai = sum(zi_Ai)
 
         ln_fi_i = ((self.all_params_B[component] / self.B_linear_mixed) * (eos_root - 1) -
-                    (math.log(eos_root - self.B_linear_mixed)) + 
-                    (self.mixed_A / (2 * math.sqrt(2) * self.B_linear_mixed)) * 
-                    ((self.all_params_B[component] / self.B_linear_mixed) - (2/self.mixed_A) * sum_zi_Ai) * 
-                    math.log((eos_root + ((1 + math.sqrt(2))* self.B_linear_mixed))/(eos_root - ((1 - math.sqrt(2))* self.B_linear_mixed))))
+                        (math.log(eos_root - self.B_linear_mixed)) + 
+                        (self.mixed_A / (2 * math.sqrt(2) * self.B_linear_mixed)) * 
+                        ((self.all_params_B[component] / self.B_linear_mixed) - (2/self.mixed_A) * sum_zi_Ai) * 
+                        math.log((eos_root + ((1 + math.sqrt(2))* self.B_linear_mixed))/(eos_root - ((1 - math.sqrt(2))* self.B_linear_mixed))))
 
+
+        
         return math.e ** ln_fi_i
     
     def calc_fugacity_for_component_RK(self, component, eos_root):
@@ -284,15 +285,16 @@ class EOS_PR:
                              (1 - self.db['bip'][component][comp]) * 
                              math.sqrt(self.all_params_A[component] * self.all_params_A[comp]))
         sum_zi_Ai = sum(zi_Ai)
-
-        ln_fi_i = ((self.all_params_B[component] / self.B_linear_mixed) * (eos_root - 1) -
-                    (math.log(eos_root - self.B_linear_mixed)) + 
-                    (self.mixed_A / (self.B_linear_mixed)) * 
-                    ((self.all_params_B[component] / self.B_linear_mixed) - (2/self.mixed_A) * sum_zi_Ai) * 
-                    math.log(1 + (self.B_linear_mixed/eos_root)))
-        print(f'ln_fi: {ln_fi_i}')
-        print(f'fi: {math.pow(math.e, ln_fi_i)}')
-        return math.pow(math.e, ln_fi_i)
+        if eos_root > 0:
+            ln_fi_i = ((self.all_params_B[component] / self.B_linear_mixed) * (eos_root - 1) -
+                        (math.log(eos_root - self.B_linear_mixed)) + 
+                        (self.mixed_A / (self.B_linear_mixed)) * 
+                        ((self.all_params_B[component] / self.B_linear_mixed) - (2/self.mixed_A) * sum_zi_Ai) * 
+                        math.log(1 + (self.B_linear_mixed/eos_root)))
+        
+            return math.pow(math.e, ln_fi_i)
+        else:
+            return 0
 
 
     def calc_normalized_gibbs_energy(self):
@@ -301,8 +303,7 @@ class EOS_PR:
             gibbs_energy_by_roots = []
             for component in self.fugacity_by_roots[root].keys():
                 gibbs_energy_by_roots.append(self.zi[component]/100 * math.log(self.fugacity_by_roots[root][component]))
-            
-            normalized_gibbs_energy[root] = sum(gibbs_energy_by_roots)
+                normalized_gibbs_energy[root] = sum(gibbs_energy_by_roots)
 
         return normalized_gibbs_energy 
     
@@ -317,10 +318,11 @@ class EOS_PR:
     
 
 if __name__ == '__main__':
-    eos = EOS_PR({ 'C1': 20, 'C2':10, 'C3':70}, 1, 20)
+    eos = EOS_PR({'C1':100}, 100, 90)
 
     print(f'eos.fugacity_by_roots: {eos.fugacity_by_roots}')
     print('===')
+
     print(f'eos.normalized_gibbs_energy {eos.normalized_gibbs_energy}')
     print(eos.choose_eos_root_by_gibbs_energy())
 

@@ -93,10 +93,10 @@ class PhaseStability:
         normalized_vapour_fractions = {}
         normalized_liquid_fractions = {}
         for component in list(self.zi.keys()):
-            normalized_vapour_fractions[component] = self.Yi_Xi['vapour'][component] / self.sum_mole_fractions['vapour']
+            normalized_vapour_fractions[component] = round(self.Yi_Xi['vapour'][component] / self.sum_mole_fractions['vapour'] * 100, 3)
 
         for component in list(self.zi.keys()):
-            normalized_liquid_fractions[component] = self.Yi_Xi['liquid'][component] / self.sum_mole_fractions['liquid']
+            normalized_liquid_fractions[component] = round(self.Yi_Xi['liquid'][component] / self.sum_mole_fractions['liquid'] * 100, 3)
 
         normalized_mole_fractions['vapour'] = normalized_vapour_fractions
         normalized_mole_fractions['liquid'] = normalized_liquid_fractions
@@ -105,12 +105,17 @@ class PhaseStability:
 
     def analyse_stability_pipeline(self):
         eos_for_liquid = EOS_PR(self.normalized_mole_fractions['liquid'], self.p, self.t)
+        print(f'eos_for_liq: {eos_for_liquid.normalized_gibbs_energy}')
         eos_for_vapour = EOS_PR(self.normalized_mole_fractions['vapour'], self.p, self.t)
+        print(f'eos_for_liq: {eos_for_vapour.normalized_gibbs_energy}')
 
 
 
 if __name__ == '__main__':
-    phase_stability = PhaseStability({'C1':20,'C2':10, 'C3':70}, p= 1, t=20)
-    print(phase_stability.normalized_mole_fractions)
-    #phase_stability.analyse_stability_pipeline()
+    phase_stability = PhaseStability({'C1':100}, p= 100, t=80)
+    print(f'init_k_vals: {phase_stability.initial_k_values}')
+    print(f'Yi_Xi: {phase_stability.Yi_Xi}')
+    print(f'sum_mole_fractions: {phase_stability.sum_mole_fractions}')
+    print(f'norm_mole_fractions: {phase_stability.normalized_mole_fractions}')
+    phase_stability.analyse_stability_pipeline()
 
