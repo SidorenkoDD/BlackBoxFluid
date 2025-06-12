@@ -103,20 +103,57 @@ class PhaseStability:
 
         return normalized_mole_fractions
 
+
+
     def analyse_stability_pipeline(self):
+
+        # экземпляр класса УРС, в который передается состав ждикой фазы для первой ит
         eos_for_liquid = EOS_PR(self.normalized_mole_fractions['liquid'], self.p, self.t)
-        print(f'eos_for_liq: {eos_for_liquid.fugacity_by_roots}')
+ 
         eos_for_vapour = EOS_PR(self.normalized_mole_fractions['vapour'], self.p, self.t)
-        print(f'eos_for_vap: {eos_for_vapour.fugacity_by_roots}')
-        print(f'choosen_root: {eos_for_vapour.choosen_eos_root}')
+
         
-        ri_v = []
-        ri_l = []
+        ri_vapour = {}
+        ri_liquid = {}
 
         for component in eos_for_vapour.fugacity_by_roots[eos_for_vapour.choosen_eos_root]:
-            ri_v.append(self.initial_eos_solve.fugacity_by_roots[self.initial_eos_solve.choosen_eos_root][component] / 
-                        eos_for_vapour.fugacity_by_roots[eos_for_vapour.choosen_eos_root][component])
+            ri_vapour[component] = (self.initial_eos_solve.fugacity_by_roots[self.initial_eos_solve.choosen_eos_root][component] / 
+                        (eos_for_vapour.fugacity_by_roots[eos_for_vapour.choosen_eos_root][component]) * self.sum_mole_fractions['vapour'])
+        
+        for component in eos_for_liquid.fugacity_by_roots[eos_for_liquid.choosen_eos_root]:
+            ri_liquid[component] = (eos_for_vapour.fugacity_by_roots[eos_for_vapour.choosen_eos_root][component] * self.sum_mole_fractions['liquid'] / 
+                             self.initial_eos_solve.fugacity_by_roots[self.initial_eos_solve.choosen_eos_root][component] )
             
+        epsilon = math.pow(10, -12)
+
+
+        ri_vapour_for_convergence = []
+        ri_liquid_for_convergence = []
+        for i in ri_vapour.values():
+            ri_vapour_for_convergence.append(math.pow((i-1),2))
+        for i in ri_liquid.values():
+            ri_liquid_for_convergence.append(math.pow((i-1),2))
+
+
+        if (sum(ri_vapour_for_convergence) < epsilon) and (sum(ri_liquid_for_convergence) < epsilon):
+            ki_new =    ...         
+
+        print('Ri:',ri_liquid, ri_vapour)
+
+
+    def calc_ri(self, eos):
+        ...
+
+    def calc_convergence(self):
+        ...
+
+    def update_ki(self):
+        ...
+
+    def stability_analysis(self):
+        ...
+
+    
 
 
 if __name__ == '__main__':
