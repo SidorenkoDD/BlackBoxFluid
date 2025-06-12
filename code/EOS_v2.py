@@ -29,10 +29,14 @@ class EOS_PR:
         self.zi = zi
         if sum(list(self.zi.values())) != 100:
             logger.log.fatal('Сумма компонентов не равна 100')
-            raise ValueError
+            #raise ValueError
         else:
             logger.log.info('Сумма компонентов равна 100')
+        
+        # z = {k: v for k, v in self.zi.items() if v >= 0.001}
+        # self.zi = z
 
+        
 
         if len(self.zi.keys()) > 1:
             logger.log.info('Число компонент больше 1')
@@ -80,12 +84,14 @@ class EOS_PR:
         # Параметр А quad mixed
         try:
             self.mixed_A = self.calc_mixed_A()
-
+            logger.log.info('Взвешенный параметр А расчитан')
+        
         except Exception as e:
-            logger.log.error('Mixed A не рассчитан')
+            logger.log.error('Взвешенный параметр A не рассчитан')
 
-
-        # Решение УРС по Кардано
+         # Решение УРС по Кардано
+        
+        # Определение действительных корней УРС
         try:
             self.real_roots_eos = self.calc_cubic_eos_cardano()[0]
             logger.log.info(f'УРС решено, получен {len(self.real_roots_eos)} действительный корень: {self.real_roots_eos}')
@@ -114,43 +120,6 @@ class EOS_PR:
 
         except Exception as e:
             logger.log.error('Расчет энергии Гиббса не проведен')
-
-        # Расчет начальных констант равновесия
-        try:
-            self.initial_k_values = {}
-            for component in list(self.zi.keys()):
-                self.initial_k_values[component] = (self.calc_k_initial(p_crit_i = self.db['critical_pressure'][component],
-                                                                 t_crit_i = self.db['critical_temperature'][component],
-                                                                 acentric_factor_i= self.db['acentric_factor'][component]))
-            
-        except Exception as e:
-            logger.log.error('Начальные константы равновесия не рассчитаны', e)
-
-
-        # Расчет Xi_Yi
-        try:
-            self.Yi_Xi = self.calc_Yi_v_and_Xi_l()
-
-        except Exception as e:
-            logger.log.error('Не удалось рассчитать Yi Xi', e)
-
-
-        # Расчет суммы мольных долей
-        try:
-            self.sum_mole_fractions = self.summerize_mole_fractions()
-
-        except Exception as e:
-            logger.log.error('Расчет суммы мольных долей жидкой и газовой фазы не проведен', e)
-
-
-        # Расчет нормализованных мольных долей в жидкости и в газе
-        try:
-            self.normalized_mole_fractions = self.normalize_mole_fraction()
-
-        except Exception as e:
-            logger.log.error('Расчет нормализованных мольных долей не проведен', e)
-
-
 
 
     # Метод  расчета параметра а для компоненты
@@ -192,26 +161,26 @@ class EOS_PR:
         return self.calc_b(component) * self.p/ (8.314 * self.t)
     
     # Метод расчета параметра А для УРС
-    def calc_mixed_A(self, zi:dict, all_params_A:dict):
-        if len(list(zi.keys())) == 1:
-            return list(all_params_A.values())[0]
+    def calc_mixed_A(self):
+        if len(list(self.zi.keys())) == 1:
+            return list(self.all_params_A.values())[0]
         
         else:
             a_mixed = []
-            second_components = list(zi.keys())
-            for main_component in zi.keys():
+            second_components = list(self.zi.keys())
+            for main_component in self.zi.keys():
                 for second_component in [x for x in second_components if x != main_component]:
-                    a_mixed.append(zi[main_component]/100 * zi[second_component]/100 * math.sqrt(all_params_A[main_component] * all_params_A[second_component]) * (1 - self.db['bip'][main_component][second_component]))
+                    a_mixed.append(self.zi[main_component]/100 * self.zi[second_component]/100 * math.sqrt(self.all_params_A[main_component] * self.all_params_A[second_component]) * (1 - self.db['bip'][main_component][second_component]))
                 second_components.remove(main_component)
             return sum(a_mixed)
 
 
     # Метод расчета взвешенного параметра В для УРС
     ##TODO: нужно переделать логику: использовать то, что сейчас все расчетные параметры стали храниться в словарях
-    def calc_linear_mixed_B(self, zi, all_params_B:dict):
+    def calc_linear_mixed_B(self):
         linear_mixed_B = []
-        for i, b in enumerate(list(all_params_B.values())):
-            linear_mixed_B.append(b * list(zi.values())[i]/ 100)
+        for i, b in enumerate(list(self.all_params_B.values())):
+            linear_mixed_B.append(b * list(self.zi.values())[i]/ 100)
             return sum(linear_mixed_B)
     
     # Метод расчета УРС через numpy
@@ -225,11 +194,11 @@ class EOS_PR:
         return roots
     
     # Метод расчета УРС по Кардано
-    def calc_cubic_eos_cardano(self, mixed_A, B_linear_mixed):
+    def calc_cubic_eos_cardano(self):
         a = 1
         b = -(1-self.B_linear_mixed)
-        c = (mixed_A - 3 * math.pow(B_linear_mixed, 2) - 2* B_linear_mixed)
-        d = -(mixed_A * B_linear_mixed - math.pow(B_linear_mixed, 2) - math.pow(B_linear_mixed, 3))
+        c = (self.mixed_A - 3 * math.pow(self.B_linear_mixed, 2) - 2* self.B_linear_mixed)
+        d = -(self.mixed_A * self.B_linear_mixed - math.pow(self.B_linear_mixed, 2) - math.pow(self.B_linear_mixed, 3))
         
         # Приводим уравнение к виду x³ + px² + qx + r = 0
         p = b / a
@@ -306,7 +275,7 @@ class EOS_PR:
                     ((self.all_params_B[component] / self.B_linear_mixed) - (2/self.mixed_A) * sum_zi_Ai) * 
                     math.log((eos_root + ((1 + math.sqrt(2))* self.B_linear_mixed))/(eos_root - ((1 - math.sqrt(2))* self.B_linear_mixed))))
 
-        return math.pow(math.e, ln_fi_i)
+        return math.e ** ln_fi_i
     
     def calc_fugacity_for_component_RK(self, component, eos_root):
         zi_Ai = []
@@ -345,49 +314,7 @@ class EOS_PR:
         min_gibbs_energy = min(self.normalized_gibbs_energy.values())
         return [k for k, v in self.normalized_gibbs_energy.items() if v == min_gibbs_energy][0]
     
-    # Метод для расчета начальных констант равновесия 
-    def calc_k_initial(self, p_crit_i, t_crit_i, acentric_factor_i):
-        return math.pow(math.e, (5.37*(1+acentric_factor_i)*(1-(t_crit_i/self.t)))) / (self.p/p_crit_i)
     
-
-    # Метод для расчета Yi_v и Xi_l
-    ##TODO: в чем разница между К_vapour и K_liquid?
-    def calc_Yi_v_and_Xi_l(self):
-        Yi_and_Xi = {}
-        vapour = {}
-        liquid = {}
-        for component in list(self.zi.keys()):
-            vapour[component] = self.zi[component] / 100 * self.initial_k_values[component]
-            liquid[component] = self.zi[component] / (100 * self.initial_k_values[component])
-        Yi_and_Xi['vapour'] = vapour
-        Yi_and_Xi['liquid'] = liquid
-        return  Yi_and_Xi
-
-    # метод расчета суммы мольных долей
-    def summerize_mole_fractions(self):
-        sum_mole_fractions = {'vapour': sum(list(self.Yi_Xi['vapour'].values())),
-                              'liquid': sum(list(self.Yi_Xi['liquid'].values()))}
-        return sum_mole_fractions
-
-
-    # Метод для нормализации мольных долей
-    def normalize_mole_fraction(self):
-        normalized_mole_fractions = {}
-        normalized_vapour_fractions = {}
-        normalized_liquid_fractions = {}
-        for component in list(self.zi.keys()):
-            normalized_vapour_fractions[component] = self.Yi_Xi['vapour'][component] / self.sum_mole_fractions['vapour']
-
-        for component in list(self.zi.keys()):
-            normalized_liquid_fractions[component] = self.Yi_Xi['liquid'][component] / self.sum_mole_fractions['liquid']
-
-        normalized_mole_fractions['vapour'] = normalized_vapour_fractions
-        normalized_mole_fractions['liquid'] = normalized_liquid_fractions
-
-        return normalized_mole_fractions
-
-    def analyse_stability_pipeline(self):
-        ...
 
 if __name__ == '__main__':
     eos = EOS_PR({ 'C1': 20, 'C2':10, 'C3':70}, 1, 20)
@@ -396,7 +323,4 @@ if __name__ == '__main__':
     print('===')
     print(f'eos.normalized_gibbs_energy {eos.normalized_gibbs_energy}')
     print(eos.choose_eos_root_by_gibbs_energy())
-    print(f'initial_k_values: {eos.initial_k_values}')
-    print(f'Yi_and_Xi: {eos.Yi_Xi}')
-    print(f'sum_mole_frac: {eos.sum_mole_fractions}')
-    print(f'normalized_mole_fractions: {eos.normalized_mole_fractions}')
+
