@@ -115,6 +115,42 @@ class EOS_PR:
         except Exception as e:
             logger.log.error('Расчет энергии Гиббса не проведен')
 
+        # Расчет начальных констант равновесия
+        try:
+            self.initial_k_values = {}
+            for component in list(self.zi.keys()):
+                self.initial_k_values[component] = (self.calc_k_initial(p_crit_i = self.db['critical_pressure'][component],
+                                                                 t_crit_i = self.db['critical_temperature'][component],
+                                                                 acentric_factor_i= self.db['acentric_factor'][component]))
+            
+        except Exception as e:
+            logger.log.error('Начальные константы равновесия не рассчитаны', e)
+
+
+        # Расчет Xi_Yi
+        try:
+            self.Yi_Xi = self.calc_Yi_v_and_Xi_l()
+
+        except Exception as e:
+            logger.log.error('Не удалось рассчитать Yi Xi', e)
+
+
+        # Расчет суммы мольных долей
+        try:
+            self.sum_mole_fractions = self.summerize_mole_fractions()
+
+        except Exception as e:
+            logger.log.error('Расчет суммы мольных долей жидкой и газовой фазы не проведен', e)
+
+
+        # Расчет нормализованных мольных долей в жидкости и в газе
+        try:
+            self.normalized_mole_fractions = self.normalize_mole_fraction()
+
+        except Exception as e:
+            logger.log.error('Расчет нормализованных мольных долей не проведен', e)
+
+
 
 
     # Метод  расчета параметра а для компоненты
@@ -313,7 +349,41 @@ class EOS_PR:
         return math.pow(math.e, (5.37*(1+acentric_factor_i)*(1-(t_crit_i/self.t)))) / (self.p/p_crit_i)
     
 
+    # Метод для расчета Yi_v и Xi_l
+    ##TODO: в чем разница между К_vapour и K_liquid?
+    def calc_Yi_v_and_Xi_l(self):
+        Yi_and_Xi = {}
+        vapour = {}
+        liquid = {}
+        for component in list(self.zi.keys()):
+            vapour[component] = self.zi[component] / 100 * self.initial_k_values[component]
+            liquid[component] = self.zi[component] / (100 * self.initial_k_values[component])
+        Yi_and_Xi['vapour'] = vapour
+        Yi_and_Xi['liquid'] = liquid
+        return  Yi_and_Xi
 
+    # метод расчета суммы мольных долей
+    def summerize_mole_fractions(self):
+        sum_mole_fractions = {'vapour': sum(list(self.Yi_Xi['vapour'].values())),
+                              'liquid': sum(list(self.Yi_Xi['liquid'].values()))}
+        return sum_mole_fractions
+
+
+    # Метод для нормализации мольных долей
+    def normalize_mole_fraction(self):
+        normalized_mole_fractions = {}
+        normalized_vapour_fractions = {}
+        normalized_liquid_fractions = {}
+        for component in list(self.zi.keys()):
+            normalized_vapour_fractions[component] = self.Yi_Xi['vapour'][component] / self.sum_mole_fractions['vapour']
+
+        for component in list(self.zi.keys()):
+            normalized_liquid_fractions[component] = self.Yi_Xi['liquid'][component] / self.sum_mole_fractions['liquid']
+
+        normalized_mole_fractions['vapour'] = normalized_vapour_fractions
+        normalized_mole_fractions['liquid'] = normalized_liquid_fractions
+
+        return normalized_mole_fractions
 
     def analyse_stability_pipeline(self):
         ...
@@ -325,3 +395,7 @@ if __name__ == '__main__':
     print('===')
     print(f'eos.normalized_gibbs_energy {eos.normalized_gibbs_energy}')
     print(eos.choose_eos_root_by_gibbs_energy())
+    print(f'initial_k_values: {eos.initial_k_values}')
+    print(f'Yi_and_Xi: {eos.Yi_Xi}')
+    print(f'sum_mole_frac: {eos.sum_mole_fractions}')
+    print(f'normalized_mole_fractions: {eos.normalized_mole_fractions}')
