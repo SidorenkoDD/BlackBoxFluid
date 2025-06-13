@@ -26,19 +26,26 @@ class PhaseStability:
 
     # Расчет начальных констант равновесия
         try:
-            self.initial_k_values = {}
+            self.k_values = {}
+            k_values_liquid = {}
+            k_values_vapour = {}
             for component in list(self.zi.keys()):
-                self.initial_k_values[component] = (self.calc_k_initial(p_crit_i = self.db['critical_pressure'][component],
+                k_values_liquid[component] = (self.calc_k_initial(p_crit_i = self.db['critical_pressure'][component],
                                                                  t_crit_i = self.db['critical_temperature'][component],
                                                                  acentric_factor_i= self.db['acentric_factor'][component]))
-            
+                k_values_vapour[component] = (self.calc_k_initial(p_crit_i = self.db['critical_pressure'][component],
+                                                                 t_crit_i = self.db['critical_temperature'][component],
+                                                                 acentric_factor_i= self.db['acentric_factor'][component]))
+            self.k_values['vapour'] = k_values_vapour
+            self.k_values['liquid'] = k_values_liquid
+
         except Exception as e:
             logger.log.error('Начальные константы равновесия не рассчитаны', e)
 
 
         # Расчет Xi_Yi
         try:
-            self.Yi_Xi = self.calc_Yi_v_and_Xi_l(zi= self.zi, k_vals= self.initial_k_values)
+            self.Yi_Xi = self.calc_Yi_v_and_Xi_l(zi= self.zi, k_vals= self.k_values)
 
         except Exception as e:
             logger.log.error('Не удалось рассчитать Yi Xi', e)
@@ -60,6 +67,25 @@ class PhaseStability:
             logger.log.error('Расчет нормализованных мольных долей не проведен', e)
 
 
+        ## Первая итерация
+        # решение УРС
+        try:
+            self.eos_for_liquid_first_iter = EOS_PR(self.normalized_mole_fractions['liquid'], self.p, self.t)
+            self.eos_for_vapour_first_iter = EOS_PR(self.normalized_mole_fractions['vapour'], self.p, self.t)
+
+        except Exception as e:
+            logger.log.info('Не удалось инициализировать уравнения состояния', e)
+
+        ## расчет Ri
+        try:
+            self.ri_vapour = self.calc_ri_vapour(self.eos_for_vapour_first_iter)
+            self.ri_liquid = self.calc_ri_liquid(self.eos_for_liquid_first_iter)
+
+        except Exception as e:
+            logger.log.error('Не рассчитаны Ri жидкой и газовой фазы для  первой итерации', e)
+
+        # Расчет cходимости
+        self.convergence = self.check_convergence()
 
 
     # Метод для расчета начальных констант равновесия 
@@ -74,16 +100,18 @@ class PhaseStability:
         vapour = {}
         liquid = {}
         for component in list(zi.keys()):
-            vapour[component] = self.zi[component] / 100 * k_vals[component]
-            liquid[component] = self.zi[component] / (100 * k_vals[component])
+            vapour[component] = self.zi[component] / 100 * k_vals['vapour'][component]
+            liquid[component] = self.zi[component] / (100 * k_vals['liquid'][component])
         Yi_and_Xi['vapour'] = vapour
         Yi_and_Xi['liquid'] = liquid
-        return  Yi_and_Xi
+        self.Yi_and_Xi = Yi_and_Xi
+        return Yi_and_Xi
 
     # метод расчета суммы мольных долей
     def summerize_mole_fractions(self, Yi_Xi):
         sum_mole_fractions = {'vapour': sum(list(Yi_Xi['vapour'].values())),
                               'liquid': sum(list(Yi_Xi['liquid'].values()))}
+        self.sum_mole_fractions = sum_mole_fractions
         return sum_mole_fractions
 
 
@@ -100,67 +128,128 @@ class PhaseStability:
 
         normalized_mole_fractions['vapour'] = normalized_vapour_fractions
         normalized_mole_fractions['liquid'] = normalized_liquid_fractions
-
+        self.normalized_mole_fractions = normalized_mole_fractions
         return normalized_mole_fractions
 
 
-
-    def analyse_stability_pipeline(self):
-
-        # экземпляр класса УРС, в который передается состав ждикой фазы для первой ит
-        eos_for_liquid = EOS_PR(self.normalized_mole_fractions['liquid'], self.p, self.t)
- 
-        eos_for_vapour = EOS_PR(self.normalized_mole_fractions['vapour'], self.p, self.t)
-
-        
+    # метод  расчета Ri для газовой фазы
+    def calc_ri_vapour(self, eos):
         ri_vapour = {}
-        ri_liquid = {}
-
-        for component in eos_for_vapour.fugacity_by_roots[eos_for_vapour.choosen_eos_root]:
+        for component in eos.fugacity_by_roots[eos.choosen_eos_root]:
             ri_vapour[component] = (self.initial_eos_solve.fugacity_by_roots[self.initial_eos_solve.choosen_eos_root][component] / 
-                        (eos_for_vapour.fugacity_by_roots[eos_for_vapour.choosen_eos_root][component]) * self.sum_mole_fractions['vapour'])
-        
-        for component in eos_for_liquid.fugacity_by_roots[eos_for_liquid.choosen_eos_root]:
-            ri_liquid[component] = (eos_for_vapour.fugacity_by_roots[eos_for_vapour.choosen_eos_root][component] * self.sum_mole_fractions['liquid'] / 
-                             self.initial_eos_solve.fugacity_by_roots[self.initial_eos_solve.choosen_eos_root][component] )
-            
-        epsilon = math.pow(10, -12)
+                        (eos.fugacity_by_roots[eos.choosen_eos_root][component]) * self.sum_mole_fractions['vapour'])
+        self.ri_vapour = ri_vapour
+        return ri_vapour
+    
+    # Метод  расчета Ri для жидкой фазы
+    def calc_ri_liquid(self, eos):
+        ri_liquid = {}
+        for component in eos.fugacity_by_roots[eos.choosen_eos_root]:
+            ri_liquid[component] = (self.initial_eos_solve.fugacity_by_roots[self.initial_eos_solve.choosen_eos_root][component] / 
+                        (eos.fugacity_by_roots[eos.choosen_eos_root][component]) * self.sum_mole_fractions['liquid'])
+        self.ri_liquid = ri_liquid
+        return ri_liquid
 
-
+    # Метод  расчета сходимости
+    def check_convergence(self, epsilon = math.pow(10, -12)):
         ri_vapour_for_convergence = []
         ri_liquid_for_convergence = []
-        for i in ri_vapour.values():
+        for i in self.ri_vapour.values():
             ri_vapour_for_convergence.append(math.pow((i-1),2))
-        for i in ri_liquid.values():
+        for i in self.ri_liquid.values():
             ri_liquid_for_convergence.append(math.pow((i-1),2))
-
-
+        print(sum(ri_vapour_for_convergence))
+        print(sum(ri_liquid_for_convergence))
         if (sum(ri_vapour_for_convergence) < epsilon) and (sum(ri_liquid_for_convergence) < epsilon):
-            ki_new =    ...         
+            return True
+        else:
+            return False
 
-        print('Ri:',ri_liquid, ri_vapour)
+    def check_trivial_solution(self):
+        sum_ki_vapour = []
+        sum_ki_liquid = []
 
+        
 
-    def calc_ri(self, eos):
-        ...
+        for component in self.k_values['vapour']:
+            sum_ki_vapour.append(math.pow((math.log(self.k_values['vapour'][component])),2))
 
-    def calc_convergence(self):
-        ...
+        for component in self.k_values['vapour']:
+            sum_ki_liquid.append(math.pow((math.log(self.k_values['liquid'][component])), 2))
+        
+        if ((sum(sum_ki_vapour)) < math.pow(10, -4)) and ((sum(sum_ki_liquid)) < math.pow(10, -4)):
+            print('Оба условия тривиального решения выполнены')
+            return True
+        
+        elif ((sum(sum_ki_vapour)) < math.pow(10, -4)) or ((sum(sum_ki_liquid)) < math.pow(10, -4)):
+            print('Одно из условий тривиального решения выполнено')
+            return True
+        else:
+            print('Тривиальное решение не получено')
+            return False
+        
 
+    # Метод расчета новых Ki
     def update_ki(self):
-        ...
+        new_k_values = {}
+        k_vals_liquid = {}
+        k_vals_vapour = {}
+        for component in self.k_values['vapour']:
+            k_vals_vapour[component] = self.ri_vapour[component] * self.k_values['vapour'][component]
+        
+        for component in self.k_values['liquid']:
+            k_vals_liquid[component] = self.ri_liquid[component] * self.k_values['liquid'][component]
+
+
+        new_k_values['vapour'] = k_vals_vapour
+        new_k_values['liquid'] = k_vals_liquid
+
+        self.k_values = new_k_values
 
     def stability_analysis(self):
-        ...
+        iter = 0
+        while self.check_convergence() == False:
+            iter += 1
+            print('===')
+            print(iter)
+            print('===')
+            self.update_ki()
+            self.calc_Yi_v_and_Xi_l(self.zi, self.k_values)
+            self.summerize_mole_fractions(self.Yi_and_Xi)
+            self.normalize_mole_fraction(self.zi, self.Yi_and_Xi, self.sum_mole_fractions)
+
+            eos_liquid = EOS_PR(self.normalized_mole_fractions['liquid'], self.p, self.t)
+            eos_vapour = EOS_PR(self.normalized_mole_fractions['vapour'], self.p, self.t)
+
+            self.calc_ri_liquid(eos= eos_liquid)
+            self.calc_ri_vapour(eos = eos_vapour)
+            print(self.k_values)
+            self.check_convergence()
+            if self.check_trivial_solution():
+                break
+            else:
+                continue
+
+        
 
     
 
 
 if __name__ == '__main__':
-    phase_stability = PhaseStability({'C1':100}, p= 100, t=80)
-    print(f'init_k_vals: {phase_stability.initial_k_values}')
+    phase_stability = PhaseStability({'C1':100}, p= 60, t=60)
+    print(f'init_k_vals: {phase_stability.k_values}')
     print(f'Yi_Xi: {phase_stability.Yi_Xi}')
     print(f'sum_mole_fractions: {phase_stability.sum_mole_fractions}')
     print(f'norm_mole_fractions: {phase_stability.normalized_mole_fractions}')
-    phase_stability.analyse_stability_pipeline()
+    print(f'Ri_liquid {phase_stability.ri_liquid}')
+    print(f'Ri_vapour {phase_stability.ri_vapour}')
+    print(f'convergence: {phase_stability.convergence}')
+    print(f'new_k_vals: {phase_stability.update_ki()}')
+    print(f'new_k_vals: {phase_stability.k_values}')
+    phase_stability.stability_analysis()
+
+
+
+
+
 
