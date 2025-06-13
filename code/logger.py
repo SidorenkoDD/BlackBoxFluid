@@ -27,10 +27,10 @@ class LogManager:
     класс для логирования всех ошибок во всех модулях
     '''
 
-    def __init__(self,name):
+    def __init__(self,name, level = logging.INFO):
         # Настройка логгера
         self.log = logging.getLogger(name)
-        self.log.setLevel(logging.DEBUG)
+        self.log.setLevel(level)
 
         #TODO: разобраться с тем, как работает BasicConfig
 
@@ -55,14 +55,7 @@ class LogManager:
         logging.getLogger("lasio").setLevel(logging.WARNING)
         logging.getLogger("openpyxl").setLevel(logging.WARNING)
         logging.getLogger("pandas").setLevel(logging.WARNING)
-    
-    def emit(self, record):
-        msg = self.format(record)
-        self.log_stream.write(msg + "\n")
-        
-        # Обновляем содержимое в Streamlit
-        if hasattr(st.session_state, 'log_output'):
-            st.session_state.log_output = self.log_stream.getvalue()
+
 
 if __name__ == '__main__':
     lm = LogManager(__name__)
