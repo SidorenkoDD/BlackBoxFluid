@@ -27,7 +27,7 @@ class LogManager:
     класс для логирования всех ошибок во всех модулях
     '''
 
-    def __init__(self,name, level = logging.INFO):
+    def __init__(self,name, level = logging.DEBUG):
         # Настройка логгера
         self.log = logging.getLogger(name)
         self.log.setLevel(level)

@@ -1,2 +1,4 @@
 /literature
-/__pycache__
+
+*.pyc
+__pycache__/

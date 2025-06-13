@@ -2,7 +2,8 @@ import yaml
 import math as math
 import sympy as smp
 import numpy as np
-from Logger import LogManager
+
+from logger import LogManager
 
 logger = LogManager(__name__)
 
@@ -19,7 +20,7 @@ class EOS_PR:
             
             with open('code/db.yaml', 'r') as db_file:
                 self.db = yaml.safe_load(db_file)
-            logger.log.info('Данные компонент из .yaml прочитаны успешно') 
+            logger.log.debug('Данные компонент из .yaml прочитаны успешно') 
 
         except Exception as e:
             logger.log.fatal('Данные компонент не найдены!', e)
@@ -29,10 +30,14 @@ class EOS_PR:
         self.zi = zi
         if sum(list(self.zi.values())) != 100:
             logger.log.fatal('Сумма компонентов не равна 100')
-            raise ValueError
+            #raise ValueError
         else:
-            logger.log.info('Сумма компонентов равна 100')
+            logger.log.debug('Сумма компонентов равна 100')
+        
+        # z = {k: v for k, v in self.zi.items() if v >= 0.001}
+        # self.zi = z
 
+        
 
         if len(self.zi.keys()) > 1:
             logger.log.info('Число компонент больше 1')
@@ -40,11 +45,15 @@ class EOS_PR:
             logger.log.info('Для расчета передана однокомпонентная смесь')
 
 
-        # Давление для расчета
-        self.p = p * math.pow(10,5)
+        # Давление и температура для расчета
+        if __name__ == '__main':
+            self.p = p * math.pow(10,5)
+            self.t = t + 273.14
+        else:
+            self.p = p
+            self.t = t
 
-        # температура для расчета
-        self.t = t + 273.14
+
 
         # параметры а и b, рассчитанные для всего заданного компонентного состава
         try:
@@ -54,10 +63,10 @@ class EOS_PR:
                 self.all_params_a[key] = self.calc_a(component=key)
                 self.all_params_b[key] = self.calc_b(component=key)
             
-            logger.log.info('Параметры a и b УРС рассчитаны для всех компонент')
+            logger.log.debug('Параметры a и b УРС рассчитаны для всех компонент')
 
         except Exception as e:
-            logger.log.error('Параметры а и b УРС не рассчитаны!')
+            logger.log.error('Параметры а и b УРС не рассчитаны!', e)
 
 
         # Параметры А и В, рассчитанные для всего компонентного состава
@@ -67,12 +76,12 @@ class EOS_PR:
         for key in self.zi.keys():
             self.all_params_A[key] = self.calc_A(component=key)
             self.all_params_B[key] = self.calc_B(component=key)
-        logger.log.info('Параметры А и В УРС рассчитаны для всех компонент')
+        logger.log.debug('Параметры А и В УРС рассчитаны для всех компонент')
 
         # Параметр В linear mixed
         try:
             self.B_linear_mixed = self.calc_linear_mixed_B()
-            logger.log.info('Взвешенный параметр В рассчитан для УРС')
+            logger.log.debug('Взвешенный параметр В рассчитан для УРС')
         
         except Exception as e:
             logger.log.error('Взвешенный параметр В не рассчитан')
@@ -80,15 +89,18 @@ class EOS_PR:
         # Параметр А quad mixed
         try:
             self.mixed_A = self.calc_mixed_A()
-
+            logger.log.debug('Взвешенный параметр А расчитан')
+        
         except Exception as e:
-            logger.log.error('Mixed A не рассчитан')
+            logger.log.error('Взвешенный параметр A не рассчитан')
 
-
-        # Решение УРС по Кардано
+         # Решение УРС по Кардано
+        
+        # Определение действительных корней УРС
         try:
             self.real_roots_eos = self.calc_cubic_eos_cardano()[0]
-            logger.log.info(f'УРС решено, получен {len(self.real_roots_eos)} действительный корень: {self.real_roots_eos}')
+
+            logger.log.debug(f'УРС решено, получен {len(self.real_roots_eos)} действительный корень: {self.real_roots_eos}')
 
         except Exception as e:
             logger.log.error('УРС не решено')
@@ -97,13 +109,13 @@ class EOS_PR:
         try:
             self.fugacity_by_roots = {}
             for root in self.real_roots_eos:
-                if root > 0:
-                    fugacity_by_components = {}
-                    for component in self.zi.keys():
-                        fugacity_by_components[component] = self.calc_fugacity_for_component_PR(component, root) #* self.zi[component] /100 * self.p
-                    self.fugacity_by_roots[root] = fugacity_by_components
-                else:
-                    pass
+
+                fugacity_by_components = {}
+                for component in self.zi.keys():
+                    fugacity_by_components[component] = self.calc_fugacity_for_component_PR(component, root) #* self.zi[component] /100 * self.p
+                self.fugacity_by_roots[root] = fugacity_by_components
+            
+            logger.log.debug('Летучести для всех компонент расчитаны')
         
         except Exception as e:
             logger.log.error('Расчет летучести для компонентов не проведен', e)
@@ -111,47 +123,20 @@ class EOS_PR:
         # Расчет приведенной энергии Гиббса
         try:
             self.normalized_gibbs_energy = self.calc_normalized_gibbs_energy()
+            logger.log.debug('Приведенная энергия Гиббса расчитана')
 
         except Exception as e:
             logger.log.error('Расчет энергии Гиббса не проведен')
 
-        # Расчет начальных констант равновесия
-        try:
-            self.initial_k_values = {}
-            for component in list(self.zi.keys()):
-                self.initial_k_values[component] = (self.calc_k_initial(p_crit_i = self.db['critical_pressure'][component],
-                                                                 t_crit_i = self.db['critical_temperature'][component],
-                                                                 acentric_factor_i= self.db['acentric_factor'][component]))
-            
-        except Exception as e:
-            logger.log.error('Начальные константы равновесия не рассчитаны', e)
 
-
-        # Расчет Xi_Yi
+        # Выбор корня УРС по наименьшей энергии Гиббса
         try:
-            self.Yi_Xi = self.calc_Yi_v_and_Xi_l()
+            self.choosen_eos_root = self.choose_eos_root_by_gibbs_energy()
+            logger.log.debug('Выбран корень УРС по приведенной энергии гиббса')
+
 
         except Exception as e:
-            logger.log.error('Не удалось рассчитать Yi Xi', e)
-
-
-        # Расчет суммы мольных долей
-        try:
-            self.sum_mole_fractions = self.summerize_mole_fractions()
-
-        except Exception as e:
-            logger.log.error('Расчет суммы мольных долей жидкой и газовой фазы не проведен', e)
-
-
-        # Расчет нормализованных мольных долей в жидкости и в газе
-        try:
-            self.normalized_mole_fractions = self.normalize_mole_fraction()
-
-        except Exception as e:
-            logger.log.error('Расчет нормализованных мольных долей не проведен', e)
-
-
-
+            logger.log.error('Корень по наименьшей энергии Гиббса не выбран', e)
 
     # Метод  расчета параметра а для компоненты
     def calc_a(self, component, omega_a = 0.45724):
@@ -192,27 +177,30 @@ class EOS_PR:
         return self.calc_b(component) * self.p/ (8.314 * self.t)
     
     # Метод расчета параметра А для УРС
-    def calc_mixed_A(self, zi:dict, all_params_A:dict):
-        if len(list(zi.keys())) == 1:
-            return list(all_params_A.values())[0]
+    def calc_mixed_A(self):
+        if (len(list(self.zi.keys())) == 1) or ((len(list(self.zi.keys())) == 2) and (0 in list(self.zi.values()))) :
+            return list(self.all_params_A.values())[0]
         
         else:
             a_mixed = []
-            second_components = list(zi.keys())
-            for main_component in zi.keys():
+            second_components = list(self.zi.keys())
+            for main_component in self.zi.keys():
                 for second_component in [x for x in second_components if x != main_component]:
-                    a_mixed.append(zi[main_component]/100 * zi[second_component]/100 * math.sqrt(all_params_A[main_component] * all_params_A[second_component]) * (1 - self.db['bip'][main_component][second_component]))
+                    if (self.zi[main_component] != 0) and (self.zi[second_component] != 0):
+                        a_mixed.append(self.zi[main_component]/100 * self.zi[second_component]/100 * math.sqrt(self.all_params_A[main_component] * self.all_params_A[second_component]) * (1 - self.db['bip'][main_component][second_component]))
+                    else:
+                        a_mixed.append(0)
                 second_components.remove(main_component)
             return sum(a_mixed)
 
 
     # Метод расчета взвешенного параметра В для УРС
     ##TODO: нужно переделать логику: использовать то, что сейчас все расчетные параметры стали храниться в словарях
-    def calc_linear_mixed_B(self, zi, all_params_B:dict):
+    def calc_linear_mixed_B(self):
         linear_mixed_B = []
-        for i, b in enumerate(list(all_params_B.values())):
-            linear_mixed_B.append(b * list(zi.values())[i]/ 100)
-            return sum(linear_mixed_B)
+        for i, b in enumerate(list(self.all_params_B.values())):
+            linear_mixed_B.append(b * list(self.zi.values())[i]/ 100)
+        return sum(linear_mixed_B)
     
     # Метод расчета УРС через numpy
     def calc_cubic_eos_numpy(self):
@@ -225,11 +213,11 @@ class EOS_PR:
         return roots
     
     # Метод расчета УРС по Кардано
-    def calc_cubic_eos_cardano(self, mixed_A, B_linear_mixed):
+    def calc_cubic_eos_cardano(self):
         a = 1
         b = -(1-self.B_linear_mixed)
-        c = (mixed_A - 3 * math.pow(B_linear_mixed, 2) - 2* B_linear_mixed)
-        d = -(mixed_A * B_linear_mixed - math.pow(B_linear_mixed, 2) - math.pow(B_linear_mixed, 3))
+        c = (self.mixed_A - 3 * math.pow(self.B_linear_mixed, 2) - 2* self.B_linear_mixed)
+        d = -(self.mixed_A * self.B_linear_mixed - math.pow(self.B_linear_mixed, 2) - math.pow(self.B_linear_mixed, 3))
         
         # Приводим уравнение к виду x³ + px² + qx + r = 0
         p = b / a
@@ -300,13 +288,16 @@ class EOS_PR:
                              math.sqrt(self.all_params_A[component] * self.all_params_A[comp]))
         sum_zi_Ai = sum(zi_Ai)
 
-        ln_fi_i = ((self.all_params_B[component] / self.B_linear_mixed) * (eos_root - 1) -
-                    (math.log(eos_root - self.B_linear_mixed)) + 
-                    (self.mixed_A / (2 * math.sqrt(2) * self.B_linear_mixed)) * 
-                    ((self.all_params_B[component] / self.B_linear_mixed) - (2/self.mixed_A) * sum_zi_Ai) * 
-                    math.log((eos_root + ((1 + math.sqrt(2))* self.B_linear_mixed))/(eos_root - ((1 - math.sqrt(2))* self.B_linear_mixed))))
+        if (eos_root > 0) and (eos_root > self.B_linear_mixed):
+            ln_fi_i = ((self.all_params_B[component] / self.B_linear_mixed) * (eos_root - 1) -
+                            (math.log(eos_root - self.B_linear_mixed)) + 
+                            (self.mixed_A / (2 * math.sqrt(2) * self.B_linear_mixed)) * 
+                            ((self.all_params_B[component] / self.B_linear_mixed) - (2/self.mixed_A) * sum_zi_Ai) * 
+                            math.log((eos_root + ((1 + math.sqrt(2))* self.B_linear_mixed))/(eos_root - ((1 - math.sqrt(2))* self.B_linear_mixed))))
 
-        return math.pow(math.e, ln_fi_i)
+            return math.e ** ln_fi_i
+        else:
+            return 9999
     
     def calc_fugacity_for_component_RK(self, component, eos_root):
         zi_Ai = []
@@ -315,15 +306,16 @@ class EOS_PR:
                              (1 - self.db['bip'][component][comp]) * 
                              math.sqrt(self.all_params_A[component] * self.all_params_A[comp]))
         sum_zi_Ai = sum(zi_Ai)
-
-        ln_fi_i = ((self.all_params_B[component] / self.B_linear_mixed) * (eos_root - 1) -
-                    (math.log(eos_root - self.B_linear_mixed)) + 
-                    (self.mixed_A / (self.B_linear_mixed)) * 
-                    ((self.all_params_B[component] / self.B_linear_mixed) - (2/self.mixed_A) * sum_zi_Ai) * 
-                    math.log(1 + (self.B_linear_mixed/eos_root)))
-        print(f'ln_fi: {ln_fi_i}')
-        print(f'fi: {math.pow(math.e, ln_fi_i)}')
-        return math.pow(math.e, ln_fi_i)
+        if (eos_root > 0) and (eos_root > self.B_linear_mixed):
+            ln_fi_i = ((self.all_params_B[component] / self.B_linear_mixed) * (eos_root - 1) -
+                        (math.log(eos_root - self.B_linear_mixed)) + 
+                        (self.mixed_A / (self.B_linear_mixed)) * 
+                        ((self.all_params_B[component] / self.B_linear_mixed) - (2/self.mixed_A) * sum_zi_Ai) * 
+                        math.log(1 + (self.B_linear_mixed/eos_root)))
+        
+            return math.pow(math.e, ln_fi_i)
+        else:
+            return 0
 
 
     def calc_normalized_gibbs_energy(self):
@@ -332,8 +324,7 @@ class EOS_PR:
             gibbs_energy_by_roots = []
             for component in self.fugacity_by_roots[root].keys():
                 gibbs_energy_by_roots.append(self.zi[component]/100 * math.log(self.fugacity_by_roots[root][component]))
-            
-            normalized_gibbs_energy[root] = sum(gibbs_energy_by_roots)
+                normalized_gibbs_energy[root] = sum(gibbs_energy_by_roots)
 
         return normalized_gibbs_energy 
     
@@ -345,58 +336,15 @@ class EOS_PR:
         min_gibbs_energy = min(self.normalized_gibbs_energy.values())
         return [k for k, v in self.normalized_gibbs_energy.items() if v == min_gibbs_energy][0]
     
-    # Метод для расчета начальных констант равновесия 
-    def calc_k_initial(self, p_crit_i, t_crit_i, acentric_factor_i):
-        return math.pow(math.e, (5.37*(1+acentric_factor_i)*(1-(t_crit_i/self.t)))) / (self.p/p_crit_i)
     
 
-    # Метод для расчета Yi_v и Xi_l
-    ##TODO: в чем разница между К_vapour и K_liquid?
-    def calc_Yi_v_and_Xi_l(self):
-        Yi_and_Xi = {}
-        vapour = {}
-        liquid = {}
-        for component in list(self.zi.keys()):
-            vapour[component] = self.zi[component] / 100 * self.initial_k_values[component]
-            liquid[component] = self.zi[component] / (100 * self.initial_k_values[component])
-        Yi_and_Xi['vapour'] = vapour
-        Yi_and_Xi['liquid'] = liquid
-        return  Yi_and_Xi
-
-    # метод расчета суммы мольных долей
-    def summerize_mole_fractions(self):
-        sum_mole_fractions = {'vapour': sum(list(self.Yi_Xi['vapour'].values())),
-                              'liquid': sum(list(self.Yi_Xi['liquid'].values()))}
-        return sum_mole_fractions
-
-
-    # Метод для нормализации мольных долей
-    def normalize_mole_fraction(self):
-        normalized_mole_fractions = {}
-        normalized_vapour_fractions = {}
-        normalized_liquid_fractions = {}
-        for component in list(self.zi.keys()):
-            normalized_vapour_fractions[component] = self.Yi_Xi['vapour'][component] / self.sum_mole_fractions['vapour']
-
-        for component in list(self.zi.keys()):
-            normalized_liquid_fractions[component] = self.Yi_Xi['liquid'][component] / self.sum_mole_fractions['liquid']
-
-        normalized_mole_fractions['vapour'] = normalized_vapour_fractions
-        normalized_mole_fractions['liquid'] = normalized_liquid_fractions
-
-        return normalized_mole_fractions
-
-    def analyse_stability_pipeline(self):
-        ...
-
 if __name__ == '__main__':
-    eos = EOS_PR({ 'C1': 20, 'C2':10, 'C3':70}, 1, 20)
+    eos = EOS_PR({'C3':100}, 15, 90)
 
     print(f'eos.fugacity_by_roots: {eos.fugacity_by_roots}')
     print('===')
+    print(eos.calc_cubic_eos_cardano())
+    print(eos.calc_cubic_eos_numpy())
     print(f'eos.normalized_gibbs_energy {eos.normalized_gibbs_energy}')
     print(eos.choose_eos_root_by_gibbs_energy())
-    print(f'initial_k_values: {eos.initial_k_values}')
-    print(f'Yi_and_Xi: {eos.Yi_Xi}')
-    print(f'sum_mole_frac: {eos.sum_mole_fractions}')
-    print(f'normalized_mole_fractions: {eos.normalized_mole_fractions}')
+
