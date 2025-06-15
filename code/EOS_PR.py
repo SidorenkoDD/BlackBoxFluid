@@ -135,6 +135,7 @@ class EOS_PR:
 
         
         logger.log.info(f'Процесс решения УРС для  смеси: {self.zi}, при давлении: {p}, и температуре: {t} завершен')
+        logger.log.info(f'Выбран корень УРС: {self.choosen_eos_root}')
 
     # Метод  расчета параметра а для компоненты
     def calc_a(self, component, omega_a = 0.45724):
