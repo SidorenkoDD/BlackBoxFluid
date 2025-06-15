@@ -330,7 +330,7 @@ class EOS_PR:
     
 
 if __name__ == '__main__':
-    eos = EOS_PR({'C2':100}, 5, 20)
+    eos = EOS_PR({'C1':100}, 5, 20)
 
     print(f'eos.fugacity_by_roots: {eos.fugacity_by_roots}')
     print('===')
