@@ -2,3 +2,5 @@
 
 *.pyc
 __pycache__/
+code/__pycache__/Logger.cpython-312.pyc
+

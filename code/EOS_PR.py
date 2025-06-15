@@ -95,7 +95,7 @@ class EOS_PR:
         # Определение действительных корней УРС
         try:
             self.real_roots_eos = self.calc_cubic_eos_cardano()[0]
-            logger.log.debug(f'УРС решено, получен {len(self.real_roots_eos)} действительный корень: {self.real_roots_eos}')
+            logger.log.info(f'УРС решено, получен {len(self.real_roots_eos)} действительный корень: {self.real_roots_eos}')
 
         except Exception as e:
             logger.log.error('УРС не решено')
@@ -132,6 +132,9 @@ class EOS_PR:
 
         except Exception as e:
             logger.log.error('Корень по наименьшей энергии Гиббса не выбран', e)
+
+        
+        logger.log.info(f'Процесс решения УРС для  смеси: {self.zi}, при давлении: {p}, и температуре: {t} завершен')
 
     # Метод  расчета параметра а для компоненты
     def calc_a(self, component, omega_a = 0.45724):
