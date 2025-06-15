@@ -1,6 +1,6 @@
 import logging
 from logger import LogManager
-from EOS import EOS_PR
+from EOS_PR import EOS_PR
 import math as math
 import yaml
 logger = LogManager(__name__)
