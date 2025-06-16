@@ -105,6 +105,9 @@ class EOS_PR:
             
             print('Расчет Кардано по новой версии')
             print(self.calc_cubic_eos_v2())
+            print('====')
+            print('расчет Кардано из vba')
+            print(self.calc_cubic_eos_v3())
 
         except Exception as e:
             logger.log.error('УРС не решено')
@@ -182,14 +185,14 @@ class EOS_PR:
     
     # Метод расчета параметра А для УРС
     def calc_mixed_A(self):
-        if len(list(self.zi.keys())) == 1 or ((len(list(self.zi.keys())) == 2) and (0 in list(self.zi.values()))):
-            return list(self.all_params_A.values())[0]
+        # if len(list(self.zi.keys())) == 1 or ((len(list(self.zi.keys())) == 2) and (0 in list(self.zi.values()))):
+        #     return list(self.all_params_A.values())[0]
         
-        else:
+        # else:
             a_mixed = []
             second_components = list(self.zi.keys())
             for main_component in self.zi.keys():
-                for second_component in [x for x in second_components if x != main_component]:
+                for second_component in second_components:
                     a_mixed.append(self.zi[main_component]/100 * self.zi[second_component]/100 * math.sqrt(self.all_params_A[main_component] * self.all_params_A[second_component]) * (1 - self.db['bip'][main_component][second_component]))
                 second_components.remove(main_component)
             return sum(a_mixed)
@@ -320,6 +323,52 @@ class EOS_PR:
         
         return [x1, x2, x3]
     
+    def calc_cubic_eos_v3(self):
+        bk = self.B_linear_mixed - 1
+        ck = self.mixed_A - 3 * math.pow(self.B_linear_mixed, 2) - 2 * self.B_linear_mixed
+        dk = math.pow(self.B_linear_mixed, 2) + math.pow(self.B_linear_mixed, 3) - self.mixed_A * self.B_linear_mixed
+        pk = - math.pow(bk,2) / 3 + ck
+        qk = 2 * math.pow(bk, 3) / 27 - (bk * ck/ 3 ) + dk
+        s = math.pow((pk/3), 3) + math.pow((qk/2),2) 
+
+        if s > 0:
+            vb = -qk/2 - math.sqrt(s)
+            itt = -qk/2 + math.sqrt(s)
+            if itt < 0:
+                itt = abs(itt)
+                it =  math.pow(-itt, (1/3))
+            else:
+                it = math.pow(itt, (1/3))
+
+                if vb < 0:
+                    zk0 = it - math.pow((abs(vb)), (1/3)) - bk/3
+                
+                else:
+                    zk0 = it + math.pow((-qk/2 - math.sqrt(s)), (1/3)) - bk/3
+
+            zk1 = 0
+            zk2 = 0
+        
+        elif s < 0:
+            if qk < 0:
+                f = math.atan(math.sqrt(-s) / (-qk/2))
+            elif qk > 0:
+                f = math.atan(math.sqrt(-s) / (-qk/2)) + math.pi
+            else:
+                f = math.pi / 2
+
+            zk0 = 2 * math.sqrt(-pk/3) * math.cos(f/3) - bk/3
+            zk1 = 2 * math.sqrt(-pk/3) * math.cos(f/3 + 2 * math.pi /3) - bk/3 
+            zk2 = 2 * math.sqrt(-pk/3) * math.cos(f/3 + 4 * math.pi /3) - bk/3
+        
+        elif s == 0:
+            zk0 = 2 * math.sqrt(-qk / 2) - bk/3
+            zk1 = -math.pow((-qk/2), (1/3)) - bk/3
+            zk2 = -math.pow((-qk/2), (1/3)) - bk/3
+
+
+
+        return [zk0, zk1, zk2]
 
     # Метод расчета летучести
     ##TODO: используем Z, полученный в результате расчета УРС. Их может быть несколько, надо уточнить как быть.
@@ -384,7 +433,7 @@ class EOS_PR:
     
 
 if __name__ == '__main__':
-    eos = EOS_PR({'C3':100}, 30, 20)
+    eos = EOS_PR({'C3':100}, 50, 80)
 
     print(f'eos.fugacity_by_roots: {eos.fugacity_by_roots}')
     print('===')
