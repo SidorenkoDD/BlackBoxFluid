@@ -100,14 +100,9 @@ class EOS_PR:
         
         # Определение действительных корней УРС
         try:
-            self.real_roots_eos = self.calc_cubic_eos_cardano()[0]
+            self.real_roots_eos = self.calc_cubic_eos_v3()
             logger.log.debug(f'УРС решено, получен {len(self.real_roots_eos)} действительный корень: {self.real_roots_eos}')
             
-            print('Расчет Кардано по новой версии')
-            print(self.calc_cubic_eos_v2())
-            print('====')
-            print('расчет Кардано из vba')
-            print(self.calc_cubic_eos_v3())
 
         except Exception as e:
             logger.log.error('УРС не решено')
@@ -323,6 +318,7 @@ class EOS_PR:
         
         return [x1, x2, x3]
     
+    # Рабочее решение кубического уравнения
     def calc_cubic_eos_v3(self):
         bk = self.B_linear_mixed - 1
         ck = self.mixed_A - 3 * math.pow(self.B_linear_mixed, 2) - 2 * self.B_linear_mixed
