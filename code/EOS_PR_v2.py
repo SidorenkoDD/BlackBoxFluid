@@ -4,7 +4,7 @@ import cmath
 import sympy as smp
 import numpy as np
 
-from code.logger import LogManager
+from logger import LogManager
 
 logger = LogManager(__name__)
 
@@ -12,9 +12,15 @@ class EOS_PR:
     def __init__(self, zi:dict, p: float, t: float):
 
         '''
-        param: zi - компонентный состав смеси {'C1' : 50, 'C2': 50 ...}
-        param: p - давление, бар
-        param: t - температура, С
+        Класс для решения УРС Пенга-Робинсона
+
+        Attributes:
+            zi: компонентный состав смеси {'C1' : 50, 'C2': 50 ...}
+            p: давление, бар
+            t: температура, С
+
+        Return:
+            Z: Значение Z-фактора, определенное по приведенной энергии Гиббса
         '''
         # Читаем .yaml файл с данными по компонентам
         try:
@@ -27,24 +33,16 @@ class EOS_PR:
             logger.log.fatal('Данные компонент не найдены!', e)
 
 
-        # компонентный состав
+        # Компонентный состав
         self.zi = zi
         if sum(list(self.zi.values())) != 100:
             logger.log.fatal('Сумма компонентов не равна 100')
             #raise ValueError
+        
         else:
             logger.log.debug('Сумма компонентов равна 100')
         
-        # z = {k: v for k, v in self.zi.items() if v >= 0.001}
-        # self.zi = z
-
-        
-
-        if len(self.zi.keys()) > 1:
-            logger.log.debug('Число компонент больше 1')
-        else:
-            logger.log.info('Для расчета передана однокомпонентная смесь')
-
+        # Инициализация термобарических условий в зависимости от типа запуска модуля
         if __name__ == '__main__':
         # Давление для расчета
             self.p = p * math.pow(10,5)
@@ -68,7 +66,6 @@ class EOS_PR:
 
         except Exception as e:
             logger.log.error('Параметры а и b УРС не рассчитаны!', e)
-
 
         # Параметры А и В, рассчитанные для всего компонентного состава
         self.all_params_A = {}
@@ -101,10 +98,9 @@ class EOS_PR:
         
         # Определение действительных корней УРС
         try:
-            self.real_roots_eos = self.calc_cubic_eos_v3()
+            self.real_roots_eos = self.calc_cubic_eos()
             logger.log.debug(f'УРС решено, получен {len(self.real_roots_eos)} действительный корень: {self.real_roots_eos}')
             
-
         except Exception as e:
             logger.log.error('УРС не решено')
 
@@ -136,6 +132,13 @@ class EOS_PR:
         try:
             self.choosen_eos_root = self.choose_eos_root_by_gibbs_energy()
             logger.log.debug('Выбран корень УРС по приведенной энергии гиббса')
+            
+            logger.log.info('==============')
+            logger.log.info(f'УРС решено для смеси {self.zi}')
+            logger.log.info(f'Z-фактор и летучести компонент: {self.fugacity_by_roots}')
+            logger.log.info(f'Z-factor и приведенные энергии Гиббса: {self.normalized_gibbs_energy}')
+            logger.log.info(f'Выбранный корень по приведенной энергии Гиббса: {self.choosen_eos_root}')
+            logger.log.info('==============')
 
         except Exception as e:
             logger.log.error('Корень по наименьшей энергии Гиббса не выбран', e)
@@ -201,125 +204,9 @@ class EOS_PR:
             linear_mixed_B.append(b * list(self.zi.values())[i]/ 100)
             return sum(linear_mixed_B)
     
-    # Метод расчета УРС через numpy
-    def calc_cubic_eos_numpy(self):
-        coefs = [1, 
-                 -(1-self.B_linear_mixed), 
-                 (self.mixed_A - 3 * math.pow(self.B_linear_mixed, 2) - 2* self.B_linear_mixed), 
-                 -(self.mixed_A * self.B_linear_mixed - math.pow(self.B_linear_mixed, 2) - math.pow(self.B_linear_mixed, 3))]
 
-        roots = np.roots(coefs)
-        return roots
-    
-    # Метод расчета УРС по Кардано
-    def calc_cubic_eos_cardano(self):
-        a = 1
-        b = -(1-self.B_linear_mixed)
-        c = (self.mixed_A - 3 * math.pow(self.B_linear_mixed, 2) - 2* self.B_linear_mixed)
-        d = -(self.mixed_A * self.B_linear_mixed - math.pow(self.B_linear_mixed, 2) - math.pow(self.B_linear_mixed, 3))
-        
-        # Приводим уравнение к виду x³ + px² + qx + r = 0
-        p = b / a
-        q = c / a
-        r = d / a
-        
-        # Депрессированное кубическое уравнение: y³ + my + n = 0
-        m = (3*q - p**2) / 3
-        n = (2*p**3 - 9*p*q + 27*r) / 27
-        
-        # Дискриминант
-        delta = (n**2)/4 + (m**3)/27
-        
-        if delta > 0:
-            # Один действительный корень
-            u = (-n/2 + math.sqrt(delta))**(1/3)
-            v = (-n/2 - math.sqrt(delta))**(1/3)
-            y1 = u + v
-            y2 = -(u+v)/2 + (u-v)*math.sqrt(3)/2j
-            y3 = -(u+v)/2 - (u-v)*math.sqrt(3)/2j
-        elif delta == 0:
-            # Три действительных корня (один кратный)
-            if n == 0:
-                y1 = y2 = y3 = 0
-            else:
-                u = (-n/2)**(1/3)
-                y1 = 2*u
-                y2 = y3 = -u
-        else:
-            # Тригонометрическая форма (три действительных корня)
-            theta = math.acos(3*n/(2*m*math.sqrt(-m/3)))
-            y1 = 2 * math.sqrt(-m/3) * math.cos(theta/3)
-            y2 = 2 * math.sqrt(-m/3) * math.cos((theta + 2*math.pi)/3)
-            y3 = 2 * math.sqrt(-m/3) * math.cos((theta + 4*math.pi)/3)
-        
-        # Возвращаемся к исходной переменной x = y - p/3
-        p3 = p/3
-        x1 = y1 - p3
-        x2 = y2 - p3
-        x3 = y3 - p3
-        
-        roots = [x1, x2, x3]
-
-        real_roots = []
-        complex_roots = []
-        
-        for root in roots:
-            if isinstance(root, (float, int)):  # Если корень уже чисто вещественный
-                real_roots.append(root)
-            else:
-                # Проверяем, близка ли мнимая часть к нулю (с учетом погрешности вычислений)
-                if abs(root.imag) < 1e-10:  # Порог можно настроить
-                    real_roots.append(root.real)
-                else:
-                    complex_roots.append(root)
-        
-        return real_roots, complex_roots
-        
-    def calc_cubic_eos_v2(self):
-        a = 1
-        b = -(1-self.B_linear_mixed)
-        c = (self.mixed_A - 3 * math.pow(self.B_linear_mixed, 2) - 2* self.B_linear_mixed)
-        d = -(self.mixed_A * self.B_linear_mixed - math.pow(self.B_linear_mixed, 2) - math.pow(self.B_linear_mixed, 3))
-
-   
-        p = b / a
-        q = c / a
-        r = d / a
-        
-        # Вычисляем коэффициенты для приведённого уравнения y³ + Ay + B = 0
-        A = (3 * q - p**2) / 3
-        B = (2 * p**3 - 9 * p * q + 27 * r) / 27
-        
-        # Дискриминант
-        D = (B**2 / 4) + (A**3 / 27)
-        
-        if D > 0:  # Один вещественный и два комплексных корня
-            u = (-B / 2 + math.sqrt(D)) ** (1/3)
-            v = (-B / 2 - math.sqrt(D)) ** (1/3)
-            y1 = u + v
-            y2 = -(u + v)/2 + (u - v)*cmath.sqrt(3)/2j
-            y3 = -(u + v)/2 - (u - v)*cmath.sqrt(3)/2j
-        elif D == 0:  # Все корни вещественные, два совпадают
-            if B == 0:
-                y1 = y2 = y3 = 0
-            else:
-                y1 = 3 * B / A
-                y2 = y3 = -3 * B / (2 * A)
-        else:  # D < 0: три вещественных корня (тригонометрическая форма)
-            phi = math.acos(-B / (2 * math.sqrt(-A**3 / 27)))
-            y1 = 2 * math.sqrt(-A / 3) * math.cos(phi / 3)
-            y2 = 2 * math.sqrt(-A / 3) * math.cos((phi + 2 * math.pi) / 3)
-            y3 = 2 * math.sqrt(-A / 3) * math.cos((phi + 4 * math.pi) / 3)
-        
-        # Возвращаем корни исходного уравнения
-        x1 = y1 - p / 3
-        x2 = y2 - p / 3
-        x3 = y3 - p / 3
-        
-        return [x1, x2, x3]
-    
-    # Рабочее решение кубического уравнения
-    def calc_cubic_eos_v3(self):
+    # Метод для решения кубического уравнения
+    def calc_cubic_eos(self):
         bk = self.B_linear_mixed - 1
         ck = self.mixed_A - 3 * math.pow(self.B_linear_mixed, 2) - 2 * self.B_linear_mixed
         dk = math.pow(self.B_linear_mixed, 2) + math.pow(self.B_linear_mixed, 3) - self.mixed_A * self.B_linear_mixed
@@ -412,11 +299,6 @@ class EOS_PR:
 if __name__ == '__main__':
     eos = EOS_PR({'C3':100}, 50, 80)
 
-    print(f'eos.fugacity_by_roots: {eos.fugacity_by_roots}')
-    print('===')
-    print(f'eos.normalized_gibbs_energy {eos.normalized_gibbs_energy}')
-    print('===')
-    print(f'Выбранный корень по энергии Гиббса: {eos.choose_eos_root_by_gibbs_energy()}')
 
 
 
