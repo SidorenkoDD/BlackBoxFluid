@@ -1,6 +1,6 @@
 import logging
 from logger import LogManager
-from EOS_PR import EOS_PR
+from EOS_PR_v2 import EOS_PR
 import math as math
 import yaml
 logger = LogManager(__name__)
@@ -9,8 +9,23 @@ logger = LogManager(__name__)
 class PhaseStability:
 
     def __init__(self, zi:dict, p:float, t:float):
+        
+        '''
+        Класс для проверки стабильности системы
+
+        Attributes:
+            zi: компонентный состав смеси {'C1' : 50, 'C2': 50 ...}
+            p: давление, бар
+            t: температура, С
+
+        Return:
+            ##TODO:
+            ...
+        '''
+
         self.zi = zi
 
+        # Инициализация термобарических условий в зависимости от запуска модуля
         if __name__ == '__main__':
             self.p = p * math.pow(10,5)
             self.t = t + 273
@@ -19,15 +34,17 @@ class PhaseStability:
             self.p = p
             self.t = t
 
+        # Подключение к yaml-файлику
         try:
     
             with open('code/db.yaml', 'r') as db_file:
                 self.db = yaml.safe_load(db_file)
-            logger.log.info('Данные компонент из .yaml прочитаны успешно') 
+            logger.log.debug('Данные компонент из .yaml прочитаны успешно') 
 
         except Exception as e:
             logger.log.fatal('Данные компонент не найдены!', e)
 
+        # Инициализация начального решения УРС
         self.initial_eos_solve = EOS_PR(self.zi, self.p, self.t)
 
 
@@ -69,19 +86,19 @@ class PhaseStability:
         # Расчет нормализованных мольных долей в жидкости и в газе
         try:
             self.normalized_mole_fractions = self.normalize_mole_fraction(self.zi, self.Yi_Xi, self.sum_mole_fractions)
-
+            print(self.normalized_mole_fractions)
         except Exception as e:
             logger.log.error('Расчет нормализованных мольных долей не проведен', e)
 
 
         ## Первая итерация
-        # решение УРС
+        # решение УРС для жидкой и газовой фазы
         try:
             self.eos_for_liquid_first_iter = EOS_PR(self.normalized_mole_fractions['liquid'], self.p, self.t)
             self.eos_for_vapour_first_iter = EOS_PR(self.normalized_mole_fractions['vapour'], self.p, self.t)
 
         except Exception as e:
-            logger.log.info('Не удалось инициализировать уравнения состояния', e)
+            logger.log.error('Не удалось инициализировать уравнения состояния', e)
 
         ## расчет Ri
         try:
@@ -95,14 +112,21 @@ class PhaseStability:
         #self.convergence = self.check_convergence()
 
 
+        # Процесс анализа стабильности системы
+        try:
+            self.stability_analysis()
+
+        except Exception as e:
+            logger.log.error('Не удалось провести анализ стабильности', e)
+
+
+## Методы ##
 
     # Метод для расчета начальных констант равновесия 
     def calc_k_initial(self, p_crit_i, t_crit_i, acentric_factor_i):
         return math.pow(math.e, (5.37*(1+acentric_factor_i)*(1-(t_crit_i/self.t)))) / (self.p/p_crit_i)
     
-
     # Метод для расчета Yi_v и Xi_l
-    ##TODO: в чем разница между К_vapour и K_liquid?
     def calc_Yi_v_and_Xi_l(self, zi:dict, k_vals):
         Yi_and_Xi = {}
         vapour = {}
@@ -121,7 +145,6 @@ class PhaseStability:
                               'liquid': sum(list(Yi_Xi['liquid'].values()))}
         self.sum_mole_fractions = sum_mole_fractions
         return sum_mole_fractions
-
 
     # Метод для нормализации мольных долей
     def normalize_mole_fraction(self, zi, Yi_Xi, sum_mole_fractions):
@@ -178,23 +201,27 @@ class PhaseStability:
         sum_ki_vapour = []
         sum_ki_liquid = []
 
-        
-
         for component in self.k_values['vapour']:
             sum_ki_vapour.append(math.pow((math.log(self.k_values['vapour'][component])),2))
 
         for component in self.k_values['liquid']:
             sum_ki_liquid.append(math.pow((math.log(self.k_values['liquid'][component])), 2))
+
         
         if ((sum(sum_ki_vapour)) < math.pow(10, -4)) and ((sum(sum_ki_liquid)) < math.pow(10, -4)):
-            print('Оба условия тривиального решения выполнены')
+            logger.log.info('Оба условия тривиального решения выполнены')
             return True
         
-        elif ((sum(sum_ki_vapour)) < math.pow(10, -4)) or ((sum(sum_ki_liquid)) < math.pow(10, -4)):
-            print('Одно из условий тривиального решения выполнено')
+        elif ((sum(sum_ki_vapour)) < math.pow(10, -4)):
+            logger.log.info('Выполнено условие тривиального решения для газовой фазы')
             return True
+        
+        elif ((sum(sum_ki_liquid)) < math.pow(10, -4)):
+            logger.log.info('Выполнено условие тривиального решения для жидкой фазы')
+            return True
+        
         else:
-            print('Тривиальное решение не получено')
+            logger.log.warning('Тривиальное решение не получено')
             return False
         
 
@@ -217,21 +244,25 @@ class PhaseStability:
 
         self.k_values = new_k_values
 
+    
+    def define_state_of_mixture(self):
+        ...
+
     def stability_analysis(self):
         iter = 0
         while self.check_convergence() == False:
             iter += 1
-            print('===')
-            print(iter)
-            print('===')
+            #print('===')
+            #print(iter)
+            #print('===')
             self.update_ki()
             self.calc_Yi_v_and_Xi_l(self.zi, self.k_values)
             self.summerize_mole_fractions(self.Yi_and_Xi)
-            print(f'sum mole fractions {self.sum_mole_fractions} on iter {iter}')
+            #print(f'sum mole fractions {self.sum_mole_fractions} on iter {iter}')
             self.normalize_mole_fraction(self.zi, self.Yi_and_Xi, self.sum_mole_fractions)
 
-            print(f'liquid_comp: {self.normalized_mole_fractions['liquid']}')
-            print(f'vapour_comp: {self.normalized_mole_fractions['vapour']}')
+            #print(f'liquid_comp: {self.normalized_mole_fractions['liquid']}')
+            #print(f'vapour_comp: {self.normalized_mole_fractions['vapour']}')
 
 
             eos_liquid = EOS_PR(self.normalized_mole_fractions['liquid'], self.p, self.t)
@@ -243,25 +274,24 @@ class PhaseStability:
             self.calc_ri_liquid(eos= eos_liquid)
             self.calc_ri_vapour(eos = eos_vapour)
             self.check_convergence()
+
+
             if self.check_trivial_solution():
                 break
             else:
                 continue
 
-        
+    
+
+
 
     
 
 
 if __name__ == '__main__':
 
-    phase_stability = PhaseStability({'C1':100}, p = 50, t = 50)
-    phase_stability.stability_analysis()
+    phase_stability = PhaseStability({'C1':20, 'C3':80}, p = 50, t = 50)
 
-    print(f'norm_mole_fract {phase_stability.normalized_mole_fractions}')
-    print(f'k_vals:{phase_stability.k_values}')
-    print(f'mole_frac: {phase_stability.normalized_mole_fractions}')
-    print(f'sum_mole_frac: {phase_stability.sum_mole_fractions}')
 
 
 

@@ -34,7 +34,11 @@ class EOS_PR:
 
 
         # Компонентный состав
-        self.zi = zi
+
+        self.zi = zi        
+        if 0 in list(self.zi.values()):
+            z = {k: v for k, v in self.zi.items() if v != 0}
+            self.zi = z
         if sum(list(self.zi.values())) != 100:
             logger.log.fatal('Сумма компонентов не равна 100')
             #raise ValueError
@@ -142,6 +146,11 @@ class EOS_PR:
 
         except Exception as e:
             logger.log.error('Корень по наименьшей энергии Гиббса не выбран', e)
+
+
+
+## Методы ##
+
 
     # Метод  расчета параметра а для компоненты
     def calc_a(self, component, omega_a = 0.45724):
@@ -253,15 +262,20 @@ class EOS_PR:
 
         return [zk0, zk1, zk2]
 
+
     # Метод расчета летучести
     def calc_fugacity_for_component_PR(self, component, eos_root):
+        '''
+        Метод возвращает значение ln(fi) (формула 1.39)
+        '''
         zi_Ai = []
         for comp in [x for x in self.zi.keys() if x != component]:
             zi_Ai.append(self.zi[comp] / 100 * 
                              (1 - self.db['bip'][component][comp]) * 
                              math.sqrt(self.all_params_A[component] * self.all_params_A[comp]))
         sum_zi_Ai = sum(zi_Ai)
-        if (eos_root > 0) and (eos_root -self.B_linear_mixed):
+        #if (eos_root > 0) and (eos_root -self.B_linear_mixed):
+        if (eos_root -self.B_linear_mixed > 0):
             ln_fi_i = ((self.all_params_B[component] / self.B_linear_mixed) * (eos_root - 1) -
                         (math.log(eos_root - self.B_linear_mixed)) + 
                         (self.mixed_A / (2 * math.sqrt(2) * self.B_linear_mixed)) * 
@@ -270,22 +284,33 @@ class EOS_PR:
 
 
         
-            return math.e ** ln_fi_i
-        
+            return ln_fi_i
+                
         else:
             return 99999
     
+
     #Метод расчета приведенной энергии Гиббса
-    def calc_normalized_gibbs_energy(self):
+    def calc_normalized_gibbs_energy(self) -> dict:
+        
+        '''
+        Метод возвращает словарь {корень УРС: значение приведенной энергии Гиббса}
+        '''
+
         normalized_gibbs_energy = {}
         for root in self.fugacity_by_roots:
             gibbs_energy_by_roots = []
-            for component in self.fugacity_by_roots[root].keys():
-                gibbs_energy_by_roots.append(self.zi[component]/100 * math.log(self.fugacity_by_roots[root][component]))
-                normalized_gibbs_energy[root] = sum(gibbs_energy_by_roots)
+            if root == 0:
+                normalized_gibbs_energy[root] = math.pow(10,6)
+
+            else:
+                for component in self.fugacity_by_roots[root].keys():
+                    gibbs_energy_by_roots.append(self.fugacity_by_roots[root][component] + math.log((self.zi[component]/100) * self.p))
+                    normalized_gibbs_energy[root] = sum(gibbs_energy_by_roots)
 
         return normalized_gibbs_energy 
     
+
     # Метод для определения корня (Z) по минимальной энергии Гиббса
     def choose_eos_root_by_gibbs_energy(self):
         '''
@@ -297,7 +322,7 @@ class EOS_PR:
     
 
 if __name__ == '__main__':
-    eos = EOS_PR({'C3':100}, 50, 80)
+    eos = EOS_PR({'C1':40, 'C2': 30, 'C3': 30}, 20, 80)
 
 
 
