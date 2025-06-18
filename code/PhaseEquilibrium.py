@@ -1,6 +1,6 @@
 import math as math
 from logger import LogManager
-from EOS_PR import EOS_PR
+from EOS_PR_v2 import EOS_PR
 from PhaseStability import PhaseStability
 
 class PhaseEquilibrium:

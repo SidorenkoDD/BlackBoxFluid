@@ -45,7 +45,16 @@ class PhaseStability:
             logger.log.fatal('Данные компонент не найдены!', e)
 
         # Инициализация начального решения УРС
-        self.initial_eos_solve = EOS_PR(self.zi, self.p, self.t)
+        
+        logger.log.debug('===')
+        logger.log.debug('Запущено решение УРС для исходного состава')
+        try:
+            self.initial_eos_solve = EOS_PR(self.zi, self.p, self.t)
+            logger.log.debug('Начальное УРС решено')
+            logger.log.debug('===')
+        except Exception as e:
+            logger.log.error('Начальное УРС не решено')
+
 
 
     # Расчет начальных констант равновесия
@@ -62,6 +71,10 @@ class PhaseStability:
                                                                  acentric_factor_i= self.db['acentric_factor'][component]))
             self.k_values['vapour'] = k_values_vapour
             self.k_values['liquid'] = k_values_liquid
+            
+            logger.log.debug('===')
+            logger.log.debug(f'Значения начальных констант равновесия расчитаны: {self.k_values}')
+            logger.log.debug('===')
 
         except Exception as e:
             logger.log.error('Начальные константы равновесия не рассчитаны', e)
@@ -70,6 +83,10 @@ class PhaseStability:
         # Расчет Xi_Yi
         try:
             self.Yi_Xi = self.calc_Yi_v_and_Xi_l(zi= self.zi, k_vals= self.k_values)
+            
+            logger.log.debug('===')
+            logger.log.debug(f'Значения Xi_Yi рассчитано: {self.Yi_and_Xi}')
+            logger.log.debug('===')
 
         except Exception as e:
             logger.log.error('Не удалось рассчитать Yi Xi', e)
@@ -78,7 +95,9 @@ class PhaseStability:
         # Расчет суммы мольных долей
         try:
             self.sum_mole_fractions = self.summerize_mole_fractions(Yi_Xi= self.Yi_Xi)
-
+            logger.log.debug('===')
+            logger.log.debug(f'Сумма мольных долей рассчитана: {self.sum_mole_fractions}')
+            logger.log.debug('===')
         except Exception as e:
             logger.log.error('Расчет суммы мольных долей жидкой и газовой фазы не проведен', e)
 
@@ -86,7 +105,11 @@ class PhaseStability:
         # Расчет нормализованных мольных долей в жидкости и в газе
         try:
             self.normalized_mole_fractions = self.normalize_mole_fraction(self.zi, self.Yi_Xi, self.sum_mole_fractions)
-            print(self.normalized_mole_fractions)
+            
+            logger.log.debug('===')
+            logger.log.debug(f'Нормализованная сумма мольных долей рассчитана: {self.normalized_mole_fractions}')
+            logger.log.debug('===')
+
         except Exception as e:
             logger.log.error('Расчет нормализованных мольных долей не проведен', e)
 
@@ -94,16 +117,29 @@ class PhaseStability:
         ## Первая итерация
         # решение УРС для жидкой и газовой фазы
         try:
+            logger.log.debug('===')
+            logger.log.debug(f'Запущена первая итерация решения УРС для жидкой и газовой фазы')
             self.eos_for_liquid_first_iter = EOS_PR(self.normalized_mole_fractions['liquid'], self.p, self.t)
+
             self.eos_for_vapour_first_iter = EOS_PR(self.normalized_mole_fractions['vapour'], self.p, self.t)
 
+            logger.log.debug('===')
         except Exception as e:
             logger.log.error('Не удалось инициализировать уравнения состояния', e)
 
         ## расчет Ri
         try:
+
+
             self.ri_vapour = self.calc_ri_vapour(self.eos_for_vapour_first_iter)
+            logger.log.debug('===')
+            logger.log.debug(f'Рассчитано Ri_vapour: {self.ri_vapour}')
+            logger.log.debug('===')
+
             self.ri_liquid = self.calc_ri_liquid(self.eos_for_liquid_first_iter)
+            logger.log.debug('===')
+            logger.log.debug(f'Рассчитано Ri_liquid: {self.ri_liquid}')
+            logger.log.debug('===')
 
         except Exception as e:
             logger.log.error('Не рассчитаны Ri жидкой и газовой фазы для  первой итерации', e)
@@ -252,9 +288,9 @@ class PhaseStability:
         iter = 0
         while self.check_convergence() == False:
             iter += 1
-            #print('===')
-            #print(iter)
-            #print('===')
+            print('===')
+            print(iter)
+            print('===')
             self.update_ki()
             self.calc_Yi_v_and_Xi_l(self.zi, self.k_values)
             self.summerize_mole_fractions(self.Yi_and_Xi)
@@ -290,7 +326,7 @@ class PhaseStability:
 
 if __name__ == '__main__':
 
-    phase_stability = PhaseStability({'C1':20, 'C3':80}, p = 50, t = 50)
+    phase_stability = PhaseStability({'C1': 90, 'C3': 10}, p = 50, t = 50)
 
 
 
