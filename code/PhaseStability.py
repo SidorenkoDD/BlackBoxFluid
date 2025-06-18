@@ -297,8 +297,8 @@ class PhaseStability:
             #print(f'sum mole fractions {self.sum_mole_fractions} on iter {iter}')
             self.normalize_mole_fraction(self.zi, self.Yi_and_Xi, self.sum_mole_fractions)
 
-            #print(f'liquid_comp: {self.normalized_mole_fractions['liquid']}')
-            #print(f'vapour_comp: {self.normalized_mole_fractions['vapour']}')
+            print(f'liquid_comp: {self.normalized_mole_fractions['liquid']}')
+            print(f'vapour_comp: {self.normalized_mole_fractions['vapour']}')
 
 
             eos_liquid = EOS_PR(self.normalized_mole_fractions['liquid'], self.p, self.t)
