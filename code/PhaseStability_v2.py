@@ -317,5 +317,5 @@ class PhaseStability:
 
 
 if __name__ == '__main__':
-    phs = PhaseStability(zi = {'C1':1}, p = 50, t = 50)
+    phs = PhaseStability(zi = {'C1':0.7, 'C2': 0.2, 'C3': 0.1}, p = 50, t = 50)
     
