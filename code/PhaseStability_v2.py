@@ -147,6 +147,7 @@ class PhaseStability:
 
         logger.log.info('=========')
         logger.log.info('=========')
+
         logger.log.info('Предварительный расчет стабильности системы проведен')
         logger.log.info(f'Начальные k-values: {self.k_values}')
         logger.log.info(f'Мольные доли в газовой фазе Yi_v: {self.Yi_v}')
@@ -155,8 +156,9 @@ class PhaseStability:
         logger.log.info(f'Сумма мольных долей в жидкой фазе S_l: {self.S_l}')
         logger.log.info(f'Нормированные мольные доли  в газовой фазе yi_v: {self.yi_v}')
         logger.log.info(f'Нормированные мольные доли  в жидкой фазе xi_v: {self.xi_l}')
-        logger.log.info(f'Нормированные мольные доли  в жидкой фазе ri_v: {self.ri_v}')
-        logger.log.info(f'Нормированные мольные доли  в жидкой фазе ri_l: {self.ri_l}')
+        logger.log.info(f'Параметр ri_v в газовой фазе ri_v: {self.ri_v}')
+        logger.log.info(f'Параметр ri_l в жидкой фазе ri_l: {self.ri_l}')
+
         logger.log.info('=========')
         logger.log.info('=========')
 
@@ -304,8 +306,8 @@ class PhaseStability:
         ki_v_for_sum = []
         ki_l_for_sum = []
 
-        for ki_v in self.k_values['vapour']
-        pass
+        for ki_v in self.k_values['vapour']:
+            pass
 
     
     # Пайплайн решения
