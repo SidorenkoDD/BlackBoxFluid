@@ -39,12 +39,12 @@ class EOS_PR:
         if 0 in list(self.zi.values()):
             z = {k: v for k, v in self.zi.items() if v != 0}
             self.zi = z
-        if sum(list(self.zi.values())) != 100:
-            logger.log.fatal('Сумма компонентов не равна 100')
+        if sum(list(self.zi.values())) != 1:
+            logger.log.fatal('Сумма компонентов не равна 1')
             #raise ValueError
         
         else:
-            logger.log.debug('Сумма компонентов равна 100')
+            logger.log.debug('Сумма компонентов равна 1')
         
         # Инициализация термобарических условий в зависимости от типа запуска модуля
         if __name__ == '__main__':
@@ -115,18 +115,15 @@ class EOS_PR:
 
                 fugacity_by_components = {}
                 for component in self.zi.keys():
-                    fugacity_by_components[component] = self.calc_fugacity_for_component_PR(component, root) #* self.zi[component] /100 * self.p
+                    fugacity_by_components[component] = self.calc_fugacity_for_component_PR(component, root)
                 self.fugacity_by_roots[root] = fugacity_by_components
             
-            logger.log.debug('Летучести для всех компонент расчитаны')
-        
         except Exception as e:
             logger.log.error('Расчет летучести для компонентов не проведен', e)
 
         # Расчет приведенной энергии Гиббса
         try:
             self.normalized_gibbs_energy = self.calc_normalized_gibbs_energy()
-            logger.log.debug('Приведенная энергия Гиббса расчитана')
 
         except Exception as e:
             logger.log.error('Расчет энергии Гиббса не проведен')
@@ -138,7 +135,7 @@ class EOS_PR:
             logger.log.debug('Выбран корень УРС по приведенной энергии гиббса')
             
             logger.log.info('==============')
-            logger.log.info(f'УРС решено для смеси {self.zi}')
+            logger.log.info(f'УРС решено для смеси {self.zi}, P = {self.p/ math.pow(10,5)} бар, T = {self.t - 273.14} C')
             logger.log.info(f'Z-фактор и летучести компонент: {self.fugacity_by_roots}')
             logger.log.info(f'Z-factor и приведенные энергии Гиббса: {self.normalized_gibbs_energy}')
             logger.log.info(f'Выбранный корень по приведенной энергии Гиббса: {self.choosen_eos_root}')
@@ -200,7 +197,7 @@ class EOS_PR:
             second_components = list(self.zi.keys())
             for main_component in self.zi.keys():
                 for second_component in second_components:
-                    a_mixed.append(self.zi[main_component]/100 * self.zi[second_component]/100 * math.sqrt(self.all_params_A[main_component] * self.all_params_A[second_component]) * (1 - self.db['bip'][main_component][second_component]))
+                    a_mixed.append(self.zi[main_component] * self.zi[second_component] * math.sqrt(self.all_params_A[main_component] * self.all_params_A[second_component]) * (1 - self.db['bip'][main_component][second_component]))
                 second_components.remove(main_component)
             return sum(a_mixed)
 
@@ -210,7 +207,7 @@ class EOS_PR:
     def calc_linear_mixed_B(self):
         linear_mixed_B = []
         for i, b in enumerate(list(self.all_params_B.values())):
-            linear_mixed_B.append(b * list(self.zi.values())[i]/ 100)
+            linear_mixed_B.append(b * list(self.zi.values())[i])
             return sum(linear_mixed_B)
     
 
@@ -266,28 +263,29 @@ class EOS_PR:
     # Метод расчета летучести
     def calc_fugacity_for_component_PR(self, component, eos_root):
         '''
-        Метод возвращает значение ln(fi) (формула 1.39)
+        Метод возвращает значение fi (формула 1.39)
         '''
         zi_Ai = []
         for comp in [x for x in self.zi.keys() if x != component]:
-            zi_Ai.append(self.zi[comp] / 100 * 
+            zi_Ai.append(self.zi[comp] * 
                              (1 - self.db['bip'][component][comp]) * 
                              math.sqrt(self.all_params_A[component] * self.all_params_A[comp]))
         sum_zi_Ai = sum(zi_Ai)
-        #if (eos_root > 0) and (eos_root -self.B_linear_mixed):
-        if (eos_root -self.B_linear_mixed > 0):
+        if (eos_root -self.B_linear_mixed) > 0:
+
             ln_fi_i = ((self.all_params_B[component] / self.B_linear_mixed) * (eos_root - 1) -
                         (math.log(eos_root - self.B_linear_mixed)) + 
                         (self.mixed_A / (2 * math.sqrt(2) * self.B_linear_mixed)) * 
                         ((self.all_params_B[component] / self.B_linear_mixed) - (2/self.mixed_A) * sum_zi_Ai) * 
                         math.log((eos_root + ((1 + math.sqrt(2))* self.B_linear_mixed))/(eos_root - ((1 - math.sqrt(2))* self.B_linear_mixed))))
 
-
+            ln_f_i = ln_fi_i + math.log(self.zi[component] * self.p)
         
-            return ln_fi_i
-                
+            return ln_f_i
+        
         else:
-            return 99999
+            return 0
+                
     
 
     #Метод расчета приведенной энергии Гиббса
@@ -305,7 +303,7 @@ class EOS_PR:
 
             else:
                 for component in self.fugacity_by_roots[root].keys():
-                    gibbs_energy_by_roots.append(self.fugacity_by_roots[root][component] + math.log((self.zi[component]/100) * self.p))
+                    gibbs_energy_by_roots.append(self.fugacity_by_roots[root][component] * self.zi[component])
                     normalized_gibbs_energy[root] = sum(gibbs_energy_by_roots)
 
         return normalized_gibbs_energy 
@@ -322,7 +320,7 @@ class EOS_PR:
     
 
 if __name__ == '__main__':
-    eos = EOS_PR({'C1': 26.6948, 'C3': 73.3052}, 50, 50)
+    eos = EOS_PR({'C1': 1}, 1, 1)
 
 
 

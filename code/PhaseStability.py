@@ -28,7 +28,7 @@ class PhaseStability:
         # Инициализация термобарических условий в зависимости от запуска модуля
         if __name__ == '__main__':
             self.p = p * math.pow(10,5)
-            self.t = t + 273
+            self.t = t + 273.14
         
         else:
             self.p = p
@@ -48,10 +48,12 @@ class PhaseStability:
         
         logger.log.debug('===')
         logger.log.debug('Запущено решение УРС для исходного состава')
+
         try:
             self.initial_eos_solve = EOS_PR(self.zi, self.p, self.t)
             logger.log.debug('Начальное УРС решено')
             logger.log.debug('===')
+
         except Exception as e:
             logger.log.error('Начальное УРС не решено')
 
@@ -98,6 +100,7 @@ class PhaseStability:
             logger.log.debug('===')
             logger.log.debug(f'Сумма мольных долей рассчитана: {self.sum_mole_fractions}')
             logger.log.debug('===')
+        
         except Exception as e:
             logger.log.error('Расчет суммы мольных долей жидкой и газовой фазы не проведен', e)
 
@@ -124,6 +127,7 @@ class PhaseStability:
             self.eos_for_vapour_first_iter = EOS_PR(self.normalized_mole_fractions['vapour'], self.p, self.t)
 
             logger.log.debug('===')
+        
         except Exception as e:
             logger.log.error('Не удалось инициализировать уравнения состояния', e)
 
@@ -149,17 +153,19 @@ class PhaseStability:
 
 
         # Процесс анализа стабильности системы
-        try:
-            self.stability_analysis()
+        # try:
+        #     self.stability_analysis()
 
-        except Exception as e:
-            logger.log.error('Не удалось провести анализ стабильности', e)
+        # except Exception as e:
+        #     logger.log.error('Не удалось провести анализ стабильности', e)
 
 
 ## Методы ##
 
     # Метод для расчета начальных констант равновесия 
     def calc_k_initial(self, p_crit_i, t_crit_i, acentric_factor_i):
+        logger.log.debug('===')
+        logger.log.debug('Используется метод расчета начальных констант равновесия')
         return math.pow(math.e, (5.37*(1+acentric_factor_i)*(1-(t_crit_i/self.t)))) / (self.p/p_crit_i)
     
     # Метод для расчета Yi_v и Xi_l
@@ -168,18 +174,45 @@ class PhaseStability:
         vapour = {}
         liquid = {}
         for component in list(zi.keys()):
-            vapour[component] = self.zi[component] / 100 * k_vals['vapour'][component]
-            liquid[component] = self.zi[component] / (100 * k_vals['liquid'][component])
+            vapour[component] = self.zi[component]  * k_vals['vapour'][component]
+            liquid[component] = self.zi[component] / (k_vals['liquid'][component])
         Yi_and_Xi['vapour'] = vapour
         Yi_and_Xi['liquid'] = liquid
         self.Yi_and_Xi = Yi_and_Xi
+        
+        logger.log.debug('===')
+        logger.log.debug(f'Расчитаны Yi_v Xi_l: {self.Yi_and_Xi}')
+        
         return Yi_and_Xi
+    
+    def calc_Yi_v(self, zi: dict, k_vals):
+        Yi_v = {}
+        for component in list(zi.keys()):
+            Yi_v[component] = self.zi[component] * k_vals['vapour'][component]
+        
+        return Yi_v
+    
+    def calc_Xi_l(self, zi: dict, k_vals):
+        Xi_l = {}
+        for component in list(zi.keys()):
+            Xi_l[component] = self.zi[component] / (k_vals['liquid'][component])
+        
+        return Xi_l
+    
+    def calc_Sv(self, Yi_v: dict):
+        return sum(list(Yi_v.values()))
+
+    def calc_Sl(self, Xi_l: dict):
+        return sum(list(Xi_l.values()))
 
     # метод расчета суммы мольных долей
     def summerize_mole_fractions(self, Yi_Xi):
         sum_mole_fractions = {'vapour': sum(list(Yi_Xi['vapour'].values())),
                               'liquid': sum(list(Yi_Xi['liquid'].values()))}
         self.sum_mole_fractions = sum_mole_fractions
+
+        logger.log.debug('===')
+        logger.log.debug(f'Расчитана сумма мольных долей: {self.sum_mole_fractions}')
         return sum_mole_fractions
 
     # Метод для нормализации мольных долей
@@ -188,10 +221,10 @@ class PhaseStability:
         normalized_vapour_fractions = {}
         normalized_liquid_fractions = {}
         for component in list(zi.keys()):
-            normalized_vapour_fractions[component] = round(Yi_Xi['vapour'][component] / sum_mole_fractions['vapour'] * 100, 5)
+            normalized_vapour_fractions[component] = round(Yi_Xi['vapour'][component] / sum_mole_fractions['vapour'], 5)
 
         for component in list(zi.keys()):
-            normalized_liquid_fractions[component] = round(Yi_Xi['liquid'][component] / sum_mole_fractions['liquid'] * 100, 5)
+            normalized_liquid_fractions[component] = round(Yi_Xi['liquid'][component] / sum_mole_fractions['liquid'], 5)
 
         normalized_mole_fractions['vapour'] = normalized_vapour_fractions
         normalized_mole_fractions['liquid'] = normalized_liquid_fractions
@@ -203,8 +236,8 @@ class PhaseStability:
     def calc_ri_vapour(self, eos):
         ri_vapour = {}
         for component in eos.fugacity_by_roots[eos.choosen_eos_root]:
-            ri_vapour[component] = (self.initial_eos_solve.fugacity_by_roots[self.initial_eos_solve.choosen_eos_root][component] / 
-                        (eos.fugacity_by_roots[eos.choosen_eos_root][component]) * self.sum_mole_fractions['vapour'])
+            ri_vapour[component] = (math.pow(math.e,(self.initial_eos_solve.fugacity_by_roots[self.initial_eos_solve.choosen_eos_root][component])) / 
+                        (math.pow(math.e, ((eos.fugacity_by_roots[eos.choosen_eos_root][component]  * self.sum_mole_fractions['vapour'])))))
         self.ri_vapour = ri_vapour
         return ri_vapour
     
@@ -213,8 +246,8 @@ class PhaseStability:
         ri_liquid = {}
         for component in eos.fugacity_by_roots[eos.choosen_eos_root]:
 
-            ri_liquid[component] = (eos.fugacity_by_roots[eos.choosen_eos_root][component] * self.sum_mole_fractions['liquid'] / 
-                                    self.initial_eos_solve.fugacity_by_roots[self.initial_eos_solve.choosen_eos_root][component])
+            ri_liquid[component] = self.sum_mole_fractions['liquid'] * (math.pow(math.e, ((eos.fugacity_by_roots[eos.choosen_eos_root][component]))) / 
+                                    math.pow(math.e, ((self.initial_eos_solve.fugacity_by_roots[self.initial_eos_solve.choosen_eos_root][component]))))
 
         self.ri_liquid = ri_liquid
         return ri_liquid
@@ -268,12 +301,9 @@ class PhaseStability:
         k_vals_vapour = {}
         for component in self.k_values['vapour']:
             k_vals_vapour[component] = self.ri_vapour[component] * self.k_values['vapour'][component]
-
         
         for component in self.k_values['liquid']:
             k_vals_liquid[component] = self.ri_liquid[component] * self.k_values['liquid'][component]
-
-
 
         new_k_values['vapour'] = k_vals_vapour
         new_k_values['liquid'] = k_vals_liquid
@@ -326,7 +356,8 @@ class PhaseStability:
 
 if __name__ == '__main__':
 
-    phase_stability = PhaseStability({'C1': 90, 'C3': 10}, p = 50, t = 50)
+    phase_stability = PhaseStability({'C1':1}, p = 20, t = 20)
+    phase_stability.stability_analysis()
 
 
 
