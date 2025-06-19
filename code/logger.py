@@ -55,6 +55,8 @@ class LogManager:
         logging.getLogger("lasio").setLevel(logging.WARNING)
         logging.getLogger("openpyxl").setLevel(logging.WARNING)
         logging.getLogger("pandas").setLevel(logging.WARNING)
+        logging.getLogger('math').setLevel(logging.WARNING)
+        
 
 
 if __name__ == '__main__':
