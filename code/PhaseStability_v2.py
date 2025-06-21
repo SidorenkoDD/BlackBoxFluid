@@ -14,16 +14,16 @@ class PhaseStability:
         self.zi = zi
         
         # инициализируем термобарику
-        # if __name__ == '__main__':
-        #     self.p = p * math.pow(10,5)
-        #     self.t = t + 273.14
+        if __name__ == '__main__':
+            self.p = p * math.pow(10,5)
+            self.t = t + 273.14
         
-        # else:
-        #     self.p = p
-        #     self.t = t
+        else:
+            self.p = p
+            self.t = t
 
-        self.t = t + 273.14
-        self.p = p
+        # self.t = t + 273.14
+        # self.p = p
 
         # Подключение к yaml-файлику
         try:
@@ -430,7 +430,7 @@ class PhaseStability:
 
 
 if __name__ == '__main__':
-    phs = PhaseStability(zi = {'C2': 1}, p = 20, t = 20)
+    phs = PhaseStability(zi = {'C1': 1}, p = 20, t = 20)
     phs.stability_analysis()
     print(phs.S_v)
     print(phs.S_l)
