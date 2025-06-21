@@ -26,13 +26,23 @@ class PhaseStability:
         self.zi = zi
 
         # Инициализация термобарических условий в зависимости от запуска модуля
+        # if __name__ == '__main__':
+        #     self.p = p * math.pow(10,5)
+        #     self.t = t + 273.14
+        
+        # else:
+        #     self.p = p
+        #     self.t = t
+        
+        
         if __name__ == '__main__':
-            self.p = p * math.pow(10,5)
+            self.p = p 
             self.t = t + 273.14
         
         else:
             self.p = p
             self.t = t
+
 
         # Подключение к yaml-файлику
         try:
@@ -356,7 +366,7 @@ class PhaseStability:
 
 if __name__ == '__main__':
 
-    phase_stability = PhaseStability({'C1':1}, p = 20, t = 20)
+    phase_stability = PhaseStability({'C2':1}, p = 60, t = 60)
     phase_stability.stability_analysis()
 
 

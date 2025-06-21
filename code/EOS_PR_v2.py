@@ -123,7 +123,7 @@ class EOS_PR:
 
                 fugacity_by_components = {}
                 for component in self.zi.keys():
-                    fugacity_by_components[component] = self.calc_fugacity_for_component_PR(component, root)
+                    fugacity_by_components[component] = self.calc_fugacity_for_components_pedersen(component, root)
                 self.fugacity_by_roots[root] = fugacity_by_components
             
         except Exception as e:
