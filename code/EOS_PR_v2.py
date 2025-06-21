@@ -57,9 +57,14 @@ class EOS_PR:
         #     self.p = p
         #     self.t = t
 
+        if __name__ == '__main__':
+            self.p = p
+            self.t = t + 273.14
 
-        self.p = p
-        self.t = t
+        else:
+            self.p = p
+            self.t = t
+
 
         # параметры а и b, рассчитанные для всего заданного компонентного состава
         try:
@@ -120,6 +125,19 @@ class EOS_PR:
                 for component in self.zi.keys():
                     fugacity_by_components[component] = self.calc_fugacity_for_component_PR(component, root)
                 self.fugacity_by_roots[root] = fugacity_by_components
+            
+        except Exception as e:
+            logger.log.error('Расчет летучести для компонентов не проведен', e)
+
+        # Расчет летучести для всех компонент по уравнению Педерсен
+        try:
+            self.fugacity_by_roots_pedersen = {}
+            for root in self.real_roots_eos:
+
+                fugacity_by_components = {}
+                for component in self.zi.keys():
+                    fugacity_by_components[component] = self.calc_fugacity_for_components_pedersen(component, root)
+                self.fugacity_by_roots_pedersen[root] = fugacity_by_components
             
         except Exception as e:
             logger.log.error('Расчет летучести для компонентов не проведен', e)
@@ -291,6 +309,33 @@ class EOS_PR:
             return 0
                 
     
+    def calc_fugacity_for_components_pedersen(self, component, eos_root):
+        if (eos_root - self.B_linear_mixed):
+            # Расчет суммы j
+            zj_Aj = []
+            for comp in [x for x in self.zi.keys() if x != component]:
+                zj_Aj.append(self.zi[comp] * 
+                                (1 - self.db['bip'][component][comp]) * 
+                                math.sqrt(self.all_params_A[component] * self.all_params_A[comp]))
+            sum_zj_Aj = sum(zj_Aj)
+
+
+            # расчет логарифма коэффициента летучести
+            ln_fi_i = - (math.log(eos_root - self.B_linear_mixed) + (eos_root - 1) * (self.all_params_B[component] / self.B_linear_mixed) - 
+                         (self.mixed_A / (math.pow(2, 1.5) * self.B_linear_mixed)) * 
+                         ((1/self.all_params_A[component]) * 2 * math.sqrt(self.all_params_A[component])* sum_zj_Aj) - (self.all_params_B[component]/self.B_linear_mixed) * 
+                         math.log((eos_root + (math.sqrt(2) + 1) * self.B_linear_mixed)/(eos_root - (math.sqrt(2) - 1) * self.B_linear_mixed)))
+            
+            # Расчет логарифма летучести через преобразование логарифмов
+            ln_f_i = ln_fi_i + math.log(self.zi[component] * self.p)
+        
+            return ln_f_i
+        
+        else:
+            return 0
+
+
+
 
     #Метод расчета приведенной энергии Гиббса
     def calc_normalized_gibbs_energy(self) -> dict:
@@ -324,8 +369,9 @@ class EOS_PR:
     
 
 if __name__ == '__main__':
-    eos = EOS_PR({'C1': 1}, 30, 20)
+    eos = EOS_PR({'C1': 1}, 20, 20)
     print(eos.fugacity_by_roots)
+    print(eos.fugacity_by_roots_pedersen)
 
 
 
