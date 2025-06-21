@@ -22,7 +22,7 @@ class PhaseStability:
         #     self.p = p
         #     self.t = t
 
-        self.t = t
+        self.t = t + 273.14
         self.p = p
 
         # Подключение к yaml-файлику
@@ -200,7 +200,8 @@ class PhaseStability:
     def calc_initial_k_values_wilson(self):
         k_initial = {}
         for component in list(self.zi.keys()):
-            k_initial[component] = (math.pow(math.e, 5.37 * (1 + self.db['acentric_factor'][component]) * (1 - (self.db['critical_temperature'][component]/self.t))) / 
+            k_initial[component] = (math.pow(math.e, 5.37 * (1 + self.db['acentric_factor'][component]) * 
+                                             (1 - (self.db['critical_temperature'][component]/self.t))) / 
                                     (self.p / self.db['critical_pressure'][component]))
             
         return k_initial
@@ -301,7 +302,8 @@ class PhaseStability:
     def calc_ri_liquid(self, eos_liquid: EOS_PR):
         ri_liquid = {}
         for component in eos_liquid.zi.keys():
-            ri = ((math.exp(eos_liquid.fugacity_by_roots[eos_liquid.choosen_eos_root][component]))/math.exp(self.initial_eos.fugacity_by_roots[self.initial_eos.choosen_eos_root][component]) * self.S_l)
+            ri = ((math.exp(eos_liquid.fugacity_by_roots[eos_liquid.choosen_eos_root][component]))/
+                  math.exp(self.initial_eos.fugacity_by_roots[self.initial_eos.choosen_eos_root][component]) * self.S_l)
             ri_liquid[component] = ri
         
         return ri_liquid
@@ -309,7 +311,6 @@ class PhaseStability:
 
     # Проверка условия стабильности 
     def check_convergence(self, e = math.pow(10, -12)):
-        self.iteration = 0
         ri_v_for_sum = []
         ri_l_for_sum = []
 
@@ -333,8 +334,6 @@ class PhaseStability:
             return True
         else:
             return False
-
-
 
     # Обновление констант равновесия
     ## Для газовой фазы
@@ -383,10 +382,9 @@ class PhaseStability:
             return False
         
 
-
-    
     # Пайплайн решения
     def stability_analysis(self):
+        self.iteration = 0
         while (self.check_convergence() == False) or (self.check_trivial_solution() == False):
             self.iteration += 1
             
@@ -432,7 +430,7 @@ class PhaseStability:
 
 
 if __name__ == '__main__':
-    phs = PhaseStability(zi = {'C1': 1}, p = 3, t = 30)
+    phs = PhaseStability(zi = {'C2': 1}, p = 20, t = 20)
     phs.stability_analysis()
     print(phs.S_v)
     print(phs.S_l)
