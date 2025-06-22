@@ -1,7 +1,6 @@
 import math as math
 from logger import LogManager
-from EOS_PR_v2 import EOS_PR
-from PhaseStability import PhaseStability
+from PhaseStability_v2 import PhaseStability
 
 class PhaseEquilibrium:
     '''
@@ -46,8 +45,6 @@ class PhaseEquilibrium:
 
 
 if __name__ == '__main__':
-    equilibrium = PhaseEquilibrium({'C1': 100}, 50,50)
+    equilibrium = PhaseEquilibrium({'C1': 0.1, 'C2':0.9}, 150,50)
     equilibrium.phase_stability.stability_analysis()
-
-    print(equilibrium.phase_stability.sum_mole_fractions)
-    print(equilibrium.phase_stability.k_values)
+    equilibrium.phase_stability.interpretate_stability_analysis()
