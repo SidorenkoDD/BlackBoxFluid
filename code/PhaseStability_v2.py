@@ -401,50 +401,48 @@ class PhaseStability:
     # Пайплайн решения
     def stability_analysis(self):
         self.iteration = 0
-        for _ in range(200):
-            if (self.convergence == False) or (self.trivial_solution == False):
-                print(f'CONVERGENCE: {self.convergence}')
-                print(f'TR: {self.trivial_solution}')
-                self.iteration += 1
-                
-                logger.log.info('=====')
-                logger.log.info(f'Итерация: {self.iteration}')
-                logger.log.info('=====')
-
-                # Обновляем k-values
-                self.update_k_values_vapour()
-                self.update_k_values_liquid()
-
-                # Расчет y_i_v
-                self.Yi_v = self.calc_Yi_v(self.yi_v)
-                self.S_v = self.calc_S_v(self.Yi_v)
-                self.yi_v = self.normalize_mole_fractions_vapour(self.Yi_v, self.S_v)
-
-                # Расчет x_i_l
-                self.Xi_l = self.calc_Xi_l(self.xi_l)
-                self.S_l = self.calc_S_l(self.Xi_l)
-                self.xi_l = self.normalize_mole_fractions_liquid(self.Xi_l, self.S_l)
-
-                # Расчет УРС для газовой фазы
-                self.vapour_eos = self.calc_eos_for_vapour(self.yi_v)
-
-                # Расчет УРС для жидкой фазы
-                self.liquid_eos = self.calc_eos_for_liquid(self.xi_l)
-
-                # Расчет Ri_v
-                self.ri_v = self.calc_ri_vapour(self.vapour_eos)
-
-                # Расчет Ri_l
-                self.ri_l = self.calc_ri_liquid(self.liquid_eos)
-
-                # Проверка сходимости
-                self.check_convergence()
-
-                # Проверка тривиального решения
-                self.check_trivial_solution()
+        while (self.convergence == False) and (self.trivial_solution == False):
+            print(f'CONVERGENCE: {self.convergence}')
+            print(f'TR: {self.trivial_solution}')
+            self.iteration += 1
             
-            else:
-                break
+            logger.log.info('=====')
+            logger.log.info(f'Итерация: {self.iteration}')
+            logger.log.info('=====')
+
+            # Обновляем k-values
+            self.update_k_values_vapour()
+            self.update_k_values_liquid()
+
+            # Расчет y_i_v
+            self.Yi_v = self.calc_Yi_v(self.yi_v)
+            self.S_v = self.calc_S_v(self.Yi_v)
+            self.yi_v = self.normalize_mole_fractions_vapour(self.Yi_v, self.S_v)
+
+            # Расчет x_i_l
+            self.Xi_l = self.calc_Xi_l(self.xi_l)
+            self.S_l = self.calc_S_l(self.Xi_l)
+            self.xi_l = self.normalize_mole_fractions_liquid(self.Xi_l, self.S_l)
+
+            # Расчет УРС для газовой фазы
+            self.vapour_eos = self.calc_eos_for_vapour(self.yi_v)
+
+            # Расчет УРС для жидкой фазы
+            self.liquid_eos = self.calc_eos_for_liquid(self.xi_l)
+
+            # Расчет Ri_v
+            self.ri_v = self.calc_ri_vapour(self.vapour_eos)
+
+            # Расчет Ri_l
+            self.ri_l = self.calc_ri_liquid(self.liquid_eos)
+
+            # Проверка сходимости
+            self.check_convergence()
+
+            # Проверка тривиального решения
+            self.check_trivial_solution()
+        
+
 
 
 
@@ -473,7 +471,7 @@ class PhaseStability:
             logger.log.info('===============')
             logger.log.info('Результат интерпритации анализа стабильности:')
             logger.log.info(f'S_v: {self.S_v}, S_l: {self.S_l}')
-            logger.log.info('Система стабильна')
+            logger.log.info('Система не стабильна')
             logger.log.info('===============')
 
             
@@ -481,7 +479,7 @@ class PhaseStability:
 
 
 if __name__ == '__main__':
-    phs = PhaseStability(zi = {'C1': 0.9, 'C2':0.1}, p = 20, t = 70)
+    phs = PhaseStability(zi = {'C1': 0.9, 'C2':0.1}, p = 50, t = 20)
     phs.stability_analysis()
 
     phs.interpretate_stability_analysis()
