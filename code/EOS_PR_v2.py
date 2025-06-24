@@ -234,15 +234,17 @@ class EOS_PR:
             itt = -qk/2 + math.sqrt(s)
             if itt < 0:
 
-                itt = abs(itt)
-                it =  math.pow(-itt, (1/3))
+                itt =  abs(itt)
+                # В этой строке ломается код
+                #it =  math.pow(itt, (1/3))
+                it = (-itt) ** (1/3)
             else:
                 it = math.pow(itt, (1/3))
 
-                if vb < 0:
-                    zk0 = it - math.pow((abs(vb)), (1/3)) - bk/3
+            if vb < 0:
+                    zk0 = it - ((abs(vb)) ** (1/3)) - bk/3
                 
-                else:
+            else:
                     zk0 = it + math.pow((-qk/2 - math.sqrt(s)), (1/3)) - bk/3
 
             zk1 = 0
@@ -274,6 +276,7 @@ class EOS_PR:
     def calc_fugacity_for_component_PR(self, component, eos_root):
         '''
         Метод возвращает значение ln_f_i (формула 1.39)
+        Введено доп уравнение для расчета летучести одной компоненты
         '''
         if len(list(self.zi.keys())) == 1:
             eos_roots = self.real_roots_eos
@@ -320,6 +323,8 @@ class EOS_PR:
             f = fi * self.p
             print(f)
 
+
+    # Метод расчета летучести по Pedersen
     def calc_fugacity_for_components_pedersen(self, component, eos_root):
         if (eos_root - self.B_linear_mixed):
             # Расчет суммы j
@@ -351,8 +356,6 @@ class EOS_PR:
         
         else:
             return 0
-
-
 
 
     #Метод расчета приведенной энергии Гиббса
@@ -387,7 +390,7 @@ class EOS_PR:
     
 
 if __name__ == '__main__':
-    eos = EOS_PR({'C1': 0.5, 'C2':0.5}, 20, 70)
+    eos = EOS_PR({'C1': 0.9, 'C2':0.1,'C2': 0.1}, 50, 20)
     print(eos.fugacity_by_roots)
 
 

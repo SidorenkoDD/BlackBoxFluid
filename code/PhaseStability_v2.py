@@ -479,7 +479,7 @@ class PhaseStability:
 
 
 if __name__ == '__main__':
-    phs = PhaseStability(zi = {'C1': 0.9, 'C2':0.1}, p = 50, t = 20)
+    phs = PhaseStability(zi = {'C1': 0.5, 'C2':0.5}, p = 50, t = 20)
     phs.stability_analysis()
 
     phs.interpretate_stability_analysis()
