@@ -217,7 +217,16 @@ class EOS_PR:
         linear_mixed_B = []
         for i, b in enumerate(list(self.all_params_B.values())):
             linear_mixed_B.append(b * list(self.zi.values())[i])
-            return sum(linear_mixed_B)
+        return sum(linear_mixed_B)
+        
+    
+    def calc_mixed_B_v2(self):
+        mixed_B = []
+        for i, b in enumerate(list(self.all_params_B.values())):
+            mixed_B.append( b * list(self.zi.values())[i])
+
+        return mixed_B
+    
     
 
     # Метод для решения кубического уравнения
@@ -232,14 +241,16 @@ class EOS_PR:
         if s > 0:
             vb = -qk/2 - math.sqrt(s)
             itt = -qk/2 + math.sqrt(s)
-            if itt < 0:
+            # if itt < 0:
 
-                itt =  abs(itt)
-                # В этой строке ломается код
-                #it =  math.pow(itt, (1/3))
-                it = (-itt) ** (1/3)
-            else:
-                it = math.pow(itt, (1/3))
+            #     itt =  abs(itt)
+            #     # В этой строке ломается код
+            #     #it =  math.pow(itt, (1/3))
+            #     it = (-itt) ** (1/3)
+            # else:
+            #     it = math.pow(itt, (1/3))
+            
+            it = itt ** (1/3)
 
             if vb < 0:
                     zk0 = it - ((abs(vb)) ** (1/3)) - bk/3
@@ -390,8 +401,9 @@ class EOS_PR:
     
 
 if __name__ == '__main__':
-    eos = EOS_PR({'C1': 0.9, 'C2':0.1,'C2': 0.1}, 50, 20)
+    eos = EOS_PR({'C1': 0.5, 'C2':0.5}, 50, 20)
     print(eos.fugacity_by_roots)
+    eos.calc_mixed_B_v2()
 
 
 
