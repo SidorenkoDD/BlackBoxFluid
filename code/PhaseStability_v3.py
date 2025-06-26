@@ -395,7 +395,7 @@ class PhaseStability:
 
 
 if __name__ == '__main__':
-    phs = PhaseStability(zi = {'CO2': 0.05, 'C1': 0.5, 'C2': 0.2, 'C3': 0.25}, p = 150, t = 150)
+    phs = PhaseStability(zi = { 'C1': 0.5, 'C2': 0.3, 'C3': 0.2}, p = 15, t = 15)
     
     # phs.stability_check()
     # print(phs.convergence)
