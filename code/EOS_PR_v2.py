@@ -40,7 +40,7 @@ class EOS_PR:
             z = {k: v for k, v in self.zi.items() if v != 0}
             self.zi = z
         if sum(list(self.zi.values())) != 1:
-            logger.log.fatal('Сумма компонентов не равна 1')
+            logger.log.fatal(f'Сумма компонентов не равна 1: {self.zi}')
             #raise ValueError
         
         else:
@@ -401,7 +401,7 @@ class EOS_PR:
     
 
 if __name__ == '__main__':
-    eos = EOS_PR({'C1': 1}, 100, -30)
+    eos = EOS_PR({'C1': 0.5, 'C2': 0.3, 'C3':0.2}, 100, 100)
     print(eos.fugacity_by_roots)
     #eos.calc_mixed_B_v2()
 
