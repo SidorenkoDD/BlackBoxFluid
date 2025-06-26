@@ -25,7 +25,7 @@ class EOS_PR:
         # Читаем .yaml файл с данными по компонентам
         try:
             
-            with open('code/db.yaml', 'r') as db_file:
+            with open('/Users/daniilsidorenko/Desktop/PVT_TSU/code/db.yaml', 'r') as db_file:
                 self.db = yaml.safe_load(db_file)
             logger.log.debug('Данные компонент из .yaml прочитаны успешно') 
 
@@ -401,7 +401,7 @@ class EOS_PR:
     
 
 if __name__ == '__main__':
-    eos = EOS_PR({'C1': 0.5, 'C2': 0.3, 'C3':0.2}, 100, 100)
+    eos = EOS_PR({'C1': 0.1, 'C2': 0.9}, 100, 100)
     print(eos.fugacity_by_roots)
     #eos.calc_mixed_B_v2()
 

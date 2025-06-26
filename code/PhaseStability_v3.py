@@ -13,7 +13,7 @@ class PhaseStability:
         # инициализируем состав
         self.zi = zi
         
-        # инициализируем термобарику
+        # # инициализируем термобарику
         if __name__ == '__main__':
             self.p = p * math.pow(10,5)
             self.t = t + 273.14
@@ -22,6 +22,8 @@ class PhaseStability:
             self.p = p
             self.t = t
 
+        # self.p = p
+        # self.t = t + 273.14
         
         self.convergence = False
         self.convergence_trivial_solution = False
@@ -318,7 +320,7 @@ class PhaseStability:
     
 
     ### Новый метод анализа стабильности 
-    def stability_check(self, e = math.pow(10, -12)):
+    def stability_check(self, e = math.pow(10, -4)):
     
 
         ri_v_to_sum = []
@@ -342,11 +344,11 @@ class PhaseStability:
             self.convergence = False
             ki_v_to_sum = []
             for ki_v in list(self.k_values_vapour.values()):
-                ki_v_to_sum.append(math.pow(math.log(ki_v),2))
+                ki_v_to_sum.append(math.pow((math.log(ki_v)),2))
             
             ki_l_to_sum = []
             for ki_l in list(self.k_values_liquid.values()):
-                ki_l_to_sum.append(math.pow(math.log(ki_l),2))
+                ki_l_to_sum.append(math.pow((math.log(ki_l)),2))
 
             if sum(ki_v_to_sum) < math.pow(10,-4) or sum(ki_l_to_sum) < math.pow(10,-4):
                 self.convergence_trivial_solution = True
@@ -395,18 +397,11 @@ class PhaseStability:
 
 
 if __name__ == '__main__':
-    phs = PhaseStability(zi = { 'C1': 0.5, 'C2': 0.3, 'C3': 0.2}, p = 15, t = 15)
+    phs = PhaseStability(zi = { 'C1': 0.9, 'C2': 0.1}, p = 17, t = 170)
     
-    # phs.stability_check()
-    # print(phs.convergence)
-    # print(phs.convergence_trivial_solution)
     phs.stability_loop()
+    print(phs.convergence)
+    print(phs.convergence_trivial_solution)
     print(phs.xi_l)
     print(phs.yi_v)
 
-
-
-
-    #phs.interpretate_stability_analysis()
-    # print(phs.xi_l)
-    # print(phs.yi_v)
