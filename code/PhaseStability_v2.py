@@ -1,4 +1,6 @@
 import yaml
+import numpy as np
+import pandas as pd
 import math
 from logger import LogManager
 from EOS_PR_v2 import EOS_PR
@@ -127,7 +129,7 @@ class PhaseStability:
 
         # Решение УРС для жидкой фазы
         try:
-            print(f'x_i_l: {self.xi_l}')
+            #print(f'x_i_l: {self.xi_l}')
             self.liquid_eos = self.calc_eos_for_liquid(x_i_l= self.xi_l)
             logger.log.debug('УРС для жидкой фазы решено')
         except Exception as e:
@@ -318,11 +320,13 @@ class PhaseStability:
         for ri_v in self.ri_v.values():
             ri_v_for_sum.append(math.pow((ri_v - 1), 2))
         ri_v_sum = sum(ri_v_for_sum)
+        print(f'ri_v: {ri_v_sum}')
 
 
         for ri_l in self.ri_l.values():
             ri_l_for_sum.append(math.pow((ri_l - 1), 2))
         ri_l_sum = sum(ri_l_for_sum)
+        print(f'ri_l: {ri_l_sum}')
 
         logger.log.info('=====')
         logger.log.info('Расчет сходимости')
@@ -402,8 +406,8 @@ class PhaseStability:
     def stability_analysis(self):
         self.iteration = 0
         while (self.convergence == False) and (self.trivial_solution == False):
-            print(f'CONVERGENCE: {self.convergence}')
-            print(f'TR: {self.trivial_solution}')
+            #print(f'CONVERGENCE: {self.convergence}')
+            #print(f'TR: {self.trivial_solution}')
             self.iteration += 1
             
             logger.log.info('=====')
@@ -460,6 +464,8 @@ class PhaseStability:
             logger.log.info(f'S_v: {self.S_v}, S_l: {self.S_l}')
             logger.log.info('Система стабильна')
             logger.log.info('===============')
+            print('Система стабильна')
+            return True
 
 
         elif (((round(self.S_v, 2) > 1) and self.trivial_solution_liquid) or 
@@ -473,15 +479,54 @@ class PhaseStability:
             logger.log.info(f'S_v: {self.S_v}, S_l: {self.S_l}')
             logger.log.info('Система не стабильна')
             logger.log.info('===============')
+            print('Система не стабильна')
+            return False
+
+        # print(f'S_v: {self.S_v}')
+        # print(f'S_l: {self.S_l}')
+
+    
+    def stability_analysis_2D(self, p_in, p_out, p_step,
+                              t_in, t_out,t_step):
+        
+        p_massive = np.linspace(p_in, p_out, p_step)
+        t_massive = np.linspace(t_in, t_out, t_step)
+
+        for p in p_massive:
+            for t in t_massive:
+                ...
+                
 
             
 
 
-
 if __name__ == '__main__':
-    phs = PhaseStability(zi = {'C1': 1}, p = 50, t = 20)
-    phs.stability_analysis()
 
+    phs = PhaseStability(zi = {'C1': 0.8, 'C2':0.2}, p = 80, t = 1)
+    phs.stability_analysis()
     phs.interpretate_stability_analysis()
-    print(phs.xi_l)
-    print(phs.yi_v)
+
+    # zi = {'C1':0.9, 'C2': 0.1}
+    # pres = []
+    # temp = []
+    # result = []
+
+    # for p in np.linspace(1,400,10):
+    #     for t in np.linspace(1,400,10):
+    #         ph = PhaseStability(zi = zi, p=p, t=t)
+    #         ph.stability_analysis()
+    #         pres.append(p)
+    #         temp.append(t)
+    #         result.append(ph.interpretate_stability_analysis())
+
+    # result_df = pd.DataFrame({'P': pres, 'T':temp, 'Stable':result})
+    # print(result_df)
+    # print(result_df['Stable'].unique())
+    # print(pres)
+    # print(temp)
+    # print(result)  
+
+
+
+    # phs.interpretate_stability_analysis()
+

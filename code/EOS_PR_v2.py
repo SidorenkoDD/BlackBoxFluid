@@ -403,7 +403,7 @@ class EOS_PR:
 if __name__ == '__main__':
     eos = EOS_PR({'C1': 0.5, 'C2':0.5}, 50, 20)
     print(eos.fugacity_by_roots)
-    eos.calc_mixed_B_v2()
+    
 
 
 
