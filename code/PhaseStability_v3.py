@@ -350,8 +350,8 @@ class PhaseStability:
                 print('Расчет свойств, выход из алгоритма')
             
             else:
-                self.k_values_vapour = self.update_k_values_vapour()
-                self.k_values_liquid = self.update_k_values_liquid()
+                # self.k_values_vapour = self.update_k_values_vapour()
+                # self.k_values_liquid = self.update_k_values_liquid()
                 print('Необходимо обновлять значения k')
                 self.convergence_trivial_solution = False
 
@@ -382,7 +382,7 @@ class PhaseStability:
             self.stability_check()
 
 if __name__ == '__main__':
-    phs = PhaseStability(zi = {'C1': 1}, p = 1, t = 50)
+    phs = PhaseStability(zi = {'C1': 0.9, 'C2': 0.1}, p = 1, t = 50)
     
     phs.stability_check()
     print(phs.convergence)
