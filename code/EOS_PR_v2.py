@@ -40,7 +40,7 @@ class EOS_PR:
             z = {k: v for k, v in self.zi.items() if v != 0}
             self.zi = z
         if sum(list(self.zi.values())) != 1:
-            logger.log.fatal('Сумма компонентов не равна 1')
+            logger.log.fatal(f'Сумма компонентов не равна 1: {self.zi}')
             #raise ValueError
         
         else:
@@ -57,14 +57,19 @@ class EOS_PR:
         #     self.p = p
         #     self.t = t
 
+        # if __name__ == '__main__':
+        #     self.p = p * math.pow(10,5)
+        #     self.t = t + 273.14
+
+        # else:
+
         if __name__ == '__main__':
-            self.p = p * math.pow(10,5)
+            self.p = p
             self.t = t + 273.14
 
         else:
             self.p = p
             self.t = t
-
 
         # параметры а и b, рассчитанные для всего заданного компонентного состава
         try:
@@ -299,11 +304,13 @@ class EOS_PR:
 
         else:
             zi_Ai = []
-            for comp in [x for x in self.zi.keys() if x != component]:
+            # for comp in [x for x in self.zi.keys() if x != component]:
+            for comp in list(self.zi.keys()):
                 zi_Ai.append(self.zi[comp] * 
                                 (1 - self.db['bip'][component][comp]) * 
                                 math.sqrt(self.all_params_A[component] * self.all_params_A[comp]))
             sum_zi_Ai = sum(zi_Ai)
+
 
             if (eos_root - self.B_linear_mixed) > 0:
 
@@ -311,16 +318,15 @@ class EOS_PR:
                             (math.log(eos_root - self.B_linear_mixed)) + 
                             (self.mixed_A / (2 * math.sqrt(2) * self.B_linear_mixed)) * 
                             ((self.all_params_B[component] / self.B_linear_mixed) - (2/self.mixed_A) *  sum_zi_Ai) * 
-                            math.log((eos_root + ((1 + math.sqrt(2))* self.B_linear_mixed))/(eos_root - ((1 - math.sqrt(2))* self.B_linear_mixed))))
+                            math.log((eos_root + ((1 + math.sqrt(2))* self.B_linear_mixed))/(eos_root + ((1 - math.sqrt(2))* self.B_linear_mixed))))
 
 
 
-                # fi = math.exp(ln_fi_i)
-                # f = fi * self.p
-                # print(f)
+                ln_f_i = ln_fi_i + math.log(self.p * self.zi[component]) 
 
 
-                return ln_fi_i
+
+                return ln_f_i
         
             else:
                 return 0
@@ -384,7 +390,7 @@ class EOS_PR:
 
             else:
                 for component in self.fugacity_by_roots[root].keys():
-                    gibbs_energy_by_roots.append(self.fugacity_by_roots[root][component] * self.zi[component])
+                    gibbs_energy_by_roots.append(math.exp(self.fugacity_by_roots[root][component]) * self.zi[component])
                     normalized_gibbs_energy[root] = sum(gibbs_energy_by_roots)
 
         return normalized_gibbs_energy 
@@ -401,9 +407,13 @@ class EOS_PR:
     
 
 if __name__ == '__main__':
-    eos = EOS_PR({'C1': 0.5, 'C2':0.5}, 50, 20)
-    print(eos.fugacity_by_roots)
-    
+
+    eos = EOS_PR({'C1': 0.5, 'C2': 0.5}, 1.7, 20)
+    print(f' Z: {eos.choosen_eos_root}')
+    print(f'fug_by_roots: {eos.fugacity_by_roots}')
+    print(f' Е Гиббса: {eos.normalized_gibbs_energy}')
+
+
 
 
 
