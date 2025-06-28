@@ -14,17 +14,15 @@ class PhaseStability:
         self.zi = zi
         
         # # инициализируем термобарику
-        # if __name__ == '__main__':
-        #     self.p = p * math.pow(10,5)
-        #     self.t = t + 273.14
+        if __name__ == '__main__':
+            self.p = p
+            self.t = t + 273.14
         
-        # else:
-        #     self.p = p
-        #     self.t = t
+        else:
+            self.p = p
+            self.t = t
 
-        self.p = p
-        self.t = t + 273.14
-        
+
         self.convergence = False
         self.convergence_trivial_solution = False
 
@@ -195,6 +193,7 @@ class PhaseStability:
             
         return k_initial
     
+
     # Расчет начальных констант равновесия для газовой фазы
     def calc_k_initial_for_vapour_wilson(self):
         k_initial_vapour = {}
@@ -205,8 +204,8 @@ class PhaseStability:
             
         return k_initial_vapour
     
-        # Расчет начальных констант равновесия для газовой фазы
-    
+
+    # Расчет начальных констант равновесия для газовой фазы
     def calc_k_initial_for_liquid_wilson(self):
         k_initial_liquid = {}
         for component in list(self.zi.keys()):
@@ -276,7 +275,6 @@ class PhaseStability:
         return eos_for_liquid
     
 
-
     # Рассчитываем Ri для газовой фазы
     def calc_ri_vapour(self, eos_vapour:EOS_PR):
         ri_vapour = {}
@@ -309,6 +307,7 @@ class PhaseStability:
         #self.k_values_vapour = new_k_i_vapour
         return new_k_i_vapour
 
+
     ## Для жидкой фазы
     def update_k_values_liquid(self):
         new_k_i_liquid = {}
@@ -320,7 +319,7 @@ class PhaseStability:
     
 
     ### Новый метод анализа стабильности 
-    def stability_check(self, e = math.pow(10, -8)):
+    def check_convergence(self, e = math.pow(10, -12)):
     
 
         ri_v_to_sum = []
@@ -335,7 +334,7 @@ class PhaseStability:
         sum_ri_v = sum(ri_v_to_sum)
         sum_ri_l = sum(ri_l_to_sum)
 
-        print(sum_ri_v, sum_ri_l)
+        
 
         if (sum_ri_v < e) or (sum_ri_l < e):
             print('Сходимость в первом цикле, анализ системы по Sv Sl')
@@ -344,27 +343,13 @@ class PhaseStability:
         
         else:
             self.convergence = False
-            ki_v_to_sum = []
-            for ki_v in list(self.k_values_vapour.values()):
-                ki_v_to_sum.append(math.pow((math.log(ki_v)),2))
-            
-            ki_l_to_sum = []
-            for ki_l in list(self.k_values_liquid.values()):
-                ki_l_to_sum.append(math.pow((math.log(ki_l)),2))
-
-            if sum(ki_v_to_sum) < math.pow(10,-4) or sum(ki_l_to_sum) < math.pow(10,-4):
-                self.convergence_trivial_solution = True
-                print('Расчет свойств, выход из алгоритма')
-            
-            else:
-                # self.k_values_vapour = self.update_k_values_vapour()
-                # self.k_values_liquid = self.update_k_values_liquid()
-                print('Необходимо обновлять значения k')
-                self.convergence_trivial_solution = False
-
-    
+            return False
+        
 
     def check_trivial_solution(self):
+        self.trivial_solution_vapour = False
+        self.trivial_solution_liquid = False
+
         ki_v_to_sum = []
         for ki_v in list(self.k_values_vapour.values()):
             ki_v_to_sum.append(math.pow((math.log(ki_v)),2))
@@ -373,9 +358,15 @@ class PhaseStability:
         for ki_l in list(self.k_values_liquid.values()):
             ki_l_to_sum.append(math.pow((math.log(ki_l)),2))
 
-        if sum(ki_v_to_sum) < math.pow(10,-4) or sum(ki_l_to_sum) < math.pow(10,-4):
+        if sum(ki_v_to_sum) < math.pow(10,-4):
+            self.trivial_solution_vapour = True
             self.convergence_trivial_solution = True
-            print('Расчет свойств, выход из алгоритма')
+
+        
+        elif sum(ki_l_to_sum) < math.pow(10,-4):
+            self.trivial_solution_liquid = True
+            self.convergence_trivial_solution = True
+
         
         else:
             # self.k_values_vapour = self.update_k_values_vapour()
@@ -383,12 +374,12 @@ class PhaseStability:
             print('Необходимо обновлять значения k')
             self.convergence_trivial_solution = False
         
-    
+
     def stability_loop(self):
         iter = 0
         while (self.convergence == False) and (self.convergence_trivial_solution == False):
         
-            self.stability_check()
+            self.check_convergence()
 
             self.k_values_vapour = self.update_k_values_vapour()
             self.k_values_liquid = self.update_k_values_liquid()
@@ -414,18 +405,52 @@ class PhaseStability:
             
             iter += 1
 
+            print(f'Количество итераций: {iter}')
+
             if iter > 100000:
                 break
 
 
+    def interpetate_stability_analysis(self):
+        if ((self.trivial_solution_vapour and self.trivial_solution_liquid) or 
+            ((round(self.S_v, 3) <= 1) and (self.trivial_solution_liquid)) or 
+            ((self.trivial_solution_vapour) and (round(self.S_l, 3) <= 1)) or 
+            ((round(self.S_v, 3) <= 1) and (round(self.S_l, 3) <= 1))):
+
+            logger.log.info('===============')
+            logger.log.info('Результат интерпритации анализа стабильности:')
+            logger.log.info(f'S_v: {self.S_v}, S_l: {self.S_l}')
+            logger.log.info('Система стабильна')
+            logger.log.info('===============')
+
+
+        elif (((round(self.S_v, 2) > 1) and self.trivial_solution_liquid) or 
+              (self.trivial_solution_vapour and (round(self.S_l,2) > 1)) or 
+                ((round(self.S_v,2) > 1) and (round(self.S_l,2) > 1)) or 
+                ((round(self.S_v, 2)> 1) and (round(self.S_l, 2) <= 1)) or 
+                ((round(self.S_v, 2) <= 1) and (round(self.S_l,2)>1))):
+            
+            logger.log.info('===============')
+            logger.log.info('Результат интерпритации анализа стабильности:')
+            logger.log.info(f'S_v: {self.S_v}, S_l: {self.S_l}')
+            logger.log.info('Система не стабильна')
+            logger.log.info('===============')
+
+
+
 if __name__ == '__main__':
-    phs = PhaseStability(zi = { 'C1': 0.1, 'C2': 0.2, 'C3':0.7}, p = 12, t = 120)
-    
+    phs = PhaseStability(zi = { 'C1': 0.5, 'C2': 0.5}, p = 1, t = 120)
+
     phs.stability_loop()
-    print(f'yi_v: {phs.yi_v}')
-    print(f'xi_l: {phs.xi_l}')
-    print(f'K_vapour: {phs.k_values_vapour}')
-    print(f'K_liquid: {phs.k_values_liquid}')
+    print(phs.S_v)
+    print(phs.S_l)
+    phs.interpetate_stability_analysis()
+
+
+    # print(f'yi_v: {phs.yi_v}')
+    # print(f'xi_l: {phs.xi_l}')
+    # print(f'K_vapour: {phs.k_values_vapour}')
+    # print(f'K_liquid: {phs.k_values_liquid}')
 
 
     # print(phs.initial_eos.choosen_eos_root)
