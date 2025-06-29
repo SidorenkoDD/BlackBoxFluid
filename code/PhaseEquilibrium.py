@@ -71,6 +71,7 @@ class PhaseEquilibrium:
 
 
 
+
     ### Методы ###
 
     # Метод расчета ур-ия Рэшфорда-Райса
@@ -290,12 +291,12 @@ class PhaseEquilibrium:
 
     # Метод расчета плотности системы
     def calc_rho(self):
-        ...
+        return 1
 
 
 
 if __name__ == '__main__':
-    equilibrium = PhaseEquilibrium({'C1': 0.9, 'nC4':0.1}, 5, 40)
+    equilibrium = PhaseEquilibrium({'C1': 0.5, 'nC4':0.5}, 5, 40)
     
     print(equilibrium.xi_l)
     print(equilibrium.yi_v)
