@@ -319,7 +319,7 @@ class PhaseStability:
     
 
     ### Новый метод анализа стабильности 
-    def check_convergence(self, e = math.pow(10, -12)):
+    def check_convergence(self, e = math.pow(10, -8)):
     
 
         ri_v_to_sum = []
@@ -421,6 +421,7 @@ class PhaseStability:
             logger.log.info('Результат интерпритации анализа стабильности:')
             logger.log.info(f'S_v: {self.S_v}, S_l: {self.S_l}')
             logger.log.info('Система стабильна')
+            self.stable = True
             logger.log.info('===============')
 
 
@@ -434,17 +435,21 @@ class PhaseStability:
             logger.log.info('Результат интерпритации анализа стабильности:')
             logger.log.info(f'S_v: {self.S_v}, S_l: {self.S_l}')
             logger.log.info('Система не стабильна')
+            self.stable = False
             logger.log.info('===============')
 
 
 
 if __name__ == '__main__':
-    phs = PhaseStability(zi = { 'C1': 0.5, 'C2': 0.5}, p = 1, t = 120)
+    phs = PhaseStability(zi = { 'C1': 0.6, 'nC4': 0.4}, p = 5, t = 30)
 
     phs.stability_loop()
     print(phs.S_v)
     print(phs.S_l)
     phs.interpetate_stability_analysis()
+    print(phs.k_values_vapour)
+    print(phs.k_values_liquid)
+    print(phs.stable)
 
 
     # print(f'yi_v: {phs.yi_v}')
