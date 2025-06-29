@@ -319,7 +319,7 @@ class PhaseStability:
     
 
     ### Новый метод анализа стабильности 
-    def check_convergence(self, e = math.pow(10, -8)):
+    def check_convergence(self, e = math.pow(10, -5)):
     
 
         ri_v_to_sum = []
@@ -337,7 +337,6 @@ class PhaseStability:
         
 
         if (sum_ri_v < e) or (sum_ri_l < e):
-            print('Сходимость в первом цикле, анализ системы по Sv Sl')
             self.convergence = True
             return True
         
@@ -371,20 +370,17 @@ class PhaseStability:
         else:
             # self.k_values_vapour = self.update_k_values_vapour()
             # self.k_values_liquid = self.update_k_values_liquid()
-            print('Необходимо обновлять значения k')
             self.convergence_trivial_solution = False
         
 
     def stability_loop(self):
         iter = 0
+        self.check_convergence()
+        self.check_trivial_solution()
         while (self.convergence == False) and (self.convergence_trivial_solution == False):
-        
-            self.check_convergence()
 
             self.k_values_vapour = self.update_k_values_vapour()
             self.k_values_liquid = self.update_k_values_liquid()
-
-            self.check_trivial_solution()
     
             self.Yi_v = self.calc_Yi_v(self.zi)
             self.Xi_l = self.calc_Xi_l(self.zi)
@@ -402,8 +398,11 @@ class PhaseStability:
             self.ri_v = self.calc_ri_vapour(self.vapour_eos)
             self.ri_l = self.calc_ri_liquid(self.liquid_eos)
             
-            
+
+
             iter += 1
+            self.check_convergence()
+            self.check_trivial_solution()
 
             print(f'Количество итераций: {iter}')
 
@@ -441,34 +440,17 @@ class PhaseStability:
 
 
 if __name__ == '__main__':
-    phs = PhaseStability(zi = { 'C1': 0.6, 'nC4': 0.4}, p = 5, t = 30)
+    phs = PhaseStability(zi = { 'C1': 0.4, 'nC4': 0.6}, p = 5, t = 40)
 
     phs.stability_loop()
     print(phs.S_v)
     print(phs.S_l)
     phs.interpetate_stability_analysis()
+
     print(phs.k_values_vapour)
     print(phs.k_values_liquid)
+    print(phs.xi_l)
+    print(phs.yi_v)
     print(phs.stable)
 
-
-    # print(f'yi_v: {phs.yi_v}')
-    # print(f'xi_l: {phs.xi_l}')
-    # print(f'K_vapour: {phs.k_values_vapour}')
-    # print(f'K_liquid: {phs.k_values_liquid}')
-
-
-    # print(phs.initial_eos.choosen_eos_root)
-    # print(phs.initial_eos.fugacity_by_roots)
-    # print(phs.k_values_vapour)
-    # print(phs.k_values_liquid)
-    # print(phs.S_v)
-    # print(phs.S_l)
-    # print(phs.xi_l)
-    # print(phs.yi_v)
-    # print(f'Z gas eos {phs.vapour_eos.choosen_eos_root}')
-    # print(f'Z liquid eos {phs.liquid_eos.choosen_eos_root}')
-    # print(f'Ri_v: {phs.ri_v}')
-    # print(f'Ri_l: {phs.ri_l}')
-    #print(f'sum_Zi_Ai: {phs.initial_eos.sum_zi_Ai}')
 
