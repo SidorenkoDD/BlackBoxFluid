@@ -8,19 +8,6 @@ import yaml
 
 class PhaseEquilibrium:
     '''
-    Алгоритм
-
-    1. Ввод zi, Р и Т
-    2. Решаем УРС для состава zi
-        2.1. Выбираем Z
-        2.2. Расчет f
-    3. Расчет начальные Кi
-    4. Расчет yi_v и xi_l
-    5. Решаем УРС для yi_v и xi_l
-    6. Выбираем Zy и Zl
-    7. Расчет f для каждой фазы
-    8. Расчет Ri_v Ri_l
-    9. Проверка сходимости -> Обновление Ki
 
     '''
 
@@ -45,55 +32,6 @@ class PhaseEquilibrium:
             self.t = t
 
         self.k_values = k_values
-        # Проводим анализ стабильности
-        # self.phase_stability = PhaseStability(self.zi, self.p, self.t)
-        # self.phase_stability.stability_loop()
-        # self.phase_stability.interpetate_stability_analysis()
-
-
-        # В зависимости от результата анализа стабильности определяем дальнейший переход
-        # if self.phase_stability.stable == True:
-        #     # Здесь переход к расчету свойств системы
-        #     print('Сразу переходим к расчету свойств')
-
-        # else:
-            # Здесь переход к алгоритму Рэшфорда-Райса
-            # Логика для выбора Ki по результатам анализа стабильности
-            ## Если оба больше 1 - выбираем наибольшие
-            # if (self.phase_stability.S_l > 1) and (self.phase_stability.S_v > 1):
-            #     if self.phase_stability.S_l > self.phase_stability.S_v:
-            #         self.k_values = self.phase_stability.k_values_liquid
-            #     else:
-            #         self.k_values = self.phase_stability.k_values_vapour
-
-            # if (self.phase_stability.S_v > 1) and (self.phase_stability.S_l < 1):
-            #     self.k_values = self.phase_stability.k_values_vapour
-            
-            # if (self.phase_stability.S_v < 1) and (self.phase_stability.S_l > 1):
-            #     self.k_values = self.phase_stability.k_values_liquid
-
-
-        # self.fv = self.find_solve_bisection_v4()
-
-        # # Определяем составы жидкой и газовой фазы
-        # self.yi_v = self.define_yi_v()
-        # self.xi_l = self.define_xi_l()
-
-        # # Создаем объекты УРС для решения газовой и жидкой фаз
-
-        # self.eos_vapour = EOS_PR(zi = self.yi_v, p = self.p, t = self.t)
-        # self.eos_liquid = EOS_PR(zi = self.xi_l, p = self.p, t = self.t)
-
-        # # Расчет Ri
-        # self.ri = self.calc_Ri(self.eos_vapour, self.eos_liquid)
-
-        # # Проверки сходимости
-        # self.check_convergence_ri()
-        # self.check_trivial_solution()
-
-
-
-
 
     ### Методы ###
 
@@ -120,7 +58,6 @@ class PhaseEquilibrium:
 
 
     # Метод поиска Fv методом бисекции
-    def find_solve_bisection_v3(self, max_iter=100, tol=1e-13):
         # Вычисляем безопасные границы для fvv
         k_min = min(self.k_values.values())
         k_max = max(self.k_values.values())
@@ -166,7 +103,6 @@ class PhaseEquilibrium:
                 sum_min = sum_mid
         
         return fvv  # Возвращаем последнее приближение, если не достигли tol
-
     def find_solve_bisection_v4(self, tol=1e-13):
         fv_min = 0.0  # Минимально возможная доля пара
         fv_max = 1.0  # Максимально возможная доля пара
@@ -204,7 +140,6 @@ class PhaseEquilibrium:
 
         return fvv
     
-
 
     # Метод расчета состава газа через найденное Fv
     def define_yi_v(self):
@@ -259,8 +194,6 @@ class PhaseEquilibrium:
         
         return k_vals
 
-
-
     # Метод проверки тривиального решения
     def check_trivial_solution(self):
         ln_ki = []
@@ -314,61 +247,6 @@ class PhaseEquilibrium:
             self.check_convergence_ri()
             self.check_trivial_solution()
 
-            print('loop')
+
 
         return {'yi_v': self.yi_v,'xi_l':self.xi_l,  'Ki': self.k_values, 'Fv': self.fv, 'Z_v': self.eos_vapour.choosen_eos_root, 'Z_l': self.eos_liquid.choosen_eos_root}
-
-        
-
-
-    # # Метод расчета шифт-параметра
-    # def clac_shift_parametr(self):
-    #     c_to_sum = []
-    #     for component in self.zi.keys():
-    #         c_to_sum.append(self.zi[component])
-
-
-    # # Метод расчета молекулярной массы
-    # ## Для расчета молекулярной массы газовой фазы
-    # def calc_molecular_mass_vapour(self):
-    #     m_to_sum = []
-    #     for component in self.yi_v.keys():
-    #         m_to_sum.append(self.yi_v[component] * self.db['molar_mass'][component])
-    #     return sum(m_to_sum)
-
-
-    # # Метод расчета молекулярной массы
-    # ## Для расчета молекулярной массы жидкой фазы
-    # def calc_molecular_mass_liquid(self):
-    #     m_to_sum = []
-    #     for component in self.xi_l.keys():
-    #         m_to_sum.append(self.xi_l[component] * self.db['molar_mass'][component])
-    #     return sum(m_to_sum)
-
-
-    # # Метод расчета плотности системы
-    # def calc_rho(self):
-    #     return 1
-
-
-
-if __name__ == '__main__':
-    equilibrium = PhaseEquilibrium({'C1': 0.5, 'nC4':0.5}, 8, 40)
-    
-    # print(equilibrium.xi_l)
-    # print(equilibrium.yi_v)
-
-    equilibrium.find_solve_loop()
-
-    # print(equilibrium.xi_l)
-    # print(equilibrium.yi_v)
-    # print(equilibrium.fv)
-    # print(equilibrium.phase_stability.initial_eos.all_params_b)
-    # print(equilibrium.phase_stability.initial_eos.shift_parametr)
-
-
-
-
-
-
-

@@ -4,6 +4,28 @@ from EOS_PR_v2 import EOS_PR
 from PhaseStability_v3 import PhaseStability
 from PhaseEquilibrium import PhaseEquilibrium
 from FluidProperties import FluidProperties
+from dataclasses import dataclass
+
+
+@dataclass 
+class CompositionalResults:
+    stable: bool
+    yi_vapour: dict
+    xi_liquid: dict
+    fv: float
+    Ki: dict
+
+    z_vapour: float
+    z_liquid: float
+
+    MW_vapoour: float
+    MW_liquid:float
+
+    volume_vapour: float
+    volume_liquid: float
+
+    density_vapour: float
+    density_liquid: float
 
 
 class CompositionalModel:
@@ -40,16 +62,26 @@ class CompositionalModel:
 
 
 
-        
+            self.fluid_properties = FluidProperties(conditions.p, conditions.t, equil_obj= self.phase_equilibrium)
 
-
+            self.results = CompositionalResults(self.phase_stability.stable,
+                self.phase_equilibrium.yi_v, self.phase_equilibrium.xi_l, 
+                                                self.phase_equilibrium.fv, self.phase_equilibrium.k_values, 
+                                                self.phase_equilibrium.eos_vapour.choosen_eos_root, 
+                                                  self.phase_equilibrium.eos_liquid.choosen_eos_root, 
+                                                self.fluid_properties.molecular_mass_vapour, 
+                                                self.fluid_properties.molecular_mass_liquid, 
+                                                self.fluid_properties.vapour_volume, self.fluid_properties.liquid_volume, 
+                                                self.fluid_properties.vapour_density, self.fluid_properties.liquid_density)
 
 
 
 
 if __name__ == '__main__':
-    comp_model = CompositionalModel({'C2': 0.6, 'C3': 0.1,  'C6':0.3}, 2, 70)
+    comp_model = CompositionalModel({'C1': 0.4, 'nC4':0.6}, 5, 40)
     print(comp_model.phase_stability.stable)
+    print(comp_model.fluid_properties.liquid_density)
 
 
     print(comp_model.phase_equilibrium.find_solve_loop())
+    print(comp_model.results)

@@ -129,7 +129,6 @@ class PhaseStability:
 
         # Решение УРС для жидкой фазы
         try:
-            print(f'x_i_l: {self.xi_l}')
             self.liquid_eos = self.calc_eos_for_liquid(x_i_l= self.xi_l)
             logger.log.debug('УРС для жидкой фазы решено')
         except Exception as e:
@@ -296,9 +295,7 @@ class PhaseStability:
         for component in eos_liquid.zi.keys():
             ri = ((math.exp(eos_liquid.fugacity_by_roots[eos_liquid.choosen_eos_root][component]))/
                   math.exp(self.initial_eos.fugacity_by_roots[self.initial_eos.choosen_eos_root][component]) * self.S_l)
-            ri_liquid[component] = ri
-        print(f"Ri_vapour:{ri_liquid}")
-        
+            ri_liquid[component] = ri 
         return ri_liquid
 
 
@@ -309,7 +306,7 @@ class PhaseStability:
         for component in self.ri_v.keys():
             new_k_i_vapour[component] = self.k_values_vapour[component] * self.ri_v[component]
         
-        #self.k_values_vapour = new_k_i_vapour
+
         return new_k_i_vapour
 
 
@@ -319,12 +316,12 @@ class PhaseStability:
         for component in self.ri_l.keys():
             new_k_i_liquid[component] = self.k_values_liquid[component] * self.ri_l[component]
         
-        #self.k_values_liquid = new_k_i_liquid
+
         return new_k_i_liquid
     
 
     ### Новый метод анализа стабильности 
-    def check_convergence(self, e = math.pow(10, -5)):
+    def check_convergence(self, e = math.pow(10, -7)):
     
 
         ri_v_to_sum = []
@@ -373,8 +370,6 @@ class PhaseStability:
 
         
         else:
-            # self.k_values_vapour = self.update_k_values_vapour()
-            # self.k_values_liquid = self.update_k_values_liquid()
             self.convergence_trivial_solution = False
         
 
@@ -409,7 +404,6 @@ class PhaseStability:
             self.check_convergence()
             self.check_trivial_solution()
 
-            print(f'Количество итераций: {iter}')
 
             if iter > 100000:
                 break

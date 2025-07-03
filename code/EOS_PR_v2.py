@@ -367,16 +367,6 @@ class EOS_PR:
                                 (1 - self.db['bip'][component][comp]) * 
                                 math.sqrt(self.all_params_A[component] * self.all_params_A[comp]))
             sum_zj_Aj = sum(zj_Aj)
-
-
-            # расчет логарифма коэффициента летучести
-            # print(f'B_lin_mixed : {self.B_linear_mixed}')
-            # print(f'B[component] : {self.all_params_B[component]}')
-            # print(f'B_lin_mixed : {self.mixed_A}')
-            # print(f'A[component] : {self.all_params_A[component]}')
-            # print(f'Sum_Zi_Aj : {sum_zj_Aj}')
-            # print(f'eos root: {eos_root}')
-            
             
             ln_fi_i = - (math.log(eos_root - self.B_linear_mixed) + (eos_root - 1) * (self.all_params_B[component] / self.B_linear_mixed) - 
                          (self.mixed_A / (math.pow(2, 1.5) * self.B_linear_mixed)) * 
