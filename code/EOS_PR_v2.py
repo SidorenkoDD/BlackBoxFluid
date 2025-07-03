@@ -111,6 +111,15 @@ class EOS_PR:
         except Exception as e:
             logger.log.error('Взвешенный параметр A не рассчитан')
 
+
+        # Расчет шифт-параметра
+        try:
+            self.shift_parametr = self.calc_shift_parametr()
+        
+        except Exception as e:
+            logger.log.error('Шифт параметр не рассчитан')
+
+
          # Решение УРС по Кардано
         
         # Определение действительных корней УРС
@@ -232,7 +241,14 @@ class EOS_PR:
 
         return mixed_B
     
-    
+    # Метод расчета шифт-параметра
+    def calc_shift_parametr(self):
+        c_to_sum = []
+        for component in self.zi.keys():
+            c_to_sum.append(self.zi[component] * self.db['shift_parametr'][component] * self.all_params_b[component])
+
+        return sum(c_to_sum)
+
 
     # Метод для решения кубического уравнения
     def calc_cubic_eos(self):

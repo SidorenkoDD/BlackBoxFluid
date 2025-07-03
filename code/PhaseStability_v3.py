@@ -152,7 +152,12 @@ class PhaseStability:
             logger.log.error('Расчет Ri_l не выполнен', e)
 
 
-       
+        try:
+            self.stability_loop()
+            self.interpetate_stability_analysis()
+
+        except Exception as e:
+            ...
         logger.log.info('=========')
         logger.log.info('=========')
 
@@ -442,10 +447,10 @@ class PhaseStability:
 if __name__ == '__main__':
     phs = PhaseStability(zi = { 'C1': 0.4, 'nC4': 0.6}, p = 5, t = 40)
 
-    phs.stability_loop()
+    #phs.stability_loop()
     print(phs.S_v)
     print(phs.S_l)
-    phs.interpetate_stability_analysis()
+    #phs.interpetate_stability_analysis()
 
     print(phs.k_values_vapour)
     print(phs.k_values_liquid)
