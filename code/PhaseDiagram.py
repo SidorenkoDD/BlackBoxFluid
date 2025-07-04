@@ -51,12 +51,16 @@ class PhaseDiagram:
                 b = mid
         return (a + b) / 2
 
+
     def calc_phase_diagram(self):
         stability_bools = []
         for temp in self.space_temperature:
             for pres in self.space_pressure:
                 stability_obj =  PhaseStability(self.zi, pres, temp)
                 stability_bools.append(stability_obj.stable)
+
+            intervals_for_find_p = self.find_change_intervals(self.space_pressure, stability_bools)
+            print(self.find_threshold(intervals_for_find_p, temp))
         return stability_bools
 
 
@@ -67,3 +71,4 @@ if __name__ == '__main__':
     print(phs_diag.space_pressure, phs_diag.space_temperature)
     print(phs_diag.calc_phase_diagram())
     print(phs_diag.find_change_intervals(phs_diag.space_pressure, phs_diag.calc_phase_diagram()))
+    

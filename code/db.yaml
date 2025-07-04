@@ -9,6 +9,7 @@ molar_mass: # kg/kmole
   nC4 : 58.1
   iC5 : 72.151
   nC5 : 72.151
+  C6 : 86.177
 
 critical_pressure: # MPa
 

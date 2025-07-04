@@ -78,10 +78,10 @@ class CompositionalModel:
 
 
 if __name__ == '__main__':
-    comp_model = CompositionalModel({'C1': 0.4, 'nC4':0.6}, 5, 40)
+    comp_model = CompositionalModel({'C1': 0.9, 'C6': 0.1}, 10, 80)
     print(comp_model.phase_stability.stable)
     print(comp_model.fluid_properties.liquid_density)
 
 
-    print(comp_model.phase_equilibrium.find_solve_loop())
+    
     print(comp_model.results)
