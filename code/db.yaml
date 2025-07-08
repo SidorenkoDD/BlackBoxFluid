@@ -20,10 +20,10 @@ critical_pressure: # MPa
   C2 : 4.884000
   C3 : 4.246000
   iC4 : 3.648000
-  nC4 : 3.797000
+  nC4 :   00
   iC5 : 3.389000
   nC5 : 3.70000
-  C6 : 3.104
+  C6 : 3.104 # отличается от PVTsim
 
 critical_temperature: # K
 
@@ -50,7 +50,7 @@ acentric_factor:
   nC4 : 0.2010
   iC5 : 0.227
   nC5 : 0.251
-  C6 : 0.252
+  C6 : 0.252 # отличается от PVTsim
 
 shift_parametr:
   N2 : -0.1927
