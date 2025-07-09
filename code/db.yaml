@@ -23,8 +23,7 @@ critical_pressure: # MPa
   nC4 :   00
   iC5 : 3.389000
   nC5 : 3.70000
-  C6 : 3.104 # отличается от PVTsim
-
+  C6 : 3.104
 critical_temperature: # K
 
   N2 : 126.19

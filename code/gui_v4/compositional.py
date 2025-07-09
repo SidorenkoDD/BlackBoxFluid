@@ -10,11 +10,6 @@ class DefineCompositionModelWindow:
         self.compositional_params = {}
 
 
-    def close_window(self):
-        self.compositional_params = {'Label': dpg.get_value('model_label'), 'EOS': dpg.get_value('define_eos_combo'),
-                                 'Pcrit': dpg.get_value('define_mm_combo'), 'Tcrit': dpg.get_value('define_tcrit_combo'),
-                                   'bips': dpg.get_value('define_bips_combo'), 'shift': dpg.get_value('define_shift_combo')}
-        dpg.delete_item('define_comp_model')
 
     def define_compositional_model_button(self):
         self.compositional_params = {'Label': dpg.get_value('model_label'), 'EOS': dpg.get_value('define_eos_combo'),
@@ -39,36 +34,26 @@ class DefineCompositionModelWindow:
         ):
             dpg.add_input_text(label='Model name', tag = 'model_label')
             dpg.add_separator()
-            dpg.add_combo( label= 'EOS', tag = 'define_eos_combo',items=['PR', 'RK', 'SRK', 'BrusilovskyEOS'],
-                         )
+            dpg.add_combo( label= 'EOS', tag = 'define_eos_combo',items=['PR', 'RK', 'SRK', 'BrusilovskyEOS'],  default_value= 'PR')
             dpg.add_combo(label='Molar mass data', tag = 'define_mm_combo',
-                          items=['basic', 'user'])
+                          items=['basic', 'user'], default_value= 'basic')
             
             dpg.add_combo(label='Pcrit data', tag= 'define_pcrit_combo',
-                          items=['basic', 'user'])
+                          items=['basic', 'user'],  default_value= 'basic')
             
             dpg.add_combo(label='Tcrit data', tag = 'define_tcrit_combo',
-                          items=['basic', 'user'])
+                          items=['basic', 'user'],  default_value= 'basic')
             
             dpg.add_combo(label='bips data', tag = 'define_bips_combo',
-                          items=['basic', 'user'])
+                          items=['basic', 'user'],  default_value= 'basic')
             
             dpg.add_checkbox(label='Use shift parametr')
 
             dpg.add_combo(label='Shift data', tag = 'define_shift_combo',
-                          items=['basic', 'user'])
+                          items=['basic', 'user'],  default_value= 'basic')
             
-            dpg.add_button(label='Define compositional model', callback= self.close_window)
+            dpg.add_button(label='Define compositional model')
 
-class ModelInfoWindow:
-    def create(self, text):
-        with dpg.window(label= 'Model settings',
-                        tag = 'model_settings',
-                        no_resize= True,
-                        no_collapse=False,
-                        no_close= True):
-        
-            dpg.add_text(text)
 
 class CompositionWindow:
     def __init__(self, flash_calc: FlashCalculator):
@@ -163,10 +148,6 @@ def show_compositional_interface(flash_calc: FlashCalculator):
     define_model_window = DefineCompositionModelWindow()
     define_model_window.create()
 
-    print(define_model_window.compositional_params)
-
-    model_info = ModelInfoWindow()
-    model_info.create(text= define_model_window.compositional_params)
 
     comp_window = CompositionWindow(flash_calc)
     flash_input = FlashInputWindow(flash_calc, lambda: show_results(flash_calc))
