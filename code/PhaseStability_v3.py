@@ -359,18 +359,21 @@ class PhaseStability:
         for ki_l in list(self.k_values_liquid.values()):
             ki_l_to_sum.append(math.pow((math.log(ki_l)),2))
 
-        if sum(ki_v_to_sum) < math.pow(10,-4):
-            self.trivial_solution_vapour = True
+        if sum(ki_v_to_sum) < math.pow(10,-5):
+            #self.trivial_solution_vapour = True
             self.convergence_trivial_solution = True
 
         
-        elif sum(ki_l_to_sum) < math.pow(10,-4):
-            self.trivial_solution_liquid = True
+        elif sum(ki_l_to_sum) < math.pow(10,-5):
+            #self.trivial_solution_liquid = True
             self.convergence_trivial_solution = True
 
-        
+        if self.trivial_solution_liquid or self.trivial_solution_vapour:
+            self.convergence_trivial_solution = True
         else:
             self.convergence_trivial_solution = False
+        #else:
+            #self.convergence_trivial_solution = False
         
 
     def stability_loop(self):
@@ -379,8 +382,8 @@ class PhaseStability:
         self.check_trivial_solution()
         while (self.convergence == False) and (self.convergence_trivial_solution == False):
 
-            self.k_values_vapour = self.update_k_values_vapour()
-            self.k_values_liquid = self.update_k_values_liquid()
+            # self.k_values_vapour = self.update_k_values_vapour()
+            # self.k_values_liquid = self.update_k_values_liquid()
     
             self.Yi_v = self.calc_Yi_v(self.zi)
             self.Xi_l = self.calc_Xi_l(self.zi)
@@ -398,11 +401,13 @@ class PhaseStability:
             self.ri_v = self.calc_ri_vapour(self.vapour_eos)
             self.ri_l = self.calc_ri_liquid(self.liquid_eos)
             
-
+            self.k_values_vapour = self.update_k_values_vapour()
+            self.k_values_liquid = self.update_k_values_liquid()
 
             iter += 1
             self.check_convergence()
             self.check_trivial_solution()
+
 
 
             if iter > 100000:
@@ -410,10 +415,12 @@ class PhaseStability:
 
 
     def interpetate_stability_analysis(self):
+        print(self.S_v, self.S_l)
+        print(self.trivial_solution_vapour, self.trivial_solution_liquid)
         if ((self.trivial_solution_vapour and self.trivial_solution_liquid) or 
-            ((round(self.S_v, 3) <= 1) and (self.trivial_solution_liquid)) or 
-            ((self.trivial_solution_vapour) and (round(self.S_l, 3) <= 1)) or 
-            ((round(self.S_v, 3) <= 1) and (round(self.S_l, 3) <= 1))):
+            ((self.S_v <= 1) and (self.trivial_solution_liquid)) or 
+            ((self.trivial_solution_vapour) and (self.S_l <= 1)) or 
+            ((self.S_v <= 1) and (self.S_l<= 1))):
 
             logger.log.info('===============')
             logger.log.info('Результат интерпритации анализа стабильности:')
@@ -423,11 +430,11 @@ class PhaseStability:
             logger.log.info('===============')
 
 
-        elif (((round(self.S_v, 2) > 1) and self.trivial_solution_liquid) or 
-              (self.trivial_solution_vapour and (round(self.S_l,2) > 1)) or 
-                ((round(self.S_v,2) > 1) and (round(self.S_l,2) > 1)) or 
-                ((round(self.S_v, 2)> 1) and (round(self.S_l, 2) <= 1)) or 
-                ((round(self.S_v, 2) <= 1) and (round(self.S_l,2)>1))):
+        elif (((self.S_v > 1) and self.trivial_solution_liquid) or 
+              (self.trivial_solution_vapour and (self.S_l> 1)) or 
+                ((self.S_v > 1) and (self.S_l > 1)) or 
+                ((self.S_v> 1) and (self.S_l <= 1)) or 
+                ((self.S_v <= 1) and (self.S_l>1))):
             
             logger.log.info('===============')
             logger.log.info('Результат интерпритации анализа стабильности:')
@@ -439,9 +446,10 @@ class PhaseStability:
 
 
 if __name__ == '__main__':
-    phs = PhaseStability(zi = { 'C1': 0.4, 'nC4': 0.6}, p = 5, t = 40)
+    phs = PhaseStability({'C1': 0.64, 'C2': 0.03, 'C3':0.09,'nC5':0.1, 'C6': 0.14}, 4, 100)
 
     #phs.stability_loop()
+    print(phs.convergence_trivial_solution)
     print(phs.S_v)
     print(phs.S_l)
     #phs.interpetate_stability_analysis()

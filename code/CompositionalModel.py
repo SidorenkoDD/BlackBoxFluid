@@ -39,6 +39,8 @@ class CompositionalModel:
         # Развилка по условию стабильности/нестабильности системы
         if self.phase_stability.stable == True:
             print('Stable')
+            print(self.phase_stability.S_v, self.phase_stability.S_l)
+            print(self.phase_stability.trivial_solution_vapour, self.phase_stability.trivial_solution_liquid)
         # Если система нестабильна, то передаем К из анализа стабильности и запускаем расчет flash
         else:
 
@@ -78,7 +80,7 @@ class CompositionalModel:
 
 
 if __name__ == '__main__':
-    comp_model = CompositionalModel({'C1': 0.6, 'C6': 0.4}, 50, 80)
+    comp_model = CompositionalModel({'C1': 0.64, 'C2': 0.03, 'C3':0.09,'nC5':0.1, 'C6': 0.14}, 4, 100)
     print(comp_model.phase_stability.stable)
     print(comp_model.fluid_properties.liquid_density)
 
