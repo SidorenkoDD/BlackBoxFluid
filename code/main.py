@@ -1,5 +1,5 @@
 import dearpygui.dearpygui as dpg
-from config import WINDOW_POSITIONS, COMPONENTS
+from code.gui_v2.config import WINDOW_POSITIONS, COMPONENTS
 from models.flash import FlashCalculator
 from gui.main_window import MainWindow
 
