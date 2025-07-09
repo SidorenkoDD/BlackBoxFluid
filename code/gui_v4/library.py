@@ -4,6 +4,8 @@ import json
 import yaml
 from pathlib import Path
 from db_reader import DBReader
+from typing import Dict, Any
+
 
 class LibraryWindow:
     def __init__(self):
@@ -17,7 +19,7 @@ class LibraryWindow:
             width=800,
             height=600,
             modal=False,
-            no_close=False
+            no_close=True
         ):
             with dpg.group(horizontal=True):
                 with dpg.group(width=200):
@@ -71,36 +73,112 @@ class LibraryWindow:
         selected_key = dpg.get_value(sender)
         self.show_table(selected_key)
 
+
+
+
 class AddToDBWindow:
-    def show(self):
-        if dpg.does_item_exist("add_to_db_window"):
-            dpg.delete_item("add_to_db_window")
-            
-        with dpg.window(
-            tag="add_to_db_window",
-            label='Add to db',
-            width=800,
-            height=600,
-            modal=True
+    def __init__(self):
+        
+        self.json_data: Dict[str, Any] = {}
+        self.input_widgets = []
+
+    def add_field_callback(self):
+        """Добавляет новое поле для ввода ключа и значения"""
+        with dpg.group(horizontal=True, parent="fields_group"):
+            key_input = dpg.add_input_text(hint="Key", width=150)
+            value_input = dpg.add_input_text(hint="Value", width=150)
+            dpg.add_button(label="×", callback=lambda: self.remove_field(key_input, value_input))
+            self.input_widgets.append((key_input, value_input))
+
+    def remove_field(self, key_input, value_input):
+        """Удаляет поле ввода"""
+        for widget in [key_input, value_input]:
+            dpg.delete_item(widget)
+        self.input_widgets.remove((key_input, value_input))
+
+    def collect_data(self):
+        """Собирает данные из всех полей ввода"""
+        global json_data
+        json_data = {}
+        for key_input, value_input in self.input_widgets:
+            key = dpg.get_value(key_input)
+            value = dpg.get_value(value_input)
+            if key:  # Игнорируем пустые ключи
+                # Пытаемся преобразовать значение в число или булево
+                try:
+                    value = int(value)
+                except ValueError:
+                    try:
+                        value = float(value)
+                    except ValueError:
+                        if value.lower() == "true":
+                            value = True
+                        elif value.lower() == "false":
+                            value = False
+                json_data[key] = value
+        return json_data
+
+    def save_json_callback(self):
+        """Обработчик сохранения JSON"""
+        data = self.collect_data()
+        if not data:
+            dpg.set_value("status", "Error: No data!")
+            return
+        
+        with dpg.file_dialog(
+            directory_selector=False,
+            show=True,
+            modal=True,
+            height=400,
+            callback=lambda s, a: self.write_json(s, a, data),
+            tag="file_dialog_id"
         ):
-            dpg.add_text('EXAMPLE\n DB Name\n--->"Component": value\n--->...')
-            dpg.add_input_text(tag='new_db_part', height=250, multiline=True)
-            dpg.add_button(label='Submit', callback=self.add_to_db)
+            dpg.add_file_extension(".json", color=(0, 255, 0, 255))
+            dpg.add_file_extension(".*")
 
-    def add_to_db(self):
-        string_to_db = dpg.get_value('new_db_part')
-        fixed_yaml_data = string_to_db.replace("\t", "  ")
-        new_data_dict = yaml.safe_load(fixed_yaml_data)
+    def write_json(self, sender, app_data, user_data):
+        """Записывает JSON в файл"""
+        if app_data["file_path_name"]:
+            filepath = app_data["file_path_name"]
+            if not filepath.endswith('.json'):
+                filepath += '.json'
+            
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump(user_data, f, indent=4, ensure_ascii=False)
+                dpg.set_value("status", f"File saved: {filepath}")
 
-        yaml_file = Path("code/db.yaml")
-        existing_data = {}
-        
-        if yaml_file.exists():
-            with yaml_file.open('r') as f:
-                existing_data = yaml.safe_load(f) or {}
-                
-        merged_data = {**existing_data, **new_data_dict}
-        
-        with yaml_file.open('w') as f:
-            yaml.dump(merged_data, f, sort_keys=False)
-        dpg.delete_item("add_to_db_window")
+
+    def show_data_callback(self):
+        """Показывает собранные данные"""
+        data = self.collect_data()
+        dpg.set_value("output", json.dumps(data, indent=4, ensure_ascii=False))
+
+    def show(self):
+        if dpg.does_item_exist("add_json_window"):
+            dpg.delete_item("add_json_window")
+    
+        with dpg.window(label="JSON Generator", tag="add_json_window", width=800, height=600, no_close=True):
+            # Кнопки управления
+            with dpg.group(horizontal=True):
+                dpg.add_button(label="+ Add row",callback=self.add_field_callback)
+                dpg.add_button(label="Show JSON", callback=self.show_data_callback)
+                dpg.add_button(label="Save JSON", callback=self.save_json_callback)
+                dpg.add_button(label='Import library data from JSON',)
+            
+            # Группа для динамических полей
+            dpg.add_text("Data:")
+            dpg.add_separator()
+            dpg.add_group(tag="fields_group")
+
+                # Область вывода
+            dpg.add_text("Result:")
+            dpg.add_input_text(multiline=True, tag="output", width=700, height=300)
+            dpg.add_text("", tag="status")
+
+            dpg.add_button(label="Close", callback=lambda: dpg.delete_item("add_json_window"))
+            # Добавляем 3 поля по умолчанию
+        for _ in range(3):
+            self.add_field_callback()
+            
+
+

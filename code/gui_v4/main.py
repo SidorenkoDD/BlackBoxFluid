@@ -30,6 +30,11 @@ def setup_main_menu():
         with dpg.menu(label="Library"):
             dpg.add_menu_item(label="Open DB", callback=LibraryWindow().create)
 
+        with dpg.menu(label='Export'):
+            dpg.add_menu_item(label='E300', enabled= False)
+            dpg.add_menu_item(label='.tab', enabled= False)
+            dpg.add_menu_item(label='.mfl', enabled= False)
+            
         with dpg.menu(label="Info"):
             dpg.add_menu_item(label="About", enabled=False)
 
