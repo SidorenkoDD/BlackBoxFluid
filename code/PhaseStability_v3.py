@@ -213,9 +213,10 @@ class PhaseStability:
     def calc_k_initial_for_liquid_wilson(self):
         k_initial_liquid = {}
         for component in list(self.zi.keys()):
-            k_initial_liquid[component] = (math.pow(math.e, 5.37 * (1 + self.db['acentric_factor'][component]) 
-                                                    * (1 - (self.db['critical_temperature'][component]/self.t))) / 
-                                    (self.p / self.db['critical_pressure'][component]))
+            # k_initial_liquid[component] = (math.pow(math.e, 5.37 * (1 + self.db['acentric_factor'][component]) 
+            #                                         * (1 - (self.db['critical_temperature'][component]/self.t))) / 
+            #                         (self.p / self.db['critical_pressure'][component]))
+            k_initial_liquid[component] = math.exp(5.37 * (1 + self.db['acentric_factor'][component]) * (1 - (self.db['critical_temperature'][component]/self.t))) / (self.p / self.db['critical_pressure'][component])
             
         return k_initial_liquid
     
@@ -251,7 +252,7 @@ class PhaseStability:
     def normalize_mole_fractions_vapour(self, Yi_v:dict, S_v: float):
         normalized_mole_fractions_vapour = {}
         for component in list(Yi_v.keys()):
-            normalized_mole_fractions_vapour[component] = round((Yi_v[component] / S_v), 5)
+            normalized_mole_fractions_vapour[component] = Yi_v[component] / S_v #round((Yi_v[component] / S_v), 5)
         
         return normalized_mole_fractions_vapour
 
@@ -260,7 +261,7 @@ class PhaseStability:
     def normalize_mole_fractions_liquid(self, Xi_l:dict, S_l:float):
         normalized_mole_fractions_liquid = {}
         for component in list(Xi_l.keys()):
-            normalized_mole_fractions_liquid[component] = round((Xi_l[component] / S_l), 5)
+            normalized_mole_fractions_liquid[component] = Xi_l[component] / S_l #round((Xi_l[component] / S_l), 5)
         
         return normalized_mole_fractions_liquid
 
@@ -360,15 +361,15 @@ class PhaseStability:
             ki_l_to_sum.append(math.pow((math.log(ki_l)),2))
 
         if sum(ki_v_to_sum) < math.pow(10,-5):
-            #self.trivial_solution_vapour = True
-            self.convergence_trivial_solution = True
+            self.trivial_solution_vapour = True
+            #self.convergence_trivial_solution = True
 
-        
+
         elif sum(ki_l_to_sum) < math.pow(10,-5):
-            #self.trivial_solution_liquid = True
-            self.convergence_trivial_solution = True
+            self.trivial_solution_liquid = True
+            #self.convergence_trivial_solution = True
 
-        if self.trivial_solution_liquid or self.trivial_solution_vapour:
+        if self.trivial_solution_liquid and self.trivial_solution_vapour:
             self.convergence_trivial_solution = True
         else:
             self.convergence_trivial_solution = False
@@ -417,6 +418,7 @@ class PhaseStability:
     def interpetate_stability_analysis(self):
         print(self.S_v, self.S_l)
         print(self.trivial_solution_vapour, self.trivial_solution_liquid)
+
         if ((self.trivial_solution_vapour and self.trivial_solution_liquid) or 
             ((self.S_v <= 1) and (self.trivial_solution_liquid)) or 
             ((self.trivial_solution_vapour) and (self.S_l <= 1)) or 
@@ -446,7 +448,7 @@ class PhaseStability:
 
 
 if __name__ == '__main__':
-    phs = PhaseStability({'C1': 0.64, 'C2': 0.03, 'C3':0.09,'nC5':0.1, 'C6': 0.14}, 4, 100)
+    phs = PhaseStability({'C1': 0.64, 'C2': 0.03, 'C3':0.09, 'C6': 0.24}, 4, 100)
 
     #phs.stability_loop()
     print(phs.convergence_trivial_solution)

@@ -22,8 +22,8 @@ critical_pressure: # MPa
   iC4 : 3.648000
   nC4 :   3.79700
   iC5 : 3.389000
-  nC5 : 3.70000
-  C6 : 3.104
+  nC5 : 3.370000
+  C6 : 3.010
 critical_temperature: # K
 
   N2 : 126.19
@@ -43,13 +43,13 @@ acentric_factor:
   CO2 : 0.225
   H2S : 0.1
   C1 : 0.013
-  C2 : 0.0986
-  C3 : 0.1524
-  iC4 : 0.1848
+  C2 : 0.099
+  C3 : 0.152
+  iC4 : 0.185
   nC4 : 0.2010
   iC5 : 0.227
   nC5 : 0.251
-  C6 : 0.252 # отличается от PVTsim
+  C6 : 0.299 
 
 shift_parametr:
   N2 : -0.1927

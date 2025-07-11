@@ -218,10 +218,10 @@ class EOS_PR:
         else:
             a_mixed = []
             second_components = list(self.zi.keys())
-            for main_component in self.zi.keys():
-                for second_component in second_components:
-                    a_mixed.append(self.zi[main_component] * self.zi[second_component] * math.sqrt(self.all_params_A[main_component] * self.all_params_A[second_component]) * (1 - self.db['bip'][main_component][second_component]))
-                #second_components.remove(main_component)
+            for i_component in self.zi.keys():
+                for j_component in second_components:
+                    a_mixed.append(self.zi[i_component] * self.zi[j_component] * math.sqrt(self.all_params_A[i_component] * self.all_params_A[j_component]) * (1 - self.db['bip'][i_component][j_component]))
+
             return sum(a_mixed)
 
 
