@@ -34,6 +34,8 @@ class CompositionsJSONReader:
              "Info": {},
              "Composition": composition
         }}
+        with open('code/db/compositions.json', 'r') as f:
+            self.data = json.load(f)
         try:
         # Читаем существующие данные, если файл есть
             if overwrite:
