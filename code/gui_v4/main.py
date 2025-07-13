@@ -1,6 +1,6 @@
 # main.py
 import dearpygui.dearpygui as dpg
-from compositional import show_compositional_interface
+from compositional_v2 import show_compositional_interface
 from library import LibraryWindow
 from flash_calculator import FlashCalculator
 

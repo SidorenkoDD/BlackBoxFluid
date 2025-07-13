@@ -17,7 +17,7 @@ class CompositionsJSONReader:
         with open('code/db/compositions.json', 'r') as f:
             self.data = json.load(f)
 
-        return self.data.keys()
+        return list(self.data.keys())
     
     def get_composition_info(self, key):
         with open('code/db/compositions.json', 'r') as f:

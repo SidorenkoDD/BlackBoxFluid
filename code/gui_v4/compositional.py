@@ -3,6 +3,8 @@ import dearpygui.dearpygui as dpg
 from flash_calculator import FlashCalculator
 from constants import COMPONENTS, WINDOW_POSITIONS
 from CompositionsJSONReader import CompositionsJSONReader
+from DBReader import DBReader
+
 
 
 class Compositions:
@@ -261,6 +263,146 @@ class Compositions:
         dpg.delete_item("add_composition_modal")
 
 
+class CompositionVariants:
+    def __init__(self):
+        self.table_data = []
+        self.row_counter = 0
+        self.compositions_db = CompositionsJSONReader()
+        self.library_db = DBReader()
+
+
+
+    def create_composition_variants_window(self):
+        if dpg.does_item_exist("composition_variants_win"):
+            dpg.delete_item("composition_variants_win")
+    
+        with dpg.window(label="Composition Variants", tag="composition_variants_win", width=1000, height=600):
+            # Создаем таблицу
+            with dpg.table(tag="main_table", header_row=True, policy=dpg.mvTable_SizingStretchProp,
+                        borders_outerH=True, borders_innerV=True, borders_innerH=True, borders_outerV=True):
+                # Добавляем колонки
+                dpg.add_table_column(label="Composition", width_fixed=True)
+                dpg.add_table_column(label="EOS")
+                dpg.add_table_column(label="Shift Parameter")
+                dpg.add_table_column(label="Acentric Factor")
+                dpg.add_table_column(label="Critical P")
+                dpg.add_table_column(label="Critical T")
+                dpg.add_table_column(label="Calculate", width_fixed=True)
+                
+                # Добавляем начальные 3 строки
+                for _ in range(3):
+                    self.add_table_row()
+
+            # Кнопки управления
+            with dpg.group(horizontal=True):
+                dpg.add_button(label="Add Row", callback=self.add_table_row)
+                dpg.add_button(label="Remove Selected Row", callback=self.remove_table_row)
+                dpg.add_button(label="Calculate Selected", callback=self.calculate_selected)
+                dpg.add_button(label="Add selected composition to db", callback=self.add_composition_to_db)
+
+    def add_table_row(self):
+        global row_counter
+        
+        # Предопределенные значения
+        #compositions = ["Water", "Methane", "Ethane", "CO2", "Nitrogen"]
+        compositions = self.compositions_db.get_all_compositions_labels()
+        eos_options = ["PR", "SRK", "RK", "VDW"]
+        #shift_params = ["0.0", "0.1", "0.2", "0.3", "Custom"]
+        shift_params = self.library_db.get_all_shift_labels()
+        #acentric_factors = ["0.344", "0.011", "0.225", "0.008", "Custom"]
+        acentric_factors = self.library_db.get_all_acentric_factor_labels()
+        #critical_pressures = ["73.8 bar", "45.99 bar", "33.94 bar", "Custom"]
+        critical_pressures = self.library_db.get_all_pcrit_labels()
+        #critical_temps = ["647.1 K", "190.6 K", "305.3 K", "Custom"]
+        critical_temps = self.library_db.get_all_tcrit_labels()
+        
+        with dpg.table_row(parent="main_table", tag=f"row_{self.row_counter}"):
+            # Сохраняем данные строки
+            row_data = {
+                "composition": dpg.add_combo(items=compositions, default_value=compositions[0], width=120, tag=f"comp_{self.row_counter}"),
+                "eos": dpg.add_combo(items=eos_options, default_value=eos_options[0], width=80, tag=f"eos_{self.row_counter}"),
+                "shift": dpg.add_combo(items=shift_params, default_value=shift_params[0], width=120, tag=f"shift_{self.row_counter}"),
+                "acentric": dpg.add_combo(items=acentric_factors, default_value=acentric_factors[0], width=120, tag=f"acentric_{self.row_counter}"),
+                "crit_p": dpg.add_combo(items=critical_pressures, default_value=critical_pressures[0], width=120, tag=f"crit_p_{self.row_counter}"),
+                "crit_t": dpg.add_combo(items=critical_temps, default_value=critical_temps[0], width=120, tag=f"crit_t_{self.row_counter}"),
+                "calculate": dpg.add_checkbox(default_value=True, tag=f"calc_{self.row_counter}")
+            }
+            
+            self.table_data.append(row_data)
+            self.row_counter += 1
+
+    def remove_table_row(self):
+        if not self.table_data:
+            return
+        
+        # Находим выбранные строки
+        selected_rows = []
+        for i, row in enumerate(self.table_data):
+            if dpg.get_value(f"calc_{i}"):
+                selected_rows.append(i)
+        
+        # Удаляем в обратном порядке, чтобы индексы не сдвигались
+        for i in sorted(selected_rows, reverse=True):
+            dpg.delete_item(f"row_{i}")
+            self.table_data.pop(i)
+        
+        # Обновляем глобальный счетчик
+        global row_counter
+        row_counter = len(self.table_data)
+        
+        # Переиндексируем оставшиеся строки
+        for i, row in enumerate(self.table_data):
+            for key in row:
+                if key != "calculate":  # Чекбоксы не переименовываем
+                    new_tag = f"{key.split('_')[0]}_{i}"
+                    dpg.configure_item(row[key], tag=new_tag)
+
+    def calculate_selected(self):
+        selected_rows = []
+        for i, row in enumerate(self.table_data):
+            if dpg.get_value(f"calc_{i}"):
+                composition = dpg.get_value(f"comp_{i}")
+                eos = dpg.get_value(f"eos_{i}")
+                shift = dpg.get_value(f"shift_{i}")
+                acentric = dpg.get_value(f"acentric_{i}")
+                crit_p = dpg.get_value(f"crit_p_{i}")
+                crit_t = dpg.get_value(f"crit_t_{i}")
+                
+                selected_rows.append({
+                    "composition": composition,
+                    "eos": eos,
+                    "shift": shift,
+                    "acentric": acentric,
+                    "crit_p": crit_p,
+                    "crit_t": crit_t
+                })
+        
+        print("Selected for calculation:", selected_rows)
+
+    def add_composition_to_db(self):
+
+        data_to_save = []
+        
+        for i, row in enumerate(self.table_data):
+            composition = dpg.get_value(f"comp_{i}")
+            eos = dpg.get_value(f"eos_{i}")
+            shift = dpg.get_value(f"shift_{i}")
+            acentric = dpg.get_value(f"acentric_{i}")
+            crit_p = dpg.get_value(f"crit_p_{i}")
+            crit_t = dpg.get_value(f"crit_t_{i}")
+            calculate = dpg.get_value(f"calc_{i}")
+            
+            data_to_save.append({
+                "composition": composition,
+                "eos": eos,
+                "shift_parameter": shift,
+                "acentric_factor": acentric,
+                "critical_pressure": crit_p,
+                "critical_temperature": crit_t,
+                "calculate": calculate
+            })
+        
+        print(data_to_save)
 
 
 
@@ -314,6 +456,7 @@ class DefineCompositionModelWindow:
             
             dpg.add_button(label='Define compositional model')
 
+#Этот класс кажется что не нужен. Его функционал перенесен в Compositions
 class CompositionWindow:
     def __init__(self, flash_calc: FlashCalculator):
         self.flash_calc = flash_calc
@@ -410,12 +553,15 @@ def show_compositional_interface(flash_calc: FlashCalculator):
     comp2 = Compositions()
     comp2.create()
 
+    variants = CompositionVariants()
+    variants.create_composition_variants_window()
 
-    # comp_window = CompositionWindow(flash_calc)
-    # flash_input = FlashInputWindow(flash_calc, lambda: show_results(flash_calc))
 
-    # comp_window.create()
-    # flash_input.create()
+    #comp_window = CompositionWindow(flash_calc)
+    #flash_input = FlashInputWindow(flash_calc, lambda: show_results(flash_calc))
+
+    #comp_window.create()
+    #flash_input.create()
 
 def show_results(flash_calc: FlashCalculator):
     ...
