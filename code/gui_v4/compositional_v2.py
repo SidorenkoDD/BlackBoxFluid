@@ -34,16 +34,29 @@ class CompositionalModule:
                 with dpg.child_window(width=200, border=True):
                     dpg.add_text("Compositional", color=(0, 200, 255))
                     dpg.add_separator()
+                    
+                    dpg.add_button(label = 'Comonents Manager',
+                                   width= 180,
+                                   enabled= False)
+                    
                     dpg.add_button(
                         label="Compositions Manager",
                         width=180,
                         callback=self.show_compositions
                     )
+
                     dpg.add_button(
                         label="Composition Variants",
                         width=180,
                         callback=self.show_variants
                     )
+
+                    dpg.add_button(
+                        label='Library',
+                        width=180,
+                        enabled=False
+                    )
+
                     dpg.add_button(
                         label="Flash Calculation",
                         width=180,
