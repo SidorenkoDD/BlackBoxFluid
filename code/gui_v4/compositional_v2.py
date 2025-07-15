@@ -126,9 +126,10 @@ class CompositionalModule:
     
     def show_flash_results(self):
         # Создаем окно результатов (можно адаптировать под ваш стиль)
-        if dpg.does_item_exist("flash_results_window"):
-            dpg.delete_item("flash_results_window")
-        
+        # if dpg.does_item_exist("flash_results_window"):
+        #     dpg.delete_item("flash_results_window")
+        #self.hide_all_content()
+
         results = self.flash_calc.calculate_flash()
         
         with dpg.window(
@@ -136,7 +137,7 @@ class CompositionalModule:
             tag="flash_results_window",
             width=600,
             height=400,
-            modal=True
+            modal=False
         ):
             dpg.add_input_text(
                 multiline=True,
@@ -145,16 +146,26 @@ class CompositionalModule:
                 default_value=results,
                 readonly=True
             )
-            dpg.add_button(
-                label="Close",
-                callback=lambda: dpg.delete_item("flash_results_window"),
-                pos=(250, 360)
-            )
+            
+            # dpg.add_button(
+            #     label="Close",
+            #     callback=lambda: dpg.delete_item("flash_results_window"),
+            #     pos=(250, 360)
+            # )
+
+
     def hide_all_content(self):
         if dpg.does_item_exist("compositions_window"):
             dpg.hide_item("compositions_window")
+        
         if dpg.does_item_exist("composition_variants_win"):
             dpg.hide_item("composition_variants_win")
+        
+        if dpg.does_item_exist("flash_input_window"):
+            dpg.hide_item("flash_input_window")
+
+        if dpg.does_item_exist("flash_results_window"):
+            dpg.hide_item("flash_results_window")
 
 
 class Compositions:
@@ -573,11 +584,13 @@ class CompositionVariants:
 
 class FlashInputWindow:
     def __init__(self, flash_calc: FlashCalculator, results_callback):
+        self.db_compositions = CompositionsJSONReader()
         self.flash_calc = flash_calc
         self.results_callback = results_callback
         
     def create_interface(self):
         """Создает интерфейс ввода параметров флеш-расчета"""
+        dpg.add_combo(label= 'Choose variant',items=self.db_compositions.get_all_compositions_labels())
         dpg.add_input_float(
             label='Pressure, bar',
             tag='input_pressure',
