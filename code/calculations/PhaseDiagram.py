@@ -3,10 +3,11 @@ from Conditions import Conditions
 from PhaseStability_v3 import PhaseStability
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 class PhaseDiagram:
 
-    def __init__(self, zi: Composition, current_conditions: Conditions,  p_start = 1, p_end = 10, p_step = 5,
+    def __init__(self, zi: Composition, current_conditions: Conditions,  p_start = 1, p_end = 20, p_step = 20,
                  t_start = 20, t_end = 200, t_step = 5):
         
         self.zi = zi
@@ -42,70 +43,92 @@ class PhaseDiagram:
         return change_intervals
     
 
-    def find_pressure_bisection(self,ranges:list, p,t):
-        result = []
-        for range in ranges:
-            fa = PhaseStability(self.zi, range[0], t)
-            fb = PhaseStability(self.zi, range[1], t)
-            
-            assert fa != fb, "Функция должна иметь разные значения на концах интервала!"
-
-        while pres_tuple[1] - pres_tuple[0] > eps:
-            mid = (pres_tuple[1] + pres_tuple[0]) / 2
-            f_mid = PhaseStability(self.zi, mid, temperature)
-            if f_mid == fa:
-                a = mid
-            else:
-                b = mid
-        return (a + b) / 2
 
 
-
-
-
-
-    # # Метод для нахождения интервалов давления, в которых происходит фазовый переход при Т=const
-    # def find_change_intervals(self, vals: list, bools: list):
-    #     change_intervals = []
-    #     for i in range(1, len(bools)):
-    #         if bools[i] != bools[i-1]:
-    #             change_intervals.append((vals[i-1], vals[i]))
-    #     return change_intervals
-
-
-
-    def find_threshold(self, pres_tuple: tuple, temperature, eps=1e-6):
-    # Проверяем, что на концах интервала значения разные
-        fa = PhaseStability(self.zi, pres_tuple[0], temperature)
-        fb = PhaseStability(self.zi, pres_tuple[1], temperature)
-        assert fa != fb # "Функция должна иметь разные значения на концах интервала!"
+    def find_pressure_bisection_test(self, change_intervals: list, t, eps=1e-3):
+        """
+        Находит точки изменения стабильности системы методом бисекции.
         
-        while pres_tuple[1] - pres_tuple[0] > eps:
-            mid = (pres_tuple[1] + pres_tuple[0]) / 2
-            f_mid = PhaseStability(self.zi, mid, temperature)
-            if f_mid == fa:
-                a = mid
-            else:
-                b = mid
-        return (a + b) / 2
+        Parameters:
+        - change_intervals: список интервалов, где происходит изменение stable
+        - t: температура (в Кельвинах)
+        - eps: точность определения точки перехода
+        
+        Returns:
+        - Список давлений, при которых происходит смена stable
+        """
+        transition_points = []
+        
+        for interval in change_intervals:
+            a, b = interval
+            # Проверяем значения на концах интервала
+            fa = PhaseStability(self.zi, a, t).stable
+            fb = PhaseStability(self.zi, b, t).stable
+            
+            if fa == fb:
+                continue  # пропускаем интервалы без изменения stable
+                
+            # Ищем точку перехода методом бисекции
+            while b - a > eps:
+                mid = (a + b) / 2
+                f_mid = PhaseStability(self.zi, mid, t).stable
+                
+                if f_mid == fa:
+                    a = mid
+                else:
+                    b = mid
+            
+            # Добавляем найденную точку перехода
+            transition_points.append((a + b) / 2)
+        print(transition_points)
+        return transition_points
+
+
+ 
 
 
     def calc_phase_diagram(self):
-        stability_bools = []
+        result_data_for_phase_diagram = {}
         for temp in self.space_temperature:
-            for pres in self.space_pressure:
-                stability_obj =  PhaseStability(self.zi, pres, temp)
-                stability_bools.append(stability_obj.stable)
+            change_intervals = self.find_chage_intervals_for_each_pressure_with_constant_t(temp)
+            result_data_for_phase_diagram[temp] = self.find_pressure_bisection_test(change_intervals=change_intervals, t= temp)
+        self.result_data_for_phase_diagram = result_data_for_phase_diagram
+        return self.result_data_for_phase_diagram
 
-            intervals_for_find_p = self.find_change_intervals(self.space_pressure, stability_bools)
-            print(self.find_threshold(intervals_for_find_p, temp))
-        return stability_bools
 
+    def plot_phase_diagram(self):
+        x = []
+        y = []
+
+        # Заполняем списки
+        for key, values in self.result_data_for_phase_diagram.items():
+            for value in values:
+                x.append(key)
+                y.append(value)
+
+        print(x)
+        print(y)
+        plt.scatter(x, y)  # Точечный график
+        #plt.plot(x, y)     # Линейный график (если нужен)
+        plt.xlabel('X')
+        plt.ylabel('Y')
+        plt.title('График данных')
+        plt.show()
 
 if __name__ == '__main__':
-    comp = Composition({'C1': 0.3, 'nC4': 0.7})
+    comp = Composition({'C1': 0.7, 'C2':0.2, 'C3':0.1})
     cond = Conditions(2, 40)
-    phs_diag = PhaseDiagram(comp.composition, cond ,t_start=80, t_end=80, t_step=1)
+    phs_diag = PhaseDiagram(comp.composition, cond,
+                            p_start= 0.1, p_end= 20, p_step=10,
+                            t_start=20, t_end=250, t_step=10)
 
-    phs_diag.find_stability_for_each_pressure_with_constant_t(350)
+    # change_intervals = phs_diag.find_chage_intervals_for_each_pressure_with_constant_t(400)
+    # print(change_intervals)
+    # phs_diag.find_pressure_bisection_test(change_intervals=change_intervals, t = 400)
+
+    print(phs_diag.calc_phase_diagram())
+    phs_diag.plot_phase_diagram()
+
+
+
     
