@@ -2,7 +2,7 @@ import yaml
 
 class DBReader:
     def __init__(self):
-        with open('code/db.yaml') as yaml_file:
+        with open('code/calculations/db.yaml') as yaml_file:
             self.db = yaml.safe_load(yaml_file)
 
     

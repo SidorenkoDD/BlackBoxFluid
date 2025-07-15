@@ -16,7 +16,7 @@ class PhaseEquilibrium:
 
                 # Подключение к yaml-файлику
         #try:
-        with open('code/db.yaml', 'r') as db_file:
+        with open('code/calculations/db.yaml', 'r') as db_file:
             self.db = yaml.safe_load(db_file)
 
 

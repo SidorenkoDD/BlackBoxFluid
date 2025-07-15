@@ -6,7 +6,7 @@ class FluidProperties:
     
     def __init__(self, p, t, equil_obj: PhaseEquilibrium):
         
-        with open('code/db.yaml', 'r') as db_file:
+        with open('code/calculations/db.yaml', 'r') as db_file:
             self.db = yaml.safe_load(db_file)
         
         

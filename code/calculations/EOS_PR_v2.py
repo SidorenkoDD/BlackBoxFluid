@@ -25,7 +25,7 @@ class EOS_PR:
         # Читаем .yaml файл с данными по компонентам
         try:
             
-            with open('code/db.yaml', 'r') as db_file:
+            with open('code/calculations/db.yaml', 'r') as db_file:
                 self.db = yaml.safe_load(db_file)
             logger.log.debug('Данные компонент из .yaml прочитаны успешно') 
 
