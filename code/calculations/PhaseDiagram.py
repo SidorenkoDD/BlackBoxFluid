@@ -39,7 +39,7 @@ class PhaseDiagram:
             if bool_results[i] != bool_results[i-1]:
                 change_intervals.append((self.space_pressure[i-1], self.space_pressure[i]))
 
-        print(change_intervals)
+        #print(change_intervals)
         return change_intervals
     
 
@@ -116,15 +116,15 @@ class PhaseDiagram:
         plt.show()
 
 if __name__ == '__main__':
-    comp = Composition({'C1': 0.7, 'C2':0.2, 'C3':0.1})
+    comp = Composition({'C1': 0.4, 'C6':0.6})
     cond = Conditions(2, 40)
     phs_diag = PhaseDiagram(comp.composition, cond,
-                            p_start= 0.1, p_end= 20, p_step=10,
-                            t_start=20, t_end=250, t_step=10)
+                            p_start= 0.1, p_end= 40, p_step=10,
+                            t_start=-250, t_end=250, t_step=10)
 
-    # change_intervals = phs_diag.find_chage_intervals_for_each_pressure_with_constant_t(400)
+    # change_intervals = phs_diag.find_chage_intervals_for_each_pressure_with_constant_t(523.14)
     # print(change_intervals)
-    # phs_diag.find_pressure_bisection_test(change_intervals=change_intervals, t = 400)
+    # phs_diag.find_pressure_bisection_test(change_intervals=change_intervals, t = 523.14)
 
     print(phs_diag.calc_phase_diagram())
     phs_diag.plot_phase_diagram()

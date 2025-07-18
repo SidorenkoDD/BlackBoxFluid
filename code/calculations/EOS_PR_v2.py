@@ -184,7 +184,7 @@ class EOS_PR:
             m = 0.37464 + 1.54226 * self.db['acentric_factor'][component] - 0.26992 * math.pow(self.db['acentric_factor'][component], 2)
 
         alpha = math.pow(1 + m * (1 - math.sqrt(self.t/self.db['critical_temperature'][component])), 2)
-        return omega_a * math.pow(self.db['critical_temperature'][component],2) * math.pow(8.314,2) * alpha / self.db['critical_pressure'][component]
+        return omega_a * math.pow(self.db['critical_temperature'][component],2) * math.pow(8.31, 2) * alpha / self.db['critical_pressure'][component]
 
     # Метод расчета параметра b для компоненты
     def calc_b(self, component, omega_b = 0.0778):
@@ -192,7 +192,7 @@ class EOS_PR:
         param: component - компонент, для которого проводится расчет
         param: omega_b - константа
         '''
-        return omega_b * 8.314 * self.db['critical_temperature'][component] / self.db['critical_pressure'][component]
+        return omega_b * 8.31 * self.db['critical_temperature'][component] / self.db['critical_pressure'][component]
     
 
     # Метод расчета параметра А для компоненты
@@ -200,7 +200,7 @@ class EOS_PR:
         '''
         param: component - компонент, для которого проводится расчет
         '''
-        return self.calc_a(component) * self.p/math.pow((8.314 * self.t), 2)
+        return self.calc_a(component) * self.p/math.pow((8.31 * self.t), 2)
     
     
     # Метод расчета параметра А для компоненты
@@ -208,14 +208,14 @@ class EOS_PR:
         '''
         param: component - компонент, для которого проводится расчет
         '''
-        return self.calc_b(component) * self.p/ (8.314 * self.t)
+        return self.calc_b(component) * self.p/ (8.31 * self.t)
     
     # Метод расчета параметра А для УРС
     def calc_mixed_A(self):
-        if len(list(self.zi.keys())) == 1 or ((len(list(self.zi.keys())) == 2) and (0 in list(self.zi.values()))):
-            return list(self.all_params_A.values())[0]
+        # if len(list(self.zi.keys())) == 1 or ((len(list(self.zi.keys())) == 2) and (0 in list(self.zi.values()))):
+        #     return list(self.all_params_A.values())[0]
         
-        else:
+        # else:
             a_mixed = []
             second_components = list(self.zi.keys())
             for i_component in self.zi.keys():
@@ -253,31 +253,31 @@ class EOS_PR:
     # Метод для решения кубического уравнения
     def calc_cubic_eos(self):
         bk = self.B_linear_mixed - 1
-        ck = self.mixed_A - 3 * math.pow(self.B_linear_mixed, 2) - 2 * self.B_linear_mixed
-        dk = math.pow(self.B_linear_mixed, 2) + math.pow(self.B_linear_mixed, 3) - self.mixed_A * self.B_linear_mixed
-        pk = - math.pow(bk,2) / 3 + ck
-        qk = 2 * math.pow(bk, 3) / 27 - (bk * ck/ 3 ) + dk
-        s = math.pow((pk/3), 3) + math.pow((qk/2),2) 
+        ck = self.mixed_A - 3 * (self.B_linear_mixed ** 2) - 2 * self.B_linear_mixed
+        dk = (self.B_linear_mixed ** 2) + (self.B_linear_mixed ** 3) - self.mixed_A * self.B_linear_mixed
+        pk = - (bk ** 2) / 3 + ck
+        qk = 2 * (bk ** 3) / 27 - (bk * ck/ 3 ) + dk
+        s = ((pk/3) ** 3) + ((qk/2) ** 2) 
 
         if s > 0:
-            vb = -qk/2 - math.sqrt(s)
-            itt = -qk/2 + math.sqrt(s)
-            # if itt < 0:
+            vb = -qk/2 - (s ** (1/2)) #math.sqrt(s)
+            itt = -qk/2 + (s ** (1/2)) #math.sqrt(s)
+            if itt < 0:
 
-            #     itt =  abs(itt)
-            #     # В этой строке ломается код
-            #     #it =  math.pow(itt, (1/3))
-            #     it = (-itt) ** (1/3)
-            # else:
-            #     it = math.pow(itt, (1/3))
+                itt =  abs(itt)
+                # В этой строке ломается код
+                it =  (itt ** (1/3))
+                it = - (itt ** (1/3))
+            else:
+                 it = itt ** (1/3)
             
-            it = itt ** (1/3)
+            #it = itt ** (1/3)
 
             if vb < 0:
                     zk0 = it - ((abs(vb)) ** (1/3)) - bk/3
                 
             else:
-                    zk0 = it + math.pow((-qk/2 - math.sqrt(s)), (1/3)) - bk/3
+                    zk0 = it + ((-qk/2 - math.sqrt(s)) ** (1/3)) - bk/3
 
             zk1 = 0
             zk2 = 0
@@ -299,7 +299,7 @@ class EOS_PR:
             zk1 = -math.pow((-qk/2), (1/3)) - bk/3
             zk2 = -math.pow((-qk/2), (1/3)) - bk/3
 
-
+        #print([zk0, zk1, zk2])
 
         return [zk0, zk1, zk2]
 
@@ -414,7 +414,7 @@ class EOS_PR:
 
 if __name__ == '__main__':
 
-    eos = EOS_PR({'C1': 0.5, 'C2': 0.5}, 1.7, 20)
+    eos = EOS_PR({'C1': 0.6, 'C6': 0.4}, 15, 50)
     print(f' Z: {eos.choosen_eos_root}')
     print(f'fug_by_roots: {eos.fugacity_by_roots}')
     print(f' Е Гиббса: {eos.normalized_gibbs_energy}')

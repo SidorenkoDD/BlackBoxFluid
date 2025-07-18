@@ -253,7 +253,7 @@ class PhaseStability:
         normalized_mole_fractions_vapour = {}
         for component in list(Yi_v.keys()):
             normalized_mole_fractions_vapour[component] = Yi_v[component] / S_v #round((Yi_v[component] / S_v), 5)
-        
+            #normalized_mole_fractions_vapour[component] = round((Yi_v[component] / S_v), 5)
         return normalized_mole_fractions_vapour
 
 
@@ -262,7 +262,7 @@ class PhaseStability:
         normalized_mole_fractions_liquid = {}
         for component in list(Xi_l.keys()):
             normalized_mole_fractions_liquid[component] = Xi_l[component] / S_l #round((Xi_l[component] / S_l), 5)
-        
+            #normalized_mole_fractions_liquid[component] = round((Xi_l[component] / S_l), 5)
         return normalized_mole_fractions_liquid
 
 
@@ -284,8 +284,8 @@ class PhaseStability:
     def calc_ri_vapour(self, eos_vapour:EOS_PR):
         ri_vapour = {}
         for component in eos_vapour.zi.keys():
-            ri = (math.exp(self.initial_eos.fugacity_by_roots[self.initial_eos.choosen_eos_root][component]) /
-                   ((math.exp(eos_vapour.fugacity_by_roots[eos_vapour.choosen_eos_root][component])) * self.S_v))
+            ri = ((math.e ** self.initial_eos.fugacity_by_roots[self.initial_eos.choosen_eos_root][component]) /
+                   (((math.e ** eos_vapour.fugacity_by_roots[eos_vapour.choosen_eos_root][component])) * self.S_v))
             ri_vapour[component] = ri
         return ri_vapour
 
@@ -294,8 +294,8 @@ class PhaseStability:
     def calc_ri_liquid(self, eos_liquid: EOS_PR):
         ri_liquid = {}
         for component in eos_liquid.zi.keys():
-            ri = ((math.exp(eos_liquid.fugacity_by_roots[eos_liquid.choosen_eos_root][component]))/
-                  math.exp(self.initial_eos.fugacity_by_roots[self.initial_eos.choosen_eos_root][component]) * self.S_l)
+            ri = (((math.e ** eos_liquid.fugacity_by_roots[eos_liquid.choosen_eos_root][component]))/
+                  (math.e ** self.initial_eos.fugacity_by_roots[self.initial_eos.choosen_eos_root][component]) * self.S_l)
             ri_liquid[component] = ri 
         return ri_liquid
 
@@ -322,7 +322,7 @@ class PhaseStability:
     
 
     ### Новый метод анализа стабильности 
-    def check_convergence(self, e = math.pow(10, -4)):
+    def check_convergence(self, e = math.pow(10, -7)):
     
 
         ri_v_to_sum = []
@@ -419,7 +419,7 @@ class PhaseStability:
         print(self.S_v, self.S_l)
         print(self.trivial_solution_vapour, self.trivial_solution_liquid)
 
-        if ((self.trivial_solution_vapour and self.trivial_solution_liquid) or 
+        if ((self.trivial_solution_vapour) or 
             ((self.S_v <= 1) and (self.trivial_solution_liquid)) or 
             ((self.trivial_solution_vapour) and (self.S_l <= 1)) or 
             ((self.S_v <= 1) and (self.S_l<= 1))):
@@ -433,10 +433,10 @@ class PhaseStability:
 
 
         elif (((self.S_v > 1) and self.trivial_solution_liquid) or 
-              (self.trivial_solution_vapour and (self.S_l> 1)) or 
+              ((self.trivial_solution_vapour) and (self.S_l> 1)) or 
                 ((self.S_v > 1) and (self.S_l > 1)) or 
                 ((self.S_v> 1) and (self.S_l <= 1)) or 
-                ((self.S_v <= 1) and (self.S_l>1))):
+                ((self.S_v <= 1) and (self.S_l > 1))):
             
             logger.log.info('===============')
             logger.log.info('Результат интерпритации анализа стабильности:')
@@ -448,7 +448,7 @@ class PhaseStability:
 
 
 if __name__ == '__main__':
-    phs = PhaseStability({'C1': 0.64, 'C2': 0.03, 'C3':0.09, 'C6': 0.24}, 4, 100)
+    phs = PhaseStability({'C1':0.9 , 'C6': 0.1}, 15, -100)
 
     #phs.stability_loop()
     print(phs.convergence_trivial_solution)
