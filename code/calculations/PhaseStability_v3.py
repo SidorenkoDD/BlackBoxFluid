@@ -448,12 +448,13 @@ class PhaseStability:
 
 
 if __name__ == '__main__':
-    phs = PhaseStability({'C1':0.9 , 'C6': 0.1}, 15, -100)
+    phs = PhaseStability({'C1':0.4 , 'C6': 0.6}, 8, 100)
 
     #phs.stability_loop()
     print(phs.convergence_trivial_solution)
     print(phs.S_v)
     print(phs.S_l)
+    
     #phs.interpetate_stability_analysis()
 
     print(phs.k_values_vapour)
@@ -461,5 +462,7 @@ if __name__ == '__main__':
     print(phs.xi_l)
     print(phs.yi_v)
     print(phs.stable)
+    print(phs.initial_eos.fugacity_by_roots)
+    print(phs.vapour_eos.fugacity_by_roots)
 
 
