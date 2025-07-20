@@ -1,15 +1,20 @@
 from Composition import Composition
 from PhaseStability_v3 import PhaseStability
 import math as math
+import numpy as np
 
 
 class PhaseDiagram:
 
-    def __init__(self, zi:Composition, p_max:float, p_min = 0.1):
+    def __init__(self, zi:Composition, p_max:float, temp_min, temp_max, temp_step,p_min = 0.1):
         self.zi = zi.composition
+
         self.p_min = p_min
         self.p_max = p_max
         self.p_i = self.p_max / 2
+    
+        # Здесь определили диапазон температур
+        self.temp_range = np.arange(start=temp_min + 273.14, stop= temp_max + 273.14, step= temp_step)
 
 
 ## Часть алгоритма для расчета Pb
@@ -317,13 +322,16 @@ class PhaseDiagram:
             self.main_loop_dp(t)
 
 
+    def main_loop_phase_diagram(self):
+        for temp in self.temp_range:
+            
 
 
 
 if __name__ == '__main__':
     comosition = Composition({'C1': 0.6, 'nC4':0.4})
-    phase_diag = PhaseDiagram(comosition, 40)
-    phase_diag.loop_v2(345) 
-    phase_diag.loop_v2_dew(345)
+    phase_diag = PhaseDiagram(comosition, 40, temp_min=0, temp_max= 120, temp_step= 10)
+    phase_diag.loop_v2(320) 
+    phase_diag.loop_v2_dew(320)
 
 
