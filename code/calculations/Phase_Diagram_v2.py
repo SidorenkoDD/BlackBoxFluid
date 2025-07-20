@@ -112,7 +112,7 @@ class PhaseDiagram:
 
             r_sp = {}
             for component in cur_s_sp['letuch_z'].keys():
-                r_sp[component] = math.exp(cur_s_sp['letuch_z'][component] / (cur_s_sp['letuch_sp'][component] * cur_s_sp['s_sp']))
+                r_sp[component] = math.exp(cur_s_sp['letuch_z'][component]) / (math.exp(cur_s_sp['letuch_sp'][component]) * cur_s_sp['s_sp'])
             
             y_sp = {}
             for component in r_sp.keys():
