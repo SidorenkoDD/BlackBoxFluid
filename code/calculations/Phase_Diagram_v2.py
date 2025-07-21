@@ -87,9 +87,8 @@ class PhaseDiagram:
                     letuch_sp = None
 
         S_sp = sum(y_sp.values())
-        #print(S_sp)
-        print(f'S_v: {phase_stability.S_v}, S_l: {phase_stability.S_l}')
-        print(phase_stability.stable)
+
+
         return {'s_sp':S_sp, 'y_sp':y_sp, 'k_sp':k_sp, 'r_sp':r_sp, 'letuch_sp':letuch_sp, 'letuch_z': letuch_z}
 
 
@@ -98,7 +97,7 @@ class PhaseDiagram:
 
         # Если s_sp 0, то обновляем давление
         while cur_s_sp['s_sp'] == 0:
-            print(self.p_i)
+
             self.p_max = self.p_i
             self.p_i = (self.p_max + self.p_min) / 2
             
@@ -109,7 +108,7 @@ class PhaseDiagram:
             # Считаем s_sp еще раз
             else:
                 cur_s_sp = self.define_s_sp(self.p_i, t)
-                print(self.p_i)
+
         # если ssp не ноль, то начинается цикл  расчета Pb
         else:
 
@@ -124,13 +123,10 @@ class PhaseDiagram:
             y_sp = {}
             for component in r_sp.keys():
                 y_sp[component] = cur_s_sp['y_sp'][component] * math.pow(r_sp[component], lambd)
-            print(f'y_sp: {y_sp}')
+
 
             
             self.sum_y_sp = sum(y_sp.values())
-            print(f'sum_y_sp: {self.sum_y_sp}')
-            print(f'sum_y_sp-1: {abs(self.sum_y_sp - 1)}')
-
 
 
             #строки с 559 в вба
@@ -151,12 +147,10 @@ class PhaseDiagram:
                 print(f'Pb найдено: {self.p_i}')
 
             else:
-                print(self.p_i)
+
                 self.p_min = self.p_i
                 self.p_i = (self.p_max + self.p_min) / 2
-                print('Pb не найдено')
-                print(cur_s_sp)
-                print(self.p_i)
+
 
 
     def loop_v2(self, t):
@@ -164,9 +158,12 @@ class PhaseDiagram:
         
         while ((abs(1 - self.sum_y_sp) < math.pow(10, -3)) == False) and ((math.pow(self.Ykz,2) < math.pow(10,-3)) == False):
             self.main_loop_sp(t)
+
+        self.p_b = self.p_i
         
         self.p_i = self.p_i / 2
 
+        return self.p_b
 
 
 ## Часть алгоритма для расчета Pdew
@@ -240,22 +237,17 @@ class PhaseDiagram:
                     letuch_dp = None
 
         S_dp = sum(y_dp.values())
-        #print(S_sp)
-        print(f'S_v: {phase_stability.S_v}, S_l: {phase_stability.S_l}')
-        print(phase_stability.stable)
+
         return {'s_dp':S_dp, 'y_dp':y_dp, 'k_dp':k_dp, 'r_dp':r_dp, 'letuch_dp':letuch_dp, 'letuch_z': letuch_z}
 
     def main_loop_dp(self, t, lambd = 1):
         self.p_min = 0.1
         
-        #TODO: Проблема в этом. Пробуем исправить подменой Pi после определения Pb
-        #self.p_i = self.p_i / 2
-        
         cur_s_dp = self.define_s_dp(self.p_i, t =t)
 
         # Если s_dp 0, то обновляем давление
         while cur_s_dp['s_dp'] == 0:
-            print(self.p_i)
+
             self.p_min = self.p_i
             self.p_i = (self.p_max + self.p_min) / 2
             
@@ -266,7 +258,7 @@ class PhaseDiagram:
             # Считаем s_sp еще раз
             else:
                 cur_s_dp = self.define_s_dp(self.p_i, t)
-                print(self.p_i)
+
         # если ssp не ноль, то начинается цикл  расчета Pdew
         else:
 
@@ -281,13 +273,8 @@ class PhaseDiagram:
             y_dp = {}
             for component in r_dp.keys():
                 y_dp[component] = cur_s_dp['y_dp'][component] * math.pow(r_dp[component], lambd)
-            print(f'y_dp: {y_dp}')
 
-            
             self.sum_y_dp = sum(y_dp.values())
-            print(f'sum_y_dp: {self.sum_y_dp}')
-            print(f'sum_y_dp-1: {abs(self.sum_y_dp - 1)}')
-
 
 
             #строки с 559 в вба
@@ -308,12 +295,10 @@ class PhaseDiagram:
                 print(f'Pdew найдено: {self.p_i}')
 
             else:
-                print(self.p_i)
+
                 self.p_max = self.p_i
                 self.p_i = (self.p_max + self.p_min) / 2
-                print('Pdew не найдено')
-                print(cur_s_dp)
-                print(self.p_i)
+
 
     def loop_v2_dew(self, t):
         self.main_loop_dp(t)
@@ -321,17 +306,38 @@ class PhaseDiagram:
         while ((abs(1 - self.sum_y_dp) < math.pow(10, -3)) == False) and ((math.pow(self.Ykz_dp,2) < math.pow(10,-3)) == False):
             self.main_loop_dp(t)
 
+        self.p_dew = self.p_i
+
+        return self.p_dew
 
     def main_loop_phase_diagram(self):
         for temp in self.temp_range:
-            
+            p_b = self.loop_v2(temp)
+            p_dew = self.loop_v2_dew(temp)
+
+            print(f'Pb: {p_b}, Pdew: {p_dew}, Temp: {temp}')
+
+            #self.p_i = self.p_max / 2
+
+
+
+
+
+def calc_phase_diagram(p_max, t_min, t_max, t_step):
+    ...
+
+
+
+
+
 
 
 
 if __name__ == '__main__':
     comosition = Composition({'C1': 0.6, 'nC4':0.4})
-    phase_diag = PhaseDiagram(comosition, 40, temp_min=0, temp_max= 120, temp_step= 10)
-    phase_diag.loop_v2(320) 
-    phase_diag.loop_v2_dew(320)
+    phase_diag = PhaseDiagram(comosition, 40, temp_min=60, temp_max= 66, temp_step= 5)
+    # phase_diag.loop_v2(300) 
+    # phase_diag.loop_v2_dew(300)
+    phase_diag.main_loop_phase_diagram()
 
 
