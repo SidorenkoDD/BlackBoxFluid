@@ -91,6 +91,9 @@ class SaturationPressure:
         return {'s_sp':S_sp, 'y_sp':y_sp, 'k_sp':k_sp, 'r_sp':r_sp, 'letuch_sp':letuch_sp, 'letuch_z': letuch_z}
 
 
+    def check_pressure_diff(self):
+        return (self.p_max - self.p_min) > math.pow(10,-5)
+
     def sp_process(self, lambd = 1):
         cur_s_sp = self.define_s_sp(self.p_i)
 
@@ -102,8 +105,8 @@ class SaturationPressure:
             
             # Проверка на то, что P_max и P_min не равны друг другу
             if self.p_max - self.p_min < math.pow(10,-5):
-                self.pb = None
                 print('P_max и P_min равны, давление насыщения не найдено!!!')
+                
             
             # Считаем s_sp еще раз
             else:
@@ -153,16 +156,19 @@ class SaturationPressure:
 
 
     def sp_convergence_loop(self):
-        self.sp_process()
-        
-        while ((abs(1 - self.sum_y_sp) < math.pow(10, -3)) == False) and ((math.pow(self.Ykz,2) < math.pow(10,-3)) == False):
+        if self.check_pressure_diff():
             self.sp_process()
+            
+            while ((abs(1 - self.sum_y_sp) < math.pow(10, -3)) == False) and ((math.pow(self.Ykz,2) < math.pow(10,-3)) == False):
+                self.sp_process()
 
-        self.p_b = self.p_i
-        
-        self.p_i = self.p_i / 2
+            self.p_b = self.p_i
+            
+            self.p_i = self.p_i / 2
 
-        return self.p_b
+            return self.p_b
+        else:
+            return None
 
 
 
@@ -255,7 +261,8 @@ class SaturationPressure:
             
             # Проверка на то, что P_max и P_min не равны друг другу
             if self.p_max - self.p_min < math.pow(10,-5):
-                print('P_max и P_min равны, давление насыщения не найдено!!!')
+                print('P_max и P_min равны, давление конденсации не найдено!!!')
+                
             
             # Считаем s_sp еще раз
             else:
@@ -303,15 +310,18 @@ class SaturationPressure:
 
 
     def dp_convergence_loop(self):
-        self.dp_process()
-        
-        while ((abs(1 - self.sum_y_dp) < math.pow(10, -3)) == False) and ((math.pow(self.Ykz_dp,2) < math.pow(10,-3)) == False):
+        if self.check_pressure_diff():
             self.dp_process()
+            
+            while ((abs(1 - self.sum_y_dp) < math.pow(10, -3)) == False) and ((math.pow(self.Ykz_dp,2) < math.pow(10,-3)) == False):
+                self.dp_process()
 
-        self.p_dew = self.p_i
+            self.p_dew = self.p_i
 
-        return self.p_dew
-
+            return self.p_dew
+        
+        else:
+            return None
 
 
 
@@ -366,7 +376,7 @@ if __name__ == '__main__':
     #phase_diag = SaturationPressure(comosition, 40, temp=70)
     # phase_diag.loop_v2(300) 
     # phase_diag.loop_v2_dew(300)
-    phase_diag = PhaseDiagram(comosition, 40, -20, 70, 5)
+    phase_diag = PhaseDiagram(comosition, 40, 0, 140, 20)
     phase_diag.calc_phase_diagram()
     phase_diag.plot_phase_diagram()
 

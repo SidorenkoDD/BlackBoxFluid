@@ -360,12 +360,12 @@ class PhaseStability:
         for ki_l in list(self.k_values_liquid.values()):
             ki_l_to_sum.append(math.pow((math.log(ki_l)),2))
 
-        if sum(ki_v_to_sum) < math.pow(10,-5):
+        if sum(ki_v_to_sum) < math.pow(10,-4):
             self.trivial_solution_vapour = True
             #self.convergence_trivial_solution = True
 
 
-        elif sum(ki_l_to_sum) < math.pow(10,-5):
+        elif sum(ki_l_to_sum) < math.pow(10,-4):
             self.trivial_solution_liquid = True
             #self.convergence_trivial_solution = True
 
@@ -424,12 +424,12 @@ class PhaseStability:
             ((self.trivial_solution_vapour) and (self.S_l <= 1)) or 
             ((self.S_v <= 1) and (self.S_l<= 1))):
 
-            logger.log.info('===============')
-            logger.log.info('Результат интерпритации анализа стабильности:')
-            logger.log.info(f'S_v: {self.S_v}, S_l: {self.S_l}')
-            logger.log.info('Система стабильна')
+            # logger.log.info('===============')
+            # logger.log.info('Результат интерпритации анализа стабильности:')
+            # logger.log.info(f'S_v: {self.S_v}, S_l: {self.S_l}')
+            # logger.log.info('Система стабильна')
             self.stable = True
-            logger.log.info('===============')
+            # logger.log.info('===============')
 
 
         elif (((self.S_v > 1) and self.trivial_solution_liquid) or 
@@ -438,17 +438,17 @@ class PhaseStability:
                 ((self.S_v> 1) and (self.S_l <= 1)) or 
                 ((self.S_v <= 1) and (self.S_l > 1))):
             
-            logger.log.info('===============')
-            logger.log.info('Результат интерпритации анализа стабильности:')
-            logger.log.info(f'S_v: {self.S_v}, S_l: {self.S_l}')
-            logger.log.info('Система не стабильна')
+            # logger.log.info('===============')
+            # logger.log.info('Результат интерпритации анализа стабильности:')
+            # logger.log.info(f'S_v: {self.S_v}, S_l: {self.S_l}')
+            # logger.log.info('Система не стабильна')
             self.stable = False
-            logger.log.info('===============')
+            # logger.log.info('===============')
 
 
 
 if __name__ == '__main__':
-    phs = PhaseStability({'C1':0.4 , 'C6': 0.6}, 8, 100)
+    phs = PhaseStability({'C1':0.6 , 'C6': 0.4}, 14.45, 0)
 
     #phs.stability_loop()
     print(phs.convergence_trivial_solution)
