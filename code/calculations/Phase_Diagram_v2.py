@@ -101,7 +101,7 @@ class SaturationPressure:
             self.p_i = (self.p_max + self.p_min) / 2
             
             # Проверка на то, что P_max и P_min не равны друг другу
-            if self.p_max - self.p_min < math.pow(10,-3):
+            if self.p_max - self.p_min < math.pow(10,-5):
                 self.pb = None
                 print('P_max и P_min равны, давление насыщения не найдено!!!')
             
@@ -254,7 +254,7 @@ class SaturationPressure:
             self.p_i = (self.p_max + self.p_min) / 2
             
             # Проверка на то, что P_max и P_min не равны друг другу
-            if self.p_max - self.p_min < math.pow(10,-3):
+            if self.p_max - self.p_min < math.pow(10,-5):
                 print('P_max и P_min равны, давление насыщения не найдено!!!')
             
             # Считаем s_sp еще раз
@@ -366,7 +366,7 @@ if __name__ == '__main__':
     #phase_diag = SaturationPressure(comosition, 40, temp=70)
     # phase_diag.loop_v2(300) 
     # phase_diag.loop_v2_dew(300)
-    phase_diag = PhaseDiagram(comosition, 40, 80, 81, 1)
+    phase_diag = PhaseDiagram(comosition, 40, -20, 70, 5)
     phase_diag.calc_phase_diagram()
     phase_diag.plot_phase_diagram()
 
