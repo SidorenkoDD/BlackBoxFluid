@@ -216,6 +216,8 @@ class SaturationPressure:
 
     def dp_process(self, lambd = 1):
         self.p_min = 0.1
+        #self.p_i = self.p_i / 2
+        self.p_max = 2 * self.p_i
         cur_s_dp = self.define_s_dp(self.p_i)
 
         # Если s_dp 0, то обновляем давление
@@ -291,10 +293,12 @@ class PhaseDiagram:
 
     def calc_phase_diagram(self):
         for temp in self.temp_arange:
+            temp = round(temp,2)
             cur_saturation_pressure = SaturationPressure(self.zi, self.p_max, temp)
             pb = cur_saturation_pressure.sp_convergence_loop()
             pdew = cur_saturation_pressure.dp_convergence_loop()
             self.results[temp] = [pb, pdew]
+            #print(self.results)
         print(self.results)
 
     def plot_phase_diagram(self):
@@ -356,7 +360,7 @@ class PhaseDiagram:
 
 
 if __name__ == '__main__':
-    comosition = Composition({'C1': 0.6, 'C6':0.4})
-    phase_diag = PhaseDiagram(comosition, 40, 0, 140, 5)
+    comosition = Composition({'C1': 0.1, 'C6':0.9})
+    phase_diag = PhaseDiagram(comosition, 40, 20, 100, 20)
     phase_diag.calc_phase_diagram()
     phase_diag.plot_phase_diagram_v2()

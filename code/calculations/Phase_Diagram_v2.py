@@ -372,7 +372,7 @@ class PhaseDiagram:
 
 
 if __name__ == '__main__':
-    comosition = Composition({'C1': 0.6, 'nC4':0.4})
+    comosition = Composition({'C1': 0.6, 'C3':0.4})
     #phase_diag = SaturationPressure(comosition, 40, temp=70)
     # phase_diag.loop_v2(300) 
     # phase_diag.loop_v2_dew(300)
