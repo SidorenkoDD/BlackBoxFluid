@@ -2,29 +2,28 @@ from Composition import Composition
 from PhaseStability_v3 import PhaseStability
 import math as math
 import numpy as np
+import matplotlib.pyplot as plt
 
 
-class PhaseDiagram:
+class SaturationPressure:
 
-    def __init__(self, zi:Composition, p_max:float, temp_min, temp_max, temp_step,p_min = 0.1):
-        self.zi = zi.composition
+    def __init__(self, zi, p_max:float, temp, p_min = 0.1):
+        self.zi = zi
 
         self.p_min = p_min
         self.p_max = p_max
         self.p_i = self.p_max / 2
+        self.temp = temp
     
-        # Здесь определили диапазон температур
-        self.temp_range = np.arange(start=temp_min + 273.14, stop= temp_max + 273.14, step= temp_step)
-
 
 ## Часть алгоритма для расчета Pb
-    def define_s_sp(self, p, t):
+    def define_s_sp(self, p):
         '''
         метод позволяет определить соотношения Sv и Sl при заданных PT.
         Вспомогательный метод для алгоритма
         
         '''
-        phase_stability = PhaseStability(self.zi, p, t)
+        phase_stability = PhaseStability(self.zi, p, self.temp)
 
         if (phase_stability.S_l - 1) < 10 ** -5:
             if (phase_stability.S_v) < 10 ** -5:
@@ -92,8 +91,8 @@ class PhaseDiagram:
         return {'s_sp':S_sp, 'y_sp':y_sp, 'k_sp':k_sp, 'r_sp':r_sp, 'letuch_sp':letuch_sp, 'letuch_z': letuch_z}
 
 
-    def main_loop_sp(self, t, lambd = 1):
-        cur_s_sp = self.define_s_sp(self.p_i, t =t)
+    def sp_process(self, lambd = 1):
+        cur_s_sp = self.define_s_sp(self.p_i)
 
         # Если s_sp 0, то обновляем давление
         while cur_s_sp['s_sp'] == 0:
@@ -102,12 +101,13 @@ class PhaseDiagram:
             self.p_i = (self.p_max + self.p_min) / 2
             
             # Проверка на то, что P_max и P_min не равны друг другу
-            if self.p_max - self.p_min == math.pow(10,-8):
+            if self.p_max - self.p_min < math.pow(10,-3):
+                self.pb = None
                 print('P_max и P_min равны, давление насыщения не найдено!!!')
             
             # Считаем s_sp еще раз
             else:
-                cur_s_sp = self.define_s_sp(self.p_i, t)
+                cur_s_sp = self.define_s_sp(self.p_i)
 
         # если ssp не ноль, то начинается цикл  расчета Pb
         else:
@@ -152,12 +152,11 @@ class PhaseDiagram:
                 self.p_i = (self.p_max + self.p_min) / 2
 
 
-
-    def loop_v2(self, t):
-        self.main_loop_sp(t)
+    def sp_convergence_loop(self):
+        self.sp_process()
         
         while ((abs(1 - self.sum_y_sp) < math.pow(10, -3)) == False) and ((math.pow(self.Ykz,2) < math.pow(10,-3)) == False):
-            self.main_loop_sp(t)
+            self.sp_process()
 
         self.p_b = self.p_i
         
@@ -166,15 +165,17 @@ class PhaseDiagram:
         return self.p_b
 
 
+
+
 ## Часть алгоритма для расчета Pdew
 
-    def define_s_dp(self, p, t):
+    def define_s_dp(self, p):
         '''
         метод позволяет определить соотношения Sv и Sl при заданных PT.
         Вспомогательный метод для алгоритма
         
         '''
-        phase_stability = PhaseStability(self.zi, p, t)
+        phase_stability = PhaseStability(self.zi, p, self.temp)
 
         if (phase_stability.S_l - 1) < 10 ** -5:
             if (phase_stability.S_v) < 10 ** -5:
@@ -240,10 +241,11 @@ class PhaseDiagram:
 
         return {'s_dp':S_dp, 'y_dp':y_dp, 'k_dp':k_dp, 'r_dp':r_dp, 'letuch_dp':letuch_dp, 'letuch_z': letuch_z}
 
-    def main_loop_dp(self, t, lambd = 1):
+
+    def dp_process(self, lambd = 1):
         self.p_min = 0.1
         
-        cur_s_dp = self.define_s_dp(self.p_i, t =t)
+        cur_s_dp = self.define_s_dp(self.p_i, )
 
         # Если s_dp 0, то обновляем давление
         while cur_s_dp['s_dp'] == 0:
@@ -252,12 +254,12 @@ class PhaseDiagram:
             self.p_i = (self.p_max + self.p_min) / 2
             
             # Проверка на то, что P_max и P_min не равны друг другу
-            if self.p_max - self.p_min == math.pow(10,-8):
+            if self.p_max - self.p_min < math.pow(10,-3):
                 print('P_max и P_min равны, давление насыщения не найдено!!!')
             
             # Считаем s_sp еще раз
             else:
-                cur_s_dp = self.define_s_dp(self.p_i, t)
+                cur_s_dp = self.define_s_dp(self.p_i)
 
         # если ssp не ноль, то начинается цикл  расчета Pdew
         else:
@@ -300,44 +302,73 @@ class PhaseDiagram:
                 self.p_i = (self.p_max + self.p_min) / 2
 
 
-    def loop_v2_dew(self, t):
-        self.main_loop_dp(t)
+    def dp_convergence_loop(self):
+        self.dp_process()
         
         while ((abs(1 - self.sum_y_dp) < math.pow(10, -3)) == False) and ((math.pow(self.Ykz_dp,2) < math.pow(10,-3)) == False):
-            self.main_loop_dp(t)
+            self.dp_process()
 
         self.p_dew = self.p_i
 
         return self.p_dew
 
-    def main_loop_phase_diagram(self):
-        for temp in self.temp_range:
-            p_b = self.loop_v2(temp)
-            p_dew = self.loop_v2_dew(temp)
-
-            print(f'Pb: {p_b}, Pdew: {p_dew}, Temp: {temp}')
-
-            #self.p_i = self.p_max / 2
 
 
 
 
 
-def calc_phase_diagram(p_max, t_min, t_max, t_step):
-    ...
+class PhaseDiagram:
+    
+    
+    def __init__(self, zi: Composition, p_max, t_min, t_max, t_step):
+        self.zi = zi.composition
+        self.p_max = p_max
+        self.t_min = t_min
+        self.t_max = t_max
+        self.t_step = t_step
+        
+        self.temp_arange = np.arange(self.t_min + 273.14, self.t_max + 273.14, self.t_step)
+
+
+        self.results = {}
+
+
+    def calc_phase_diagram(self):
+        
+        for temp in self.temp_arange:
+            cur_saturation_pressure = SaturationPressure(self.zi, self.p_max, temp)
+            self.results[temp] = [cur_saturation_pressure.sp_convergence_loop(), cur_saturation_pressure.dp_convergence_loop()]
+        
+        print(self.results)
 
 
 
+    def plot_phase_diagram(self):
+        x = []
+        y = []
 
+        # Заполняем списки
+        for key, values in self.results.items():
+            for value in values:
+                x.append(key)
+                y.append(value)
+
+        print(x)
+        print(y)
+        plt.scatter(x, y)
+        plt.show()
 
 
 
 
 if __name__ == '__main__':
     comosition = Composition({'C1': 0.6, 'nC4':0.4})
-    phase_diag = PhaseDiagram(comosition, 40, temp_min=60, temp_max= 66, temp_step= 5)
+    #phase_diag = SaturationPressure(comosition, 40, temp=70)
     # phase_diag.loop_v2(300) 
     # phase_diag.loop_v2_dew(300)
-    phase_diag.main_loop_phase_diagram()
+    phase_diag = PhaseDiagram(comosition, 40, 80, 81, 1)
+    phase_diag.calc_phase_diagram()
+    phase_diag.plot_phase_diagram()
+
 
 

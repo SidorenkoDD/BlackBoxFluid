@@ -322,7 +322,7 @@ class PhaseStability:
     
 
     ### Новый метод анализа стабильности 
-    def check_convergence(self, e = math.pow(10, -7)):
+    def check_convergence(self, e = math.pow(10, -5)):
     
 
         ri_v_to_sum = []
