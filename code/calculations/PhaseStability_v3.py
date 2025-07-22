@@ -448,7 +448,7 @@ class PhaseStability:
 
 
 if __name__ == '__main__':
-    phs = PhaseStability({'C1':0.6 , 'C6': 0.4}, 14.45, 0)
+    phs = PhaseStability({'C1':0.6 , 'C6': 0.4}, 10, 160)
 
     #phs.stability_loop()
     print(phs.convergence_trivial_solution)
