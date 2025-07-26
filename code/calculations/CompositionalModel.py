@@ -1,6 +1,6 @@
 from Composition import Composition
 from Conditions import Conditions
-from EOS_PR_v2 import EOS_PR
+
 from PhaseStability_v3 import PhaseStability
 from PhaseEquilibrium import PhaseEquilibrium
 from FluidProperties import FluidProperties
