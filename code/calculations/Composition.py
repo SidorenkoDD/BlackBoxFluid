@@ -1,4 +1,4 @@
-from PlusComponentProperties import PlusComponentProperties
+from PlusComponentProperties import PlusComponentCriticalPressure, PlusComponentAcentricFactor, PlusComponentCriticalTemperature
 
 class Composition:
     '''
@@ -31,7 +31,12 @@ class Composition:
         #return c6_plus_components
     
     def create_composition_db(self):
-        if len(self.c6_plus_components) == 0:
+        if len(self.c6_plus_components) != 0:
+            crit_temp = {}
+            crit_pres = {}
+            ac_f = {}
+            for component in self.c6_plus_components:
+                cur_component = PlusComponentCriticalTemperature()
             ...
 
 

@@ -128,7 +128,12 @@ class PlusComponentCriticalPressure:
 
     @property
     def Cavett(self):
-        ...
+        return 5
+
+
+
+
+
 
 class PlusComponentAcentricFactor:
     '''Класс для расчета ацентрического фактора + компонент
@@ -147,7 +152,11 @@ class PlusComponentAcentricFactor:
     
     @property
     def Edmister(self):
-        ...
+        return 5
+
+
+
+
 
 
 class PlusComponentProperties:
@@ -156,9 +165,11 @@ class PlusComponentProperties:
     * PlusComponentCriticalTemperature
     * PlusComponentCriticalPressure
     * PlusComponentAcentricFactor
+
+
     '''
 
-    def __init__(self, acentric_factor_correlation):
+    def __init__(self):
         try:
             with open('code/db/katz_firuzabadi.json', 'r') as f:
                 self.data = json.load(f)
@@ -171,7 +182,7 @@ class PlusComponentProperties:
 
         self.critical_temperature = PlusComponentCriticalTemperature()
         self.critical_pressure = PlusComponentCriticalPressure()
-        self.acentric_factor = PlusComponentAcentricFactor(acentric_factor_correlation)
+        self.acentric_factor = PlusComponentAcentricFactor()
 
         print(self.data)
 
