@@ -107,7 +107,11 @@ class AcentricFactorCorrelation:
     
     @staticmethod
     def edmister(p_c, t_c, Tb) -> float:
-        return 3/7 * (math.log(p_c/14.7)/((t_c/Tb)-1)) - 1
+
+        p_c = p_c * 145.038
+        t_c = t_c * 1.8
+
+        return (3/7) * (math.log10(p_c/14.7)/((t_c/Tb)-1)) - 1
 
 
 
@@ -142,8 +146,14 @@ class CriticalVolumeCorrelation:
 
 
 class ShiftParameterCorrelation:
-    ...
+    @staticmethod
+    def jhaveri_youngren(M):
+        a = {'parafin':{'a0':2.258, 'a1':0.1823},
+             'naften':{'a0':3.004, 'a1': 0.2324},
+             'aromatic': {'a0':2.516, 'a1':0.2008}}
 
+
+        return 1 - (a[''] / (math.pow(M, a[''])))
 
 
 
@@ -166,7 +176,7 @@ class PlusComponentProperties:
         }
 
         
-        with open(r'code\db\katz_firuzabadi.json') as f:
+        with open('code/db/katz_firuzabadi.json') as f:
              self.katz_firuzabadi = json.load(f)
 
         self.data = self.katz_firuzabadi[component]
@@ -215,7 +225,7 @@ class PlusComponentProperties:
 
 
         self.data['p_c'] = self.calculate_property('critical_pressure')
-        print(self.data['p_c'])
+
 
         self.data['t_c'] = self.calculate_property('critical_temperature')
 
@@ -223,7 +233,7 @@ class PlusComponentProperties:
 
         self.data['crit_vol'] = self.calculate_property('critical_volume')
 
-        print(self.data)
+
 
 
 
@@ -262,7 +272,7 @@ class PlusComponentProperties:
 # Пример использования
 if __name__ == '__main__':
 
-    calculator = PlusComponentProperties('C8')
+    calculator = PlusComponentProperties('C14')
     
     calculator.calculate_all_props_v2()
     
