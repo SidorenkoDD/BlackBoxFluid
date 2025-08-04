@@ -1,7 +1,7 @@
 from typing import Dict, Callable, Any
 import math
 
-class CriticalTemperatureCalculator:
+class CriticalTemperatureCorrelation:
     """Класс для расчета критической температуры, содержащий все корреляции"""
     
     @staticmethod
@@ -44,7 +44,7 @@ class CriticalTemperatureCalculator:
 
 
 
-class CriticalPressureCalculator:
+class CriticalPressureCorrelation:
     """Класс для расчета критического давления"""
     
     @staticmethod
@@ -62,8 +62,8 @@ class CriticalPressureCalculator:
 
 # Словарь для связи свойств с классами-калькуляторами
 PROPERTY_CALCULATORS = {
-    'critical_temperature': CriticalTemperatureCalculator,
-    'critical_pressure': CriticalPressureCalculator,
+    'critical_temperature': CriticalTemperatureCorrelation,
+    'critical_pressure': CriticalPressureCorrelation,
     # Другие свойства...
 }
 
