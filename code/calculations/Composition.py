@@ -1,4 +1,5 @@
 from PlusComponentProperties_v3 import PlusComponentProperties
+import math
 import json
 
 class Composition:
@@ -28,6 +29,9 @@ class Composition:
 
 
     def _validate_c6_plus_components(self):
+        '''Метод определяет, есть ли С6+ компоненты в составе.
+        Если есть, то рассчитывается и формируется единый словарь свойств для конкретного состава.
+        '''
 
         c6_plus_components = [int(item[1:]) for item in self.composition.keys() if int(item[1:]) > 6]
         self.c6_plus_components = c6_plus_components
@@ -35,31 +39,48 @@ class Composition:
     
     def _create_composition_db(self):
         with open(r'code/db/clear_components.json') as f:
-            composition_data = json.load(f)
+            self.composition_data = json.load(f)
+
 
         if len(self.c6_plus_components) > 0:
+
+
+
             for component in self.c6_plus_components:
                 cur_comp_properties = PlusComponentProperties('C'+str(component))
                 cur_comp_properties.calculate_all_props_v2()
 
-                composition_data['molar_mass']['C'+str(component)] = cur_comp_properties.data['M']
-                composition_data['critical_pressure']['C'+str(component)] = cur_comp_properties.data['p_c']
-                composition_data['critical_temperature']['C'+str(component)] = cur_comp_properties.data['t_c']
-                composition_data['acentric_factor']['C'+str(component)] = cur_comp_properties.data['acentric_factor']
+                self.composition_data['molar_mass']['C'+str(component)] = cur_comp_properties.data['M']
+                self.composition_data['critical_pressure']['C'+str(component)] = cur_comp_properties.data['p_c']
+                self.composition_data['critical_temperature']['C'+str(component)] = cur_comp_properties.data['t_c']
+                self.composition_data['acentric_factor']['C'+str(component)] = cur_comp_properties.data['acentric_factor']
+                self.composition_data['critical_volume']['C'+str(component)] = cur_comp_properties.data['crit_vol']
+                self.composition_data['shift_parametr']['C'+str(component)] = cur_comp_properties.data['Cpen']
 
 
-                print(cur_comp_properties)
 
-        print(composition_data)
+    def _chueh_prausnitz_bip(self, component_i, component_j, A = 0.18, B = 6):
+
+        v_ci = self.composition_data['critical_volume'][component_i]
+        v_cj = self.composition_data['critical_volume'][component_j]
+
+        return A * (1 - math.pow(((2 * math.pow(v_ci, 1/6) * math.pow(v_cj, 1/6))/(math.pow(v_ci, 1/3) + math.pow(v_cj, 1/3))), B))
 
 
+    def _calculate_bips(self):
+        if len(self.c6_plus_components) > 0:
+            for component in self.composition.keys():
+                
+                for plus_component in self.c6_plus_components:
+                    self.composition_data['bip'][component][plus_component] = self._chueh_prausnitz_bip(component_i=component, component_j= 'C' + str(plus_component))
 
 
 
 
 
 if __name__ == '__main__':
-    comp = Composition({'C1': 0.25, 'C2':0.2, 'C5': 0.4, 'C15': 0.15})
-
+    comp = Composition({'C1': 0.6, 'C15': 0.4})
+    comp._calculate_bips()
+    print(comp.composition_data['bip'])
     #print(comp.validate_c6_plus_components())
 

@@ -142,18 +142,90 @@ class CriticalVolumeCorrelation:
 
     @staticmethod
     def hall_yarborough(M, gamma):
-        return 0.025 * math.pow(M, 1.15) * math.pow(gamma, -0.7935)
+        return 0.025 * math.pow(M, 1.15) * math.pow(gamma, -0.7935) * 6.242796 * 0.01
+
+
+
+
+
+class KWatson:
+
+    @classmethod
+    def get_correlation(cls, method: str) -> Callable:
+        """Возвращает функцию корреляции по имени"""
+        if not hasattr(cls, method):
+            raise ValueError(f"Unknown correlation method: {method}")
+        return getattr(cls, method)
+
+
+    @classmethod
+    def get_required_params(cls, method: str) -> list:
+        """Возвращает список требуемых параметров для корреляции"""
+        params_map = {
+            'k_watson': ['Tb','gamma'],
+            'k_watson_approx': ['M', 'gamma']
+        }
+        return params_map.get(method, [])
+    
+
+    @staticmethod
+    def k_watson(Tb, gamma):
+        print(Tb)
+        return math.pow(Tb, 1/3) / gamma
+    
+    @staticmethod
+    def k_watson_approx(M, gamma):
+        return 4.5579 * math.pow(M, 0.15178) * math.pow(gamma, -0.84573)
+    
 
 
 class ShiftParameterCorrelation:
+    @classmethod
+    def get_correlation(cls, method: str) -> Callable:
+        """Возвращает функцию корреляции по имени"""
+        if not hasattr(cls, method):
+            raise ValueError(f"Unknown correlation method: {method}")
+        return getattr(cls, method)
+
+
+    @classmethod
+    def get_required_params(cls, method: str) -> list:
+        """Возвращает список требуемых параметров для корреляции"""
+        params_map = {
+            'jhaveri_youngren': ['M', 'Kw']
+        }
+        return params_map.get(method, [])
+    
+    
+    
     @staticmethod
-    def jhaveri_youngren(M):
-        a = {'parafin':{'a0':2.258, 'a1':0.1823},
-             'naften':{'a0':3.004, 'a1': 0.2324},
-             'aromatic': {'a0':2.516, 'a1':0.2008}}
+    def jhaveri_youngren(M, Kw):
+        
+        #aromatic
+        if 8.5 < Kw < 11:
+            a0 = 2.516
+            a1 = 0.2008
+
+        #naften
+        elif 11 < Kw < 12.5:
+            a0 = 3.004
+            a1 = 0.2324
+        
+        #parafin
+        elif 12.5 < Kw < 13.5:
+            a0 = 2.258
+            a1 = 0.1823
 
 
-        return 1 - (a[''] / (math.pow(M, a[''])))
+
+        return 1 - (a0 / (math.pow(M, a1)))
+
+
+
+
+
+
+
 
 
 
@@ -162,7 +234,9 @@ class PlusComponentProperties:
                  correlations_config: Dict[str, str] = {'critical_temperature': 'Kesler_Lee',
                                                         'critical_pressure' : 'rizari_daubert',
                                                         'acentric_factor': 'Edmister',
-                                                        'critical_volume': 'rizari_daubert'}):
+                                                        'critical_volume': 'hall_yarborough',
+                                                        'k_watson': 'k_watson',
+                                                        'shift_parameter': 'jhaveri_youngren'}):
         self.component = component
         #self.data = data
         self.correlations_config = correlations_config
@@ -172,7 +246,9 @@ class PlusComponentProperties:
         'critical_temperature': CriticalTemperatureCorrelation,
         'critical_pressure': CriticalPressureCorrelation,
         'acentric_factor': AcentricFactorCorrelation,
-        'critical_volume' : CriticalVolumeCorrelation
+        'critical_volume' : CriticalVolumeCorrelation,
+        'k_watson' : KWatson,
+        'shift_parameter': ShiftParameterCorrelation
         }
 
         
@@ -180,7 +256,7 @@ class PlusComponentProperties:
              self.katz_firuzabadi = json.load(f)
 
         self.data = self.katz_firuzabadi[component]
-        print(self.data)
+        
     
 
 
@@ -226,12 +302,21 @@ class PlusComponentProperties:
 
         self.data['p_c'] = self.calculate_property('critical_pressure')
 
-
         self.data['t_c'] = self.calculate_property('critical_temperature')
 
         self.data['acentric_factor'] = self.calculate_property('acentric_factor')
 
         self.data['crit_vol'] = self.calculate_property('critical_volume')
+
+        self.data['Kw'] = self.calculate_property('k_watson')
+
+        self.data['Cpen'] = self.calculate_property('shift_parameter')
+
+
+
+
+
+
 
 
 
@@ -272,7 +357,7 @@ class PlusComponentProperties:
 # Пример использования
 if __name__ == '__main__':
 
-    calculator = PlusComponentProperties('C14')
+    calculator = PlusComponentProperties('C7')
     
     calculator.calculate_all_props_v2()
     
