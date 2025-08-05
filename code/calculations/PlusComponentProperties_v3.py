@@ -170,7 +170,6 @@ class KWatson:
 
     @staticmethod
     def k_watson(Tb, gamma):
-        print(Tb)
         return math.pow(Tb, 1/3) / gamma
     
     @staticmethod
