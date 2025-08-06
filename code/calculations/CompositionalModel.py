@@ -31,10 +31,10 @@ class CompositionalResults:
 class CompositionalModel:
 
     def __init__(self, zi: dict, p, t):
-        composition = Composition(zi)
+        self.composition = Composition(zi)
         conditions = Conditions(p, t)
 
-        self.phase_stability = PhaseStability(composition.composition, conditions.p, conditions.t)
+        self.phase_stability = PhaseStability(self.composition, conditions.p, conditions.t)
 
         # Развилка по условию стабильности/нестабильности системы
         if self.phase_stability.stable == True:
@@ -46,18 +46,18 @@ class CompositionalModel:
 
             if (self.phase_stability.S_l > 1) and (self.phase_stability.S_v > 1):
                 if self.phase_stability.S_l > self.phase_stability.S_v:
-                    self.phase_equilibrium = PhaseEquilibrium(composition.composition, conditions.p,
+                    self.phase_equilibrium = PhaseEquilibrium(self.composition.composition, conditions.p,
                                                                conditions.t, self.phase_stability.k_values_liquid)
                 else:
-                    self.phase_equilibrium = PhaseEquilibrium(composition.composition, conditions.p,
+                    self.phase_equilibrium = PhaseEquilibrium(self.composition.composition, conditions.p,
                                                                conditions.t, self.phase_stability.k_values_vapour )
                     
             if (self.phase_stability.S_v > 1) and (self.phase_stability.S_l < 1):
-                self.phase_equilibrium = PhaseEquilibrium(composition.composition, conditions.p,
+                self.phase_equilibrium = PhaseEquilibrium(self.composition.composition, conditions.p,
                                                                conditions.t, self.phase_stability.k_values_vapour )
             
             if (self.phase_stability.S_v < 1) and (self.phase_stability.S_l > 1):
-                self.phase_equilibrium = PhaseEquilibrium(composition.composition, conditions.p,
+                self.phase_equilibrium = PhaseEquilibrium(self.composition.composition, conditions.p,
                                                                conditions.t, self.phase_stability.k_values_liquid)
                 
             self.phase_equilibrium.find_solve_loop()
@@ -80,10 +80,11 @@ class CompositionalModel:
 
 
 if __name__ == '__main__':
-    comp_model = CompositionalModel({'C1': 0.5, 'C3': 0.5}, 6, 50)
+    comp_model = CompositionalModel({'C1': 0.5, 'C3': 0.4, 'C11': 0.1}, 6, 50)
     print(comp_model.phase_stability.stable)
     print(comp_model.fluid_properties.liquid_density)
 
 
     
     print(comp_model.results)
+    print(comp_model.composition.show_composition_dataframes())

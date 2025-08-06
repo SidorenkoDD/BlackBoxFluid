@@ -142,7 +142,7 @@ class CriticalVolumeCorrelation:
 
     @staticmethod
     def hall_yarborough(M, gamma):
-        return 0.025 * math.pow(M, 1.15) * math.pow(gamma, -0.7935) * 6.242796 * 0.01
+        return 0.025 * math.pow(M, 1.15) * math.pow(gamma, -0.7935)
 
 
 

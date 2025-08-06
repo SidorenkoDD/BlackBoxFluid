@@ -28,7 +28,7 @@ class Composition:
 
     def _validate_composition_sum(self):
         sum_of_components = sum(self.composition.values())
-        if not 0.999 <= sum_of_components <=1:
+        if not 0.998 <= sum_of_components <=1.001:
             raise ValueError('Сумма компонент не равна 1')
 
 
@@ -84,8 +84,7 @@ class Composition:
             for plus_component in self.c6_plus_components:
                 comp_dict = {}
                 for component in self.composition.keys():
-                    comp_dict[component] = self._chueh_prausnitz_bip(component_i= component, component_j=plus_component)
-
+                    comp_dict[component] = round(self._chueh_prausnitz_bip(component_i= component, component_j=plus_component), 3)
                 
                 self.composition_data['bip'][plus_component] = comp_dict
 
@@ -121,10 +120,10 @@ class Composition:
 
     def show_composition_dataframes(self):
         composition_df = pd.DataFrame.from_dict(self.composition, orient= 'index').to_markdown()
-        main_data_df = pd.DataFrame.from_dict({k: comp.composition_data[k] for k in list(comp.composition_data.keys())[:-1]}).to_markdown()
+        main_data_df = pd.DataFrame.from_dict({k: self.composition_data[k] for k in list(self.composition_data.keys())[:-1]}).to_markdown()
 
 
-        bips_df = pd.DataFrame.from_dict(comp.composition_data['bip']).to_markdown()
+        bips_df = pd.DataFrame.from_dict(self.composition_data['bip']).to_markdown()
         
 
         print(composition_df)
