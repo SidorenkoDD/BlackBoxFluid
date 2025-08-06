@@ -24,6 +24,8 @@ class Composition:
         self._calculate_bips()
         self._prepare_composition_data()
 
+
+
     def _validate_composition_sum(self):
         sum_of_components = sum(self.composition.values())
         if not 0.999 <= sum_of_components <=1:
@@ -41,7 +43,7 @@ class Composition:
         
     
     def _create_composition_db(self):
-        with open(r'code/db/clear_components.json') as f:
+        with open(r'code/db/new_db.json') as f:
             self.composition_data = json.load(f)
 
 
@@ -133,6 +135,6 @@ class Composition:
 
 
 if __name__ == '__main__':
-    comp = Composition({'C1': 0.15, 'C2':0.15, 'C3': 0.1, 'C6': 0.1, 'C8':0.1, 'C9':0.1, 'C15': 0.1, 'C25': 0.1, 'C35':0.1})
+    comp = Composition({'C1': 0.15, 'C2':0.15, 'C3': 0.1, 'C6': 0.1, 'C8':0.1, 'C9':0.1, 'C10': 0.1, 'C11': 0.1, 'C12':0.1})
     comp.show_composition_dataframes()
 

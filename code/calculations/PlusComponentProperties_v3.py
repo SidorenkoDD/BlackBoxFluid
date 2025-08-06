@@ -29,9 +29,9 @@ class CriticalTemperatureCorrelation:
 
     @staticmethod
     def kesler_lee(gamma, Tb):
-        t_c = 341.7 + 811 * gamma + (0.4244 + 0.1174 * gamma)*Tb + ((0.4669 - 3.2623 * gamma)* math.pow(10,5)) /(Tb)
+        t_c_renkin = 341.7 + 811 * gamma + (0.4244 + 0.1174 * gamma)*Tb + ((0.4669 - 3.2623 * gamma)* math.pow(10,5)) /(Tb)
 
-        return t_c * 5/9
+        return t_c_renkin * 5/9
 
 
     @classmethod
@@ -251,10 +251,10 @@ class PlusComponentProperties:
         }
 
         
-        with open('code/db/katz_firuzabadi.json') as f:
+        with open('code/db/new_db.json') as f:
              self.katz_firuzabadi = json.load(f)
 
-        self.data = self.katz_firuzabadi[component]
+        self.data = {'M': self.katz_firuzabadi['molar_mass'][component], 'gamma': self.katz_firuzabadi['gamma'][component], 'Tb': self.katz_firuzabadi['Tb'][component]}
         
     
 
@@ -282,7 +282,7 @@ class PlusComponentProperties:
             if param == 'gamma_api' and 'gamma' in self.data.keys():
                 params[param] = 141.5/self.data['gamma'] - 131.5
             if param == 'Tb' and 'Tb' in self.data.keys():
-                params[param] = (self.data['Tb'] + 273.14) * 1.8
+                params[param] = self.data['Tb'] * 1.8
             # if param == 'p_c' and 'p_c' in self.data.keys():
             #     params[param] = self.data['p_c'] * 145.038
             # if param == 't_c' and 't_c' in self.data.keys():
@@ -359,4 +359,6 @@ if __name__ == '__main__':
     calculator = PlusComponentProperties('C7')
     
     calculator.calculate_all_props_v2()
+
+    print(calculator.data)
     
