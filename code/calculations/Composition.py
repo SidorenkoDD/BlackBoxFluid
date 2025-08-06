@@ -59,7 +59,7 @@ class Composition:
                 self.composition_data['critical_temperature'][component] = cur_comp_properties.data['t_c']
                 self.composition_data['acentric_factor'][component] = cur_comp_properties.data['acentric_factor']
                 self.composition_data['critical_volume'][component] = cur_comp_properties.data['crit_vol']
-                self.composition_data['shift_parametr'][component] = cur_comp_properties.data['Cpen']
+                self.composition_data['shift_parameter'][component] = cur_comp_properties.data['Cpen']
 
 
 
@@ -122,6 +122,8 @@ class Composition:
     def show_composition_dataframes(self):
         composition_df = pd.DataFrame.from_dict(self.composition, orient= 'index').to_markdown()
         main_data_df = pd.DataFrame.from_dict({k: comp.composition_data[k] for k in list(comp.composition_data.keys())[:-1]}).to_markdown()
+
+
         bips_df = pd.DataFrame.from_dict(comp.composition_data['bip']).to_markdown()
         
 
