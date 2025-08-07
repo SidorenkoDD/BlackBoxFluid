@@ -32,8 +32,8 @@ class CompositionalResults:
 
 class CompositionalModel:
 
-    def __init__(self, zi: dict, p, t):
-        self.composition = Composition(zi)
+    def __init__(self, zi: Composition, p, t):
+        self.composition = zi
         conditions = Conditions(p, t)
 
         self.phase_stability = PhaseStability(self.composition, conditions.p, conditions.t)
@@ -103,8 +103,8 @@ class CompositionalModel:
 
 
 if __name__ == '__main__':
-    comp_model = CompositionalModel({'C1': 0.3, 'C2': 0.15, 'C3':0.05,  'C6': 0.1, 'C16': 0.15, 'C25': 0.1, 'C30': 0.05, 'C34': 0.05, 'C41': 0.05}, 7
-                                    , 50)
+    comp = Composition({'C1': 0.25, 'C2': 0.05, 'C3':0.05,  'C6': 0.05, 'C7':0.05, 'C8': 0.05, 'C9': 0.05, 'C10': 0.05, 'C11': 0.025, 'C12': 0.025, 'C16': 0.05, 'C21':0.025,'C23':0.025, 'C25': 0.1, 'C30': 0.05, 'C34': 0.05, 'C41': 0.05})
+    comp_model = CompositionalModel(comp, 10, 160)
     #print(comp_model.phase_stability.stable)
     #print(comp_model.fluid_properties.liquid_density)
 

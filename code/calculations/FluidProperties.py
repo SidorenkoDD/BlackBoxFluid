@@ -1,6 +1,7 @@
-import pandas as pd
 from PhaseEquilibrium import PhaseEquilibrium 
 import json
+
+
 class FluidProperties:
     
     

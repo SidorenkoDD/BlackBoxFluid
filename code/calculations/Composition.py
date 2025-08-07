@@ -4,20 +4,32 @@ import json
 import pandas as pd
 
 class Composition:
-    '''
-        Класс для хранения и обработки состава флюида
+    '''Класс для хранения и обработки состава флюида
+        
+        Attributes:
+        ----------
+        * zi - словарь с компонентами и их мольной долей
+
 
         Methods:
         -------
         * validate_composition_sum - метод проверки суммы компонентов (граница по диапазону 0.999 <= sum_of_components <= 1)
-        * validate_c7_plus_components - метод определяет, есть ли С6+ компоненты в исходном составе. Если да, то нужно производить
-          дополнительный расчет свойств для тяжелых компонентов
+        * validate_c7_plus_components - метод определяет, есть ли С6+ компоненты в исходном составе. Если да, то производится дополнительный расчет свойств для тяжелых компонентов
         * create_composition_db - метод создает словарь, в котором будут храниться параметры компонент
     '''
 
-    def __init__(self,  zi:dict):
+    def __init__(self,  zi:dict, c6_plus_bips_correlation: dict, 
+                 c6_plus_correlations: dict = {'critical_temperature': 'Kesler_Lee',
+                                                        'critical_pressure' : 'rizari_daubert',
+                                                        'acentric_factor': 'Edmister',
+                                                        'critical_volume': 'hall_yarborough',
+                                                        'k_watson': 'k_watson',
+                                                        'shift_parameter': 'jhaveri_youngren'}, ):
 
         self.composition = zi
+        self.c6_plus_correlations = c6_plus_correlations
+        self.c6_plus_bips_correlation = c6_plus_bips_correlation
+
         self._validate_composition_sum()
         self._validate_c6_plus_components()
         self._create_composition_db()
@@ -51,7 +63,7 @@ class Composition:
 
 
             for component in self.c6_plus_components:
-                cur_comp_properties = PlusComponentProperties(component)
+                cur_comp_properties = PlusComponentProperties(component, correlations_config= self.c6_plus_correlations)
                 cur_comp_properties.calculate_all_props_v2()
 
                 self.composition_data['molar_mass'][component] = cur_comp_properties.data['M']

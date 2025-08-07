@@ -230,12 +230,7 @@ class ShiftParameterCorrelation:
 
 class PlusComponentProperties:
     def __init__(self, component: str,  
-                 correlations_config: Dict[str, str] = {'critical_temperature': 'Kesler_Lee',
-                                                        'critical_pressure' : 'rizari_daubert',
-                                                        'acentric_factor': 'Edmister',
-                                                        'critical_volume': 'hall_yarborough',
-                                                        'k_watson': 'k_watson',
-                                                        'shift_parameter': 'jhaveri_youngren'}):
+                 correlations_config: Dict[str, str] ):
         self.component = component
         #self.data = data
         self.correlations_config = correlations_config
