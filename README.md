@@ -1,4 +1,4 @@
-# PVT Compositional modeling on Python #
+# Python PVT сompositional modeling  #
 
 Модуль для композиционного моделирования PVT-свойств флюида
 
@@ -48,6 +48,7 @@
 
 #### BIPS ####
 * **Chueh-Prausnitz**
+
 
 
 
