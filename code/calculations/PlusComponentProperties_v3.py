@@ -14,8 +14,8 @@ class CriticalTemperatureCorrelation:
 
 
     @staticmethod
-    def nokey(gamma: float, t_b: float) -> float:
-        return 19.07871 * t_b**0.58848 * gamma**0.2985 * 5/9
+    def nokey(gamma: float, Tb: float) -> float:
+        return 19.07871 * Tb**0.58848 * gamma**0.2985 * 5/9
 
 
     @staticmethod
