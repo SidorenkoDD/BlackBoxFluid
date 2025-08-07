@@ -71,6 +71,10 @@ class Composition:
         return A * (1 - math.pow(((2 * math.pow(v_ci, 1/6) * math.pow(v_cj, 1/6))/(math.pow(v_ci, 1/3) + math.pow(v_cj, 1/3))), B))
 
 
+    def _make_all_bips_zero_for_C6_plus(self):
+        return 0
+    
+
 
     def  _calculate_bips(self):
         if len(self.c6_plus_components) > 0:
@@ -78,15 +82,17 @@ class Composition:
             # Этот цикл добавляет в уже существующие словари тяжелые компоненты
             for component in [x for x in self.composition.keys() if x not in self.c6_plus_components]:
                 for plus_component in self.c6_plus_components:
-                    self.composition_data['bip'][component][plus_component] = self._chueh_prausnitz_bip(component_i= component, component_j=plus_component)
+                    self.composition_data['bip'][component][plus_component] = self._make_all_bips_zero_for_C6_plus()
 
             # Этот цикл создает новые словари для тяжелых компонент
             for plus_component in self.c6_plus_components:
                 comp_dict = {}
                 for component in self.composition.keys():
-                    comp_dict[component] = round(self._chueh_prausnitz_bip(component_i= component, component_j=plus_component), 3)
+                    comp_dict[component] = round(self._make_all_bips_zero_for_C6_plus(), 3)
                 
                 self.composition_data['bip'][plus_component] = comp_dict
+
+
 
 
     def _prepare_composition_data(self):
@@ -136,6 +142,6 @@ class Composition:
 
 
 if __name__ == '__main__':
-    comp = Composition({'C1': 0.15, 'C2':0.15, 'C3': 0.1, 'C6': 0.1, 'C8':0.1, 'C9':0.1, 'C10': 0.1, 'C11': 0.1, 'C12':0.1})
+    comp = Composition({'C1': 0.15, 'C2':0.15, 'C3': 0.1, 'C6': 0.1, 'C8':0.1, 'C9':0.1, 'C10': 0.1, 'C11': 0.1, 'C16':0.1})
     comp.show_composition_dataframes()
 

@@ -411,9 +411,9 @@ class EOS_PR:
     
 
 if __name__ == '__main__':
-    comp = Composition({'C1': 0.6, 'C6': 0.1, 'C9': 0.3})
+    comp = Composition({'C1': 0.5, 'C6': 0.4, 'C25': 0.1})
 
-    eos = EOS_PR(comp, 15, 50)
+    eos = EOS_PR(comp, 5, 50)
     print(f' Z: {eos.choosen_eos_root}')
     print(f'fug_by_roots: {eos.fugacity_by_roots}')
     print(f' Е Гиббса: {eos.normalized_gibbs_energy}')

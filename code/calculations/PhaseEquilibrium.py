@@ -70,7 +70,7 @@ class PhaseEquilibrium:
     def define_yi_v(self):
         yi_v = {}
         for component in self.zi.keys():
-            yi_v[component] = round(self.zi[component] * self.k_values[component] / ((self.fv * (self.k_values[component] - 1) + 1)), 4)
+            yi_v[component] = self.zi[component] * self.k_values[component] / ((self.fv * (self.k_values[component] - 1) + 1))
         
 
         return yi_v
@@ -80,7 +80,7 @@ class PhaseEquilibrium:
     def define_xi_l(self):
         xi_l = {}
         for component in self.zi.keys():
-            xi_l[component] = round(self.zi[component] / ((self.fv * (self.k_values[component] - 1)) + 1), 4)
+            xi_l[component] = self.zi[component] / ((self.fv * (self.k_values[component] - 1)) + 1)
         
 
         return xi_l
@@ -94,7 +94,7 @@ class PhaseEquilibrium:
 
 
     # Метод проверки сходимости
-    def check_convergence_ri(self, e = math.pow(10,-3)):
+    def check_convergence_ri(self, e = math.pow(10,-9)):
             
         ri_massive = []
         for ri in list(self.ri.values()):

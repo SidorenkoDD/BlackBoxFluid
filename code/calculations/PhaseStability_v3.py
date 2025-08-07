@@ -448,8 +448,8 @@ class PhaseStability:
 
 
 if __name__ == '__main__':
-    comp = Composition({'C1':0.6 , 'C6': 0.3, 'C9': 0.1})
-    phs = PhaseStability(comp, 10, 160)
+    comp = Composition({'C1':0.5 , 'C6': 0.1, 'C14': 0.4})
+    phs = PhaseStability(comp, 7, 70)
 
     #phs.stability_loop()
     print(phs.convergence_trivial_solution)

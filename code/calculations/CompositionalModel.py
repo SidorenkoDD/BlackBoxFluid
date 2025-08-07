@@ -1,3 +1,5 @@
+import pandas as pd
+
 from Composition import Composition
 from Conditions import Conditions
 
@@ -77,14 +79,39 @@ class CompositionalModel:
                                                 self.fluid_properties.vapour_density, self.fluid_properties.liquid_density)
 
 
+    def show_results(self):
+        
+        yi_vapour_df = pd.DataFrame.from_dict(self.results.yi_vapour, orient= 'index')
+        xi_liquid_df = pd.DataFrame.from_dict(self.results.xi_liquid, orient= 'index')
+        ki = pd.DataFrame.from_dict(self.results.Ki, orient= 'index')
+        flash_results = pd.DataFrame({'Stable': self.results.stable, 
+                                      'Z':[self.results.z_vapour, self.results.z_liquid],
+                                        'MW': [self.results.MW_liquid, self.results.MW_liquid], 
+                                    'Dens': [self.results.density_vapour,  self.results.density_liquid]})
+        print('Gas composition')
+        print(yi_vapour_df.to_markdown())
+        print('=====')
+        print('Liquid composition')
+        print(xi_liquid_df.to_markdown())
+        print('=====')
+        print('Flash results')
+        print(flash_results.to_markdown())
+        print('=====')
+        print('Ki')
+        print(ki.to_markdown())
+        print('=====')
 
 
 if __name__ == '__main__':
-    comp_model = CompositionalModel({'C1': 0.5, 'C6': 0.5}, 5, 50)
-    print(comp_model.phase_stability.stable)
-    print(comp_model.fluid_properties.liquid_density)
+    comp_model = CompositionalModel({'C1': 0.3, 'C2': 0.15, 'C3':0.05,  'C6': 0.1, 'C16': 0.15, 'C25': 0.1, 'C30': 0.05, 'C34': 0.05, 'C41': 0.05}, 7
+                                    , 50)
+    #print(comp_model.phase_stability.stable)
+    #print(comp_model.fluid_properties.liquid_density)
 
 
+
+    comp_model.composition.show_composition_dataframes()
+    print('==================')
+    print('FLASH RESULTS')
+    comp_model.show_results()
     
-    print(comp_model.results)
-    print(comp_model.composition.show_composition_dataframes())
