@@ -48,18 +48,18 @@ class CompositionalModel:
 
             if (self.phase_stability.S_l > 1) and (self.phase_stability.S_v > 1):
                 if self.phase_stability.S_l > self.phase_stability.S_v:
-                    self.phase_equilibrium = PhaseEquilibrium(self.composition.composition, conditions.p,
+                    self.phase_equilibrium = PhaseEquilibrium(self.composition, conditions.p,
                                                                conditions.t, self.phase_stability.k_values_liquid)
                 else:
-                    self.phase_equilibrium = PhaseEquilibrium(self.composition.composition, conditions.p,
+                    self.phase_equilibrium = PhaseEquilibrium(self.composition, conditions.p,
                                                                conditions.t, self.phase_stability.k_values_vapour )
                     
             if (self.phase_stability.S_v > 1) and (self.phase_stability.S_l < 1):
-                self.phase_equilibrium = PhaseEquilibrium(self.composition.composition, conditions.p,
+                self.phase_equilibrium = PhaseEquilibrium(self.composition, conditions.p,
                                                                conditions.t, self.phase_stability.k_values_vapour )
             
             if (self.phase_stability.S_v < 1) and (self.phase_stability.S_l > 1):
-                self.phase_equilibrium = PhaseEquilibrium(self.composition.composition, conditions.p,
+                self.phase_equilibrium = PhaseEquilibrium(self.composition, conditions.p,
                                                                conditions.t, self.phase_stability.k_values_liquid)
                 
             self.phase_equilibrium.find_solve_loop()
@@ -103,9 +103,19 @@ class CompositionalModel:
 
 
 if __name__ == '__main__':
-    comp = Composition({'C1': 0.25, 'C2': 0.05, 'C3':0.05,  'C6': 0.05, 'C7':0.05, 'C8': 0.05, 'C9': 0.05, 'C10': 0.05, 'C11': 0.025, 'C12': 0.025, 'C16': 0.05, 'C21':0.025,'C23':0.025, 'C25': 0.1, 'C30': 0.05, 'C34': 0.05, 'C41': 0.05})
-    comp_model = CompositionalModel(comp, 10, 160)
-    #print(comp_model.phase_stability.stable)
+
+
+    comp = Composition({'C1': 0.25, 'C2': 0.25, 'C3':0.15, 'C6':0.05, 'C7': 0.05, 'C9':0.05, 'C36': 0.2},
+                       c6_plus_bips_correlation= None,
+                       c6_plus_correlations = {'critical_temperature': 'kesler_lee',
+                                                        'critical_pressure' : 'rizari_daubert',
+                                                        'acentric_factor': 'Edmister',
+                                                        'critical_volume': 'hall_yarborough',
+                                                        'k_watson': 'k_watson',
+                                                        'shift_parameter': 'jhaveri_youngren'}
+                       )
+    comp_model = CompositionalModel(comp, 20, 120)
+
     #print(comp_model.fluid_properties.liquid_density)
 
 

@@ -9,7 +9,7 @@ from logger import LogManager
 logger = LogManager(__name__)
 
 class EOS_PR:
-    def __init__(self, composition:Composition, p: float, t: float):
+    def __init__(self, zi, component_properties, p: float, t: float):
 
         '''
         Класс для решения УРС Пенга-Робинсона
@@ -24,9 +24,8 @@ class EOS_PR:
         '''
         # Читаем .yaml файл с данными по компонентам
         try:
-            self.composition = composition
-            self.zi = self.composition.composition
-            self.db = self.composition.composition_data
+            self.zi = zi
+            self.db = component_properties
             logger.log.debug('Данные компонент из Composition прочитаны успешно') 
 
         except Exception as e:
@@ -44,22 +43,6 @@ class EOS_PR:
         else:
             logger.log.debug('Сумма компонентов равна 1')
         
-        # Инициализация термобарических условий в зависимости от типа запуска модуля
-        # if __name__ == '__main__':
-        # # Давление для расчета
-        #     self.p = p * math.pow(10,5)
-        # # температура для расчета
-        #     self.t = t + 273.14
-
-        # else:
-        #     self.p = p
-        #     self.t = t
-
-        # if __name__ == '__main__':
-        #     self.p = p * math.pow(10,5)
-        #     self.t = t + 273.14
-
-        # else:
 
         if __name__ == '__main__':
             self.p = p
