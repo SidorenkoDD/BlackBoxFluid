@@ -1,4 +1,4 @@
-import yaml
+from Composition import Composition
 import math as math
 import cmath
 import sympy as smp
@@ -9,7 +9,7 @@ from logger import LogManager
 logger = LogManager(__name__)
 
 class EOS_PR:
-    def __init__(self, zi:dict, p: float, t: float):
+    def __init__(self, composition:Composition, p: float, t: float):
 
         '''
         Класс для решения УРС Пенга-Робинсона
@@ -24,18 +24,16 @@ class EOS_PR:
         '''
         # Читаем .yaml файл с данными по компонентам
         try:
-            
-            with open('code/calculations/db.yaml', 'r') as db_file:
-                self.db = yaml.safe_load(db_file)
-            logger.log.debug('Данные компонент из .yaml прочитаны успешно') 
+            self.composition = composition
+            self.zi = self.composition.composition
+            self.db = self.composition.composition_data
+            logger.log.debug('Данные компонент из Composition прочитаны успешно') 
 
         except Exception as e:
             logger.log.fatal('Данные компонент не найдены!', e)
 
 
-        # Компонентный состав
-
-        self.zi = zi        
+        # Компонентный состав       
         if 0 in list(self.zi.values()):
             z = {k: v for k, v in self.zi.items() if v != 0}
             self.zi = z
@@ -245,7 +243,7 @@ class EOS_PR:
     def calc_shift_parametr(self):
         c_to_sum = []
         for component in self.zi.keys():
-            c_to_sum.append(self.zi[component] * self.db['shift_parametr'][component] * self.all_params_b[component])
+            c_to_sum.append(self.zi[component] * self.db['shift_parameter'][component] * self.all_params_b[component])
 
         return sum(c_to_sum)
 
@@ -413,8 +411,9 @@ class EOS_PR:
     
 
 if __name__ == '__main__':
+    comp = Composition({'C1': 0.5, 'C6': 0.4, 'C25': 0.1})
 
-    eos = EOS_PR({'C1': 0.6, 'C6': 0.4}, 15, 50)
+    eos = EOS_PR(comp, 5, 50)
     print(f' Z: {eos.choosen_eos_root}')
     print(f'fug_by_roots: {eos.fugacity_by_roots}')
     print(f' Е Гиббса: {eos.normalized_gibbs_energy}')

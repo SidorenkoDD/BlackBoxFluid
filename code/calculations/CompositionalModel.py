@@ -1,3 +1,5 @@
+import pandas as pd
+
 from Composition import Composition
 from Conditions import Conditions
 
@@ -30,11 +32,11 @@ class CompositionalResults:
 
 class CompositionalModel:
 
-    def __init__(self, zi: dict, p, t):
-        composition = Composition(zi)
+    def __init__(self, zi: Composition, p, t):
+        self.composition = zi
         conditions = Conditions(p, t)
 
-        self.phase_stability = PhaseStability(composition.composition, conditions.p, conditions.t)
+        self.phase_stability = PhaseStability(self.composition, conditions.p, conditions.t)
 
         # Развилка по условию стабильности/нестабильности системы
         if self.phase_stability.stable == True:
@@ -46,18 +48,18 @@ class CompositionalModel:
 
             if (self.phase_stability.S_l > 1) and (self.phase_stability.S_v > 1):
                 if self.phase_stability.S_l > self.phase_stability.S_v:
-                    self.phase_equilibrium = PhaseEquilibrium(composition.composition, conditions.p,
+                    self.phase_equilibrium = PhaseEquilibrium(self.composition.composition, conditions.p,
                                                                conditions.t, self.phase_stability.k_values_liquid)
                 else:
-                    self.phase_equilibrium = PhaseEquilibrium(composition.composition, conditions.p,
+                    self.phase_equilibrium = PhaseEquilibrium(self.composition.composition, conditions.p,
                                                                conditions.t, self.phase_stability.k_values_vapour )
                     
             if (self.phase_stability.S_v > 1) and (self.phase_stability.S_l < 1):
-                self.phase_equilibrium = PhaseEquilibrium(composition.composition, conditions.p,
+                self.phase_equilibrium = PhaseEquilibrium(self.composition.composition, conditions.p,
                                                                conditions.t, self.phase_stability.k_values_vapour )
             
             if (self.phase_stability.S_v < 1) and (self.phase_stability.S_l > 1):
-                self.phase_equilibrium = PhaseEquilibrium(composition.composition, conditions.p,
+                self.phase_equilibrium = PhaseEquilibrium(self.composition.composition, conditions.p,
                                                                conditions.t, self.phase_stability.k_values_liquid)
                 
             self.phase_equilibrium.find_solve_loop()
@@ -77,13 +79,39 @@ class CompositionalModel:
                                                 self.fluid_properties.vapour_density, self.fluid_properties.liquid_density)
 
 
+    def show_results(self):
+        
+        yi_vapour_df = pd.DataFrame.from_dict(self.results.yi_vapour, orient= 'index')
+        xi_liquid_df = pd.DataFrame.from_dict(self.results.xi_liquid, orient= 'index')
+        ki = pd.DataFrame.from_dict(self.results.Ki, orient= 'index')
+        flash_results = pd.DataFrame({'Stable': self.results.stable, 
+                                      'Z':[self.results.z_vapour, self.results.z_liquid],
+                                        'MW': [self.results.MW_liquid, self.results.MW_liquid], 
+                                    'Dens': [self.results.density_vapour,  self.results.density_liquid]})
+        print('Gas composition')
+        print(yi_vapour_df.to_markdown())
+        print('=====')
+        print('Liquid composition')
+        print(xi_liquid_df.to_markdown())
+        print('=====')
+        print('Flash results')
+        print(flash_results.to_markdown())
+        print('=====')
+        print('Ki')
+        print(ki.to_markdown())
+        print('=====')
 
 
 if __name__ == '__main__':
-    comp_model = CompositionalModel({'C1': 0.5, 'C3': 0.5}, 6, 50)
-    print(comp_model.phase_stability.stable)
-    print(comp_model.fluid_properties.liquid_density)
+    comp = Composition({'C1': 0.25, 'C2': 0.05, 'C3':0.05,  'C6': 0.05, 'C7':0.05, 'C8': 0.05, 'C9': 0.05, 'C10': 0.05, 'C11': 0.025, 'C12': 0.025, 'C16': 0.05, 'C21':0.025,'C23':0.025, 'C25': 0.1, 'C30': 0.05, 'C34': 0.05, 'C41': 0.05})
+    comp_model = CompositionalModel(comp, 10, 160)
+    #print(comp_model.phase_stability.stable)
+    #print(comp_model.fluid_properties.liquid_density)
 
 
+
+    comp_model.composition.show_composition_dataframes()
+    print('==================')
+    print('FLASH RESULTS')
+    comp_model.show_results()
     
-    print(comp_model.results)

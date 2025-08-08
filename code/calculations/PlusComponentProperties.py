@@ -1,25 +1,6 @@
 import json
 import math as math
 
-class PlusComponentAcentricFactor:
-    ''' Класс для расчета ацентрического фактора +компонент
-
-    В классе реализованы различные методы для расчета ацентрического фактора.
-
-    Корреляции
-    ----------
-    * Kesler-Lee
-    * 
-
-    
-    '''
-    def __init__(self, method):
-        pass
-
-    @property
-    def Kesler_Lee(self):
-        return 5
-    
 
 class PlusComponentCriticalTemperature:
     '''Класс для расчета критической температуры + компонент
@@ -41,8 +22,9 @@ class PlusComponentCriticalTemperature:
     * Mogoulas - Tassios - не реализовано
     '''
 
-    def __init__(self):
-        pass
+    def __init__(self, method, data):
+        self.method = method
+        self.data = data
 
     @property
     def Roess(self, gamma, t_bf):
@@ -107,10 +89,6 @@ class PlusComponentCriticalTemperature:
         ...
 
 
-
-
-
-
 class PlusComponentCriticalPressure:
     '''Класс для расчета критической температуры + компонент
 
@@ -122,13 +100,15 @@ class PlusComponentCriticalPressure:
     * Kesler-Lee - не реализовано
     '''
 
-    def __init__(self):
-        pass
+    def __init__(self, method, data):
+        self.method = method
+        self.data = data
     
 
     @property
     def Cavett(self):
-        ...
+        return 5
+
 
 class PlusComponentAcentricFactor:
     '''Класс для расчета ацентрического фактора + компонент
@@ -142,12 +122,25 @@ class PlusComponentAcentricFactor:
     * Mogoulas-Tassios - не реализовано
     * Riazi-Al-Sahhaf - не реализовано
     '''
-    def __init__(self):
-        pass
+    def __init__(self, method, data):
+        self.method = method
+        self.data = data
     
     @property
     def Edmister(self):
-        ...
+        return 5
+
+
+class PlusComponentShifParametr:
+    def __init__(self):
+        pass
+
+
+class PlusComponentCriticalVolume:
+    def __init__(self):
+        pass
+
+
 
 
 class PlusComponentProperties:
@@ -158,28 +151,48 @@ class PlusComponentProperties:
     * PlusComponentAcentricFactor
     '''
 
-    def __init__(self, acentric_factor_correlation):
+
+    def __init__(self, component, 
+                 acentric_factor_correlation = 'Kesler-Lee',
+                 critical_pressure_correlation = 'Kesler-Lee',
+                 critical_temperature_correlation = 'Kesler-Lee',
+                 critical_volume_correlation = 'Rizari-Daubert',
+                 shift_parameter_correlation = 'Chew-Parusnitz'):
+
+        self.component = component
+
+        self.acentric_factor_correlation = acentric_factor_correlation
+        self.critical_pressure_correlation = critical_pressure_correlation
+        self.critical_temperature_correlation = critical_temperature_correlation
+        self.critical_volume_correlation = critical_volume_correlation
+        self.shift_parameter_correlation = shift_parameter_correlation
+
+        
         try:
             with open('code/db/katz_firuzabadi.json', 'r') as f:
                 self.data = json.load(f)
-                print(self.data)
+
         except FileNotFoundError:
             print("Файл не найден")
         except json.JSONDecodeError:
             print("Ошибка в формате JSON")
+        
+        self.component_data = self.data[self.component]
+
+        self.critical_temperature = PlusComponentCriticalTemperature(method= self.critical_temperature_correlation, data=self.component_data)
+        self.critical_pressure = PlusComponentCriticalPressure(method= self.critical_pressure_correlation, data=self.component_data)
+        self.acentric_factor = PlusComponentAcentricFactor(method= self.acentric_factor_correlation, data=self.component_data)
 
 
-        self.critical_temperature = PlusComponentCriticalTemperature()
-        self.critical_pressure = PlusComponentCriticalPressure()
-        self.acentric_factor = PlusComponentAcentricFactor(acentric_factor_correlation)
-
-        print(self.data)
+        print(self.component_data)
 
 
 
+    def calculate_properties(self):
+        ...
 
 
 
 if __name__ == '__main__':
-    plus_comp_properties = PlusComponentProperties("Kesler_Lee")
-    plus_comp_properties.critical_temperature
+    plus_comp_properties = PlusComponentProperties('C8')
+    #print(plus_comp_properties.acentric_factor.Edmister)

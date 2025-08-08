@@ -1,13 +1,14 @@
-import pandas as pd
 from PhaseEquilibrium import PhaseEquilibrium 
-import yaml
+import json
+
+
 class FluidProperties:
     
     
     def __init__(self, p, t, equil_obj: PhaseEquilibrium):
         
-        with open('code/calculations/db.yaml', 'r') as db_file:
-            self.db = yaml.safe_load(db_file)
+        with open('code/db/new_db.json', 'r') as db_file:
+            self.db = json.load(db_file)
         
         
         self.equil_obj = equil_obj

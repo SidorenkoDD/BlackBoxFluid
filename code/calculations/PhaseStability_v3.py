@@ -2,16 +2,16 @@ import yaml
 import math
 from logger import LogManager
 from EOS_PR_v2 import EOS_PR
-
+from Composition import Composition
 logger = LogManager(__name__)
 
 
 class PhaseStability:
 
-    def __init__(self, zi: dict, p: float, t: float):
-        
+    def __init__(self, composition: Composition, p: float, t: float):
+        self.composition = composition
         # инициализируем состав
-        self.zi = zi
+        self.zi = self.composition.composition
         
         # # инициализируем термобарику
         if __name__ == '__main__':
@@ -29,9 +29,9 @@ class PhaseStability:
 
         # Подключение к yaml-файлику
         try:
-            with open('code/calculations/db.yaml', 'r') as db_file:
-                self.db = yaml.safe_load(db_file)
-            logger.log.debug('Данные компонент из .yaml прочитаны успешно') 
+
+            self.db = self.composition.composition_data
+            logger.log.debug('Данные компонент из Composition прочитаны успешно') 
 
         except Exception as e:
             logger.log.fatal('Данные компонент не найдены!', e)
@@ -121,7 +121,7 @@ class PhaseStability:
 
         # Решение УРС для газовой фазы
         try:
-            self.vapour_eos = self.calc_eos_for_vapour(y_i_v= self.yi_v)
+            self.vapour_eos = self.calc_eos_for_vapour(y_i_v= Composition(self.yi_v))
             logger.log.debug('УРС для газовой фазы решено')
         except Exception as e:
             logger.log.error('УРС для газовой фазы не решено',e)
@@ -129,7 +129,7 @@ class PhaseStability:
 
         # Решение УРС для жидкой фазы
         try:
-            self.liquid_eos = self.calc_eos_for_liquid(x_i_l= self.xi_l)
+            self.liquid_eos = self.calc_eos_for_liquid(x_i_l= Composition(self.xi_l))
             logger.log.debug('УРС для жидкой фазы решено')
         except Exception as e:
             logger.log.error('УРС для жидкой фазы не решено',e)
@@ -182,7 +182,7 @@ class PhaseStability:
 
     # Расчет начального УРС
     def calc_initial_eos(self):
-        initial_eos = EOS_PR(self.zi, self.p, self.t)
+        initial_eos = EOS_PR(Composition(self.zi), self.p, self.t)
         return initial_eos
 
 
@@ -268,14 +268,14 @@ class PhaseStability:
 
     # Решаем УРС для газовой фазы
     def calc_eos_for_vapour(self, y_i_v):
-        eos_for_vapour = EOS_PR(zi = y_i_v, p = self.p, t = self.t)
+        eos_for_vapour = EOS_PR(composition=  y_i_v, p = self.p, t = self.t)
         
         return eos_for_vapour
 
 
     # Решаем УРС для жидкой фазы
     def calc_eos_for_liquid(self, x_i_l):
-        eos_for_liquid = EOS_PR(zi= x_i_l, p = self.p, t = self.t)
+        eos_for_liquid = EOS_PR(composition=x_i_l, p = self.p, t = self.t)
 
         return eos_for_liquid
     
@@ -322,7 +322,7 @@ class PhaseStability:
     
 
     ### Новый метод анализа стабильности 
-    def check_convergence(self, e = math.pow(10, -5)):
+    def check_convergence(self, e = math.pow(10, -7)):
     
 
         ri_v_to_sum = []
@@ -395,8 +395,8 @@ class PhaseStability:
             self.yi_v = self.normalize_mole_fractions_vapour(self.Yi_v, self.S_v)
             self.xi_l = self.normalize_mole_fractions_liquid(self.Xi_l, self.S_l)
 
-            self.vapour_eos = self.calc_eos_for_vapour(self.yi_v)
-            self.liquid_eos = self.calc_eos_for_vapour(self.xi_l)
+            self.vapour_eos = self.calc_eos_for_vapour(Composition(self.yi_v))
+            self.liquid_eos = self.calc_eos_for_vapour(Composition(self.xi_l))
 
 
             self.ri_v = self.calc_ri_vapour(self.vapour_eos)
@@ -448,7 +448,8 @@ class PhaseStability:
 
 
 if __name__ == '__main__':
-    phs = PhaseStability({'C1':0.6 , 'C6': 0.4}, 10, 160)
+    comp = Composition({'C1':0.5 , 'C6': 0.1, 'C14': 0.4})
+    phs = PhaseStability(comp, 7, 70)
 
     #phs.stability_loop()
     print(phs.convergence_trivial_solution)
