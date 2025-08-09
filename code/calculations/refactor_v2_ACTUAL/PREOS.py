@@ -271,7 +271,7 @@ if __name__ == '__main__':
                                                         'shift_parameter': 'jhaveri_youngren'})
 
     eos = PREOS(comp.composition,comp.composition_data, 5, 50)
-    eos.return_eos_root_and_fugacities()
+    eos.calc_eos()
     print(f' Z: {eos.choosen_eos_root}')
     print(f'fug_by_roots: {eos.fugacity_by_roots}')
     print(f' Е Гиббса: {eos.normalized_gibbs_energy}')

@@ -2,6 +2,7 @@
 
 from Composition import Composition
 from FlashFactory import FlashFactory
+from Flash import FlashFasade
 from Conditions import Conditions
 
 
@@ -11,15 +12,13 @@ class CompositionalModel:
         self.composition = zi
         self.eos = eos
         self.flash_name = flash
-        #self.flash = FlashFactory().create_flash(flash_name=flash)
-        # self.flash = flash.FlashFasade(self.composition, self.eos)
+        self.flash = FlashFasade(self.composition, self.eos)
+        
 
-    # def create_flash(self):
-    #     self.flash = flash.FlashFasade(self.composition, self.eos)
-        
     def calculate_flash(self,conditions):
-        self.flash = FlashFactory().create_flash(flash_name=self.flash_name).calculate_flash(conditions=conditions)
+        self.flash.calculate_flash(conditions=conditions)
         
+
 
 if __name__ == '__main__':
 
@@ -37,11 +36,14 @@ if __name__ == '__main__':
 
 
 
-    comp_model = CompositionalModel(comp)
+    comp_model = CompositionalModel(comp, eos = 'SRKEOS')
 
     conditions = Conditions(6, 50)
 
-    comp_model.calculate_flash(conditions=conditions)
+    
+
+    flash_2_phase = comp_model.flash.TwoPhaseFlash.calculate_flash(conditions)
+    flash_2_phase.show_results()
 
     
 

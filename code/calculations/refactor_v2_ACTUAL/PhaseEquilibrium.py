@@ -14,6 +14,9 @@ class PhaseEquilibrium:
         self.db = composition.composition_data
         self.eos = EOSFactory().create_eos(eos)
 
+        self.p = p
+        self.t = t
+
 
         self.k_values = k_values
 
@@ -138,8 +141,9 @@ class PhaseEquilibrium:
         # Создаем объекты УРС для решения газовой и жидкой фаз
 
         self.eos_vapour = self.eos(zi= self.yi_v, components_properties= self.db, p = self.p, t = self.t)
+        self.eos_vapour.calc_eos()
         self.eos_liquid = self.eos(zi = self.xi_l, components_properties= self.db, p = self.p, t = self.t)
-
+        self.eos_liquid.calc_eos()
         # Расчет Ri
         self.ri = self.calc_Ri(self.eos_vapour, self.eos_liquid)
 
@@ -158,7 +162,9 @@ class PhaseEquilibrium:
             self.xi_l = self.define_xi_l()
 
             self.eos_vapour = self.eos(zi= self.yi_v, components_properties= self.db, p = self.p, t = self.t)
+            self.eos_vapour.calc_eos()
             self.eos_liquid = self.eos(zi= self.xi_l, components_properties= self.db, p = self.p, t = self.t)
+            self.eos_liquid.calc_eos()
 
             self.ri = self.calc_Ri(self.eos_vapour, self.eos_liquid)
 

@@ -71,6 +71,7 @@ class TwoPhaseFlash(Flash):
         self._conditions = conditions
 
         self.phase_stability = TwoPhaseStabilityTest(self.composition, self._conditions.p, self._conditions.t, self.eos)
+        self.phase_stability.calculate_phase_stability()
 
         # Развилка по условию стабильности/нестабильности системы
         if self.phase_stability.stable == True:
@@ -84,17 +85,21 @@ class TwoPhaseFlash(Flash):
                 if self.phase_stability.S_l > self.phase_stability.S_v:
                     self.phase_equilibrium = PhaseEquilibrium(self.composition, self._conditions.p,
                                                                self._conditions.t, self.phase_stability.k_values_liquid, self.eos)
+                    self.phase_equilibrium.find_solve_loop()
                 else:
                     self.phase_equilibrium = PhaseEquilibrium(self.composition, self._conditions.p,
                                                                self._conditions.t, self.phase_stability.k_values_vapour, self.eos)
+                    self.phase_equilibrium.find_solve_loop()
                     
             if (self.phase_stability.S_v > 1) and (self.phase_stability.S_l < 1):
                 self.phase_equilibrium = PhaseEquilibrium(self.composition, self._conditions.p,
                                                                self._conditions.t, self.phase_stability.k_values_vapour, self.eos)
+                self.phase_equilibrium.find_solve_loop()
             
             if (self.phase_stability.S_v < 1) and (self.phase_stability.S_l > 1):
                 self.phase_equilibrium = PhaseEquilibrium(self.composition, self._conditions.p,
                                                                self._conditions.t, self.phase_stability.k_values_liquid, self.eos)
+                self.phase_equilibrium.find_solve_loop()
                 
             self.phase_equilibrium.find_solve_loop()
 
