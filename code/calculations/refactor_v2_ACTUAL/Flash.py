@@ -1,7 +1,6 @@
-from PhaseStability_v3 import PhaseStability
+from TwoPhaseStabilityTest import TwoPhaseStabilityTest
 from PhaseEquilibrium import PhaseEquilibrium
 from FluidProperties import FluidProperties
-from EOS_
 import pandas as pd
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
@@ -31,7 +30,7 @@ class CompositionalResults:
 
 
 class Flash(ABC):
-    def __init__(self, composition):
+    def __init__(self, composition, eos):
 
         self.composition = composition
 
@@ -41,58 +40,61 @@ class Flash(ABC):
         ...
 
 
+
+
 class FlashFasade:
-    def __init__(self, composition):
+    def __init__(self, composition, eos):
         self.composition = composition
+        self.eos = eos
 
     # def __dir__(self):
     #     return ['TwoPhaseFlash', 'FourPhaseFlash']
     
     @property
     def TwoPhaseFlash(self):
-        return TwoPhaseFlash(self.composition)
+        return TwoPhaseFlash(self.composition, self.eos)
     
     @property
-    def FourPhaseFlash(self):
-        return TwoPhaseFlash(self.composition)
+    def FourPhaseFlashMOCK(self):
+        return TwoPhaseFlash(self.composition, self.eos)
 
 
 class TwoPhaseFlash(Flash):
     
-    def __init__(self, composition, eos: str):
+    def __init__(self, composition, eos):
         self.composition = composition
-
+        self.eos = eos
 
 
     def calculate_flash(self, conditions):
         
         self._conditions = conditions
 
-        self.phase_stability = PhaseStability(self.composition, self._conditions.p, self._conditions.t)
+        self.phase_stability = TwoPhaseStabilityTest(self.composition, self._conditions.p, self._conditions.t, self.eos)
 
         # Развилка по условию стабильности/нестабильности системы
         if self.phase_stability.stable == True:
             print('Stable')
             print(self.phase_stability.S_v, self.phase_stability.S_l)
-            print(self.phase_stability.trivial_solution_vapour, self.phase_stability.trivial_solution_liquid)
+            print(self.phase_stability.trivial_solution_vapour, self.phase_stability.trivial_solution_liquid, self.eos)
         # Если система нестабильна, то передаем К из анализа стабильности и запускаем расчет flash
         else:
 
             if (self.phase_stability.S_l > 1) and (self.phase_stability.S_v > 1):
                 if self.phase_stability.S_l > self.phase_stability.S_v:
                     self.phase_equilibrium = PhaseEquilibrium(self.composition, self._conditions.p,
-                                                               self._conditions.t, self.phase_stability.k_values_liquid)
+                                                               self._conditions.t, self.phase_stability.k_values_liquid, self.eos)
                 else:
                     self.phase_equilibrium = PhaseEquilibrium(self.composition, self._conditions.p,
-                                                               self._conditions.t, self.phase_stability.k_values_vapour )
+                                                               self._conditions.t, self.phase_stability.k_values_vapour, self.eos)
                     
             if (self.phase_stability.S_v > 1) and (self.phase_stability.S_l < 1):
                 self.phase_equilibrium = PhaseEquilibrium(self.composition, self._conditions.p,
-                                                               self._conditions.t, self.phase_stability.k_values_vapour )
+                                                               self._conditions.t, self.phase_stability.k_values_vapour, self.eos)
             
             if (self.phase_stability.S_v < 1) and (self.phase_stability.S_l > 1):
                 self.phase_equilibrium = PhaseEquilibrium(self.composition, self._conditions.p,
-                                                               self._conditions.t, self.phase_stability.k_values_liquid)
+                                                               self._conditions.t, self.phase_stability.k_values_liquid, self.eos)
                 
             self.phase_equilibrium.find_solve_loop()
 
