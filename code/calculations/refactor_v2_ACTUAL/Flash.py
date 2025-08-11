@@ -75,7 +75,7 @@ class TwoPhaseFlash(Flash):
 
         # Развилка по условию стабильности/нестабильности системы
         if self.phase_stability.stable == True:
-            print('Stable')
+            
             print(self.phase_stability.S_v, self.phase_stability.S_l)
             print(self.phase_stability.trivial_solution_vapour, self.phase_stability.trivial_solution_liquid, self.eos)
         # Если система нестабильна, то передаем К из анализа стабильности и запускаем расчет flash
@@ -118,11 +118,12 @@ class TwoPhaseFlash(Flash):
                                                 self.fluid_properties.molecular_mass_liquid, 
                                                 self.fluid_properties.vapour_volume, self.fluid_properties.liquid_volume, 
                                                 self.fluid_properties.vapour_density, self.fluid_properties.liquid_density)
-            print(self.results)
+            
+            self.show_results()
 
 
     def show_results(self):
-        
+        if self.phase_stability.stable != True:
             yi_vapour_df = pd.DataFrame.from_dict(self.results.yi_vapour, orient= 'index')
             xi_liquid_df = pd.DataFrame.from_dict(self.results.xi_liquid, orient= 'index')
             ki = pd.DataFrame.from_dict(self.results.Ki, orient= 'index')
@@ -145,3 +146,9 @@ class TwoPhaseFlash(Flash):
             print('Ki')
             print(ki.to_markdown())
             print('=====')
+
+        else:
+            print('COMP DATA')
+            print(self.composition.show_composition_dataframes())
+            print('=====')
+            print(f'FLASH RESULTS: P {self._conditions.p}, T: {self._conditions.t}')

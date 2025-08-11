@@ -8,15 +8,15 @@ from Conditions import Conditions
 
 
 class CompositionalModel:
-    def __init__(self,zi: Composition, eos: str = 'PREOS', flash = 'TwoPhaseFlash'):
+    def __init__(self,zi: Composition, eos: str = 'PREOS', flash_type = 'TwoPhaseFlash'):
         self.composition = zi
         self.eos = eos
-        self.flash_name = flash
+        self.flash_name = flash_type
         self.flash = FlashFasade(self.composition, self.eos)
-        
+    
 
-    def calculate_flash(self,conditions):
-        self.flash.calculate_flash(conditions=conditions)
+    # def calculate_flash(self,conditions):
+    #     self.flash.calculate_flash(conditions=conditions)
         
 
 
@@ -36,14 +36,14 @@ if __name__ == '__main__':
 
 
 
-    comp_model = CompositionalModel(comp, eos = 'SRKEOS')
+    comp_model = CompositionalModel(comp, eos = 'PREOS')
 
-    conditions = Conditions(6, 50)
+    conditions = Conditions(0.1, 50)
 
-    
+    comp_model.flash.TwoPhaseFlash.calculate_flash(conditions)
 
-    flash_2_phase = comp_model.flash.TwoPhaseFlash.calculate_flash(conditions)
-    flash_2_phase.show_results()
+    # comp_model.flash.calculate_flash(conditions)
+    # comp_model.flash.show_results()
 
     
 

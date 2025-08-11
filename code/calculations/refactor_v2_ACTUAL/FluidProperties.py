@@ -70,11 +70,26 @@ class FluidProperties:
         return self.molecular_mass_liquid * (1 - self.equil_obj.fv) / self.liquid_volume
 
 
-    def calc_all_properties(self):
+    def calc_all_properties_two_phases(self):
         result_dict = {'MW_vapour': self.molecular_mass_vapour, 'MW_liquid': self.molecular_mass_liquid, 'V_vapour': self.vapour_volume, 'V_liquid': self.liquid_volume,
                        'Den_vapour': self.vapour_density, 'Den_liquid': self.liquid_density}
         return result_dict
     
+    
+
+    @property
+    def molecular_mass_one_phase(self):
+        m_to_sum = []
+        for component in self.equil_obj.yi_v.keys():
+            m_to_sum.append(self.equil_obj.yi_v[component] * self.db['molar_mass'][component])
+        return sum(m_to_sum)
+    
+    @property
+    def volume_one_phase(self):
+        return self.equil_obj.fv * ((8.314 * self.t * self.equil_obj.initial_eos.choosen_eos_root/ self.p) - self.equil_obj.eos_vapour.shift_parametr)
+
+    def calc_all_properties_one_phase(self):
+        ...
 
 
 if __name__ == '__main__':
