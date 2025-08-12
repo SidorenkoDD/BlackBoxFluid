@@ -1,7 +1,7 @@
 from PhaseStability_v3 import PhaseStability
 from PhaseEquilibrium import PhaseEquilibrium
 from FluidProperties import FluidProperties
-from EOS_
+
 import pandas as pd
 from abc import abstractmethod, ABC
 from dataclasses import dataclass

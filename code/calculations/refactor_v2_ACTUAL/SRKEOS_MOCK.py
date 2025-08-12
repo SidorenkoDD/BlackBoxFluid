@@ -1,5 +1,4 @@
-
-from InterfaceEOS import EOS
+from BaseClasses import EOS
 import math as math
 
 

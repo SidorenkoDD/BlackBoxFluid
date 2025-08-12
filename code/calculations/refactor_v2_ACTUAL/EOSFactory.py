@@ -1,4 +1,4 @@
-from InterfaceEOS import EOS
+from BaseClasses import EOS
 from PREOS import PREOS
 from SRKEOS_MOCK import SRKEOS
 

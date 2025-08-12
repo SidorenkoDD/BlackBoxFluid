@@ -1,4 +1,4 @@
-from InterfacePhaseStabilityTest import PhaseStabilityTest
+from BaseClasses import PhaseStabilityTest
 import math as math
 from EOSFactory import EOSFactory
 

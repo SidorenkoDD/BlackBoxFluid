@@ -1,5 +1,5 @@
 import math as math
-from InterfaceEOS import EOS
+from BaseClasses import EOS
 from EOSFactory import EOSFactory
 from Composition import Composition
 

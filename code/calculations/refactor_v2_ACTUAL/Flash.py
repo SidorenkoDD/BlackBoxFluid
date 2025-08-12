@@ -2,6 +2,7 @@ from TwoPhaseStabilityTest import TwoPhaseStabilityTest
 from PhaseEquilibrium import PhaseEquilibrium
 from FluidProperties import FluidProperties
 import pandas as pd
+from BaseClasses import CalculationModule, Calculator
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from Results import TwoPhaseFlashResults
@@ -29,12 +30,19 @@ class CompositionalResults:
 
 
 
-class Flash(ABC):
+class FlashModule(CalculationModule):
     def __init__(self, composition, eos):
-
+        super().__init__()
         self.composition = composition
+        self.eos = eos
+        
 
+        self.register_calculator("TwoPhaseFlash", TwoPhaseFlash(composition, eos))
+        self.register_calculator("ThreePhaseFlash", TwoPhaseFlash(composition, eos))
     
+        TwoPhaseFlash : "TwoPhaseFlash"
+
+
     @abstractmethod
     def calculate_flash(self):
         ...
@@ -59,14 +67,14 @@ class FlashFasade:
         return TwoPhaseFlash(self.composition, self.eos)
 
 
-class TwoPhaseFlash(Flash):
+class TwoPhaseFlash(Calculator):
     
     def __init__(self, composition, eos):
         self.composition = composition
         self.eos = eos
 
 
-    def calculate_flash(self, conditions):
+    def calculate(self, conditions):
         
         self._conditions = conditions
 
