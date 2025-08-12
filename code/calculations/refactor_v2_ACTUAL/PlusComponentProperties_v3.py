@@ -6,8 +6,8 @@ class CriticalTemperatureCorrelation:
     """Класс для расчета критической температуры, содержащий все корреляции"""
     
     @staticmethod
-    def roess(gamma: float, t_bf: float) -> float:
-        t_bf_fahrenheit = t_bf * 9/5 + 32
+    def roess(gamma: float, Tb: float) -> float:
+        t_bf_fahrenheit = Tb * 9/5 + 32
         t_c_renkin = 645.83 + 1.6667 * (gamma * (t_bf_fahrenheit + 100)) - \
                      (0.727e-3) * (gamma * (t_bf_fahrenheit + 100))**2
         return t_c_renkin * 5/9
@@ -19,7 +19,8 @@ class CriticalTemperatureCorrelation:
 
 
     @staticmethod
-    def cavett(t_bf: float, gamma_api: float) -> float:
+    def cavett(Tb: float, gamma_api: float) -> float:
+        t_bf = Tb * 9/5 + 32
         return (768.07121 + 1.7133693 * t_bf - 0.10834003e-2 * t_bf**2 -
                 0.89212579e-2 * t_bf * gamma_api +
                 0.38890584e-6 * t_bf**3 + 
@@ -46,9 +47,9 @@ class CriticalTemperatureCorrelation:
     def get_required_params(cls, method: str) -> list:
         """Возвращает список требуемых параметров для корреляции"""
         params_map = {
-            'roess': ['gamma', 't_bf'],
+            'roess': ['gamma', 'Tb'],
             'nokey': ['gamma', 'Tb'],
-            'cavett': ['t_bf', 'gamma_api'],
+            'cavett': ['Tb', 'gamma_api'],
             'kesler_lee': ['gamma', 'Tb']
         }
         return params_map.get(method, [])
@@ -274,7 +275,7 @@ class PlusComponentProperties:
         # Подготовка параметров
         params = {}
         for param in required_params:
-            if param == 'gamma_api' and 'gamma' in self.data.keys():
+            if param == 'gamma_api' and 'gamma_api' in self.data.keys():
                 params[param] = 141.5/self.data['gamma'] - 131.5
             if param == 'Tb' and 'Tb' in self.data.keys():
                 params[param] = self.data['Tb'] * 1.8

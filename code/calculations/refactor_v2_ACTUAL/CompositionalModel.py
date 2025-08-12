@@ -115,7 +115,7 @@ class CompositionalModel:
 if __name__ == '__main__':
 
 
-    comp = Composition({'C1': 0.5, 'C3': 0.4,  'C9':0.1},
+    comp = Composition({'C1': 0.55, 'C3': 0.4,  'C9':0.05},
                        c6_plus_bips_correlation= None,
                        c6_plus_correlations = {'critical_temperature': 'kesler_lee',
                                                         'critical_pressure' : 'rizari_daubert',

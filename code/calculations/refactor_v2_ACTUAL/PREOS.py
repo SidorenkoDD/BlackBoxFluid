@@ -261,7 +261,7 @@ class PREOS(EOS):
 
 
 if __name__ == '__main__':
-    comp = Composition({'C1': 0.5, 'C6': 0.4, 'C25': 0.1},
+    comp = Composition({'C1': 1},
                        c6_plus_bips_correlation= None,
                        c6_plus_correlations = {'critical_temperature': 'kesler_lee',
                                                         'critical_pressure' : 'rizari_daubert',
@@ -270,7 +270,7 @@ if __name__ == '__main__':
                                                         'k_watson': 'k_watson',
                                                         'shift_parameter': 'jhaveri_youngren'})
 
-    eos = PREOS(comp.composition,comp.composition_data, 5, 50)
+    eos = PREOS(comp.composition,comp.composition_data, 10, 293)
     eos.calc_eos()
     print(f' Z: {eos.choosen_eos_root}')
     print(f'fug_by_roots: {eos.fugacity_by_roots}')

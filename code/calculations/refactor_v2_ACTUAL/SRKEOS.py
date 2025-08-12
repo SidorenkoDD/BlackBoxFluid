@@ -15,21 +15,19 @@ class SRKEOS(EOS):
 
     
     # Метод  расчета параметра а для компоненты
-    def calc_a(self, component, omega_a = 0.45724):
+    def calc_a(self, component, omega_a = 0.42748):
         '''
         param: component - компонент, для которого проводится расчет
         param: omega_a - константа
         '''
-        if self.components_properties['acentric_factor'][component] > 0.49:
-            m = 0.3796 + 1.485 * self.components_properties['acentric_factor'][component]  - 0.1644 * math.pow(self.components_properties['acentric_factor'][component],2) + 0.01667 * math.pow(self.components_properties['acentric_factor'][component], 3)
-        else:
-            m = 0.37464 + 1.54226 * self.components_properties['acentric_factor'][component] - 0.26992 * math.pow(self.components_properties['acentric_factor'][component], 2)
+
+        m = 0.480 + 1.574 * self.components_properties['acentric_factor'][component] - 0.176 * math.pow(self.components_properties['acentric_factor'][component], 2)
 
         alpha = math.pow(1 + m * (1 - math.sqrt(self.t/self.components_properties['critical_temperature'][component])), 2)
         return omega_a * math.pow(self.components_properties['critical_temperature'][component],2) * math.pow(8.31, 2) * alpha / self.components_properties['critical_pressure'][component]
 
     # Метод расчета параметра b для компоненты
-    def calc_b(self, component, omega_b = 0.0778):
+    def calc_b(self, component, omega_b = 0.08664):
         '''
         param: component - компонент, для которого проводится расчет
         param: omega_b - константа
@@ -87,9 +85,9 @@ class SRKEOS(EOS):
 
     # Метод для решения кубического уравнения
     def solve_cubic_equation(self):
-        bk = self.B_linear_mixed - 1
-        ck = self.mixed_A - 3 * (self.B_linear_mixed ** 2) - 2 * self.B_linear_mixed
-        dk = (self.B_linear_mixed ** 2) + (self.B_linear_mixed ** 3) - self.mixed_A * self.B_linear_mixed
+        bk =  - 1
+        ck = self.mixed_A -  self.B_linear_mixed - self.B_linear_mixed ** 2
+        dk = - self.mixed_A * self.B_linear_mixed
         pk = - (bk ** 2) / 3 + ck
         qk = 2 * (bk ** 3) / 27 - (bk * ck/ 3 ) + dk
         s = ((pk/3) ** 3) + ((qk/2) ** 2) 
@@ -134,7 +132,7 @@ class SRKEOS(EOS):
             zk1 = -math.pow((-qk/2), (1/3)) - bk/3
             zk2 = -math.pow((-qk/2), (1/3)) - bk/3
 
-        #print([zk0, zk1, zk2])
+        print([zk0, zk1, zk2])
 
         return [zk0, zk1, zk2]
 
@@ -189,7 +187,7 @@ class SRKEOS(EOS):
             ln_fi_i = root - 1 - math.log(root - self.B_linear_mixed) - self.mixed_A / (2* math.sqrt(2) * self.B_linear_mixed) *  math.log((root + (math.sqrt(2) + 1) * self.B_linear_mixed)/(root - (math.sqrt(2) - 1) * self.B_linear_mixed))
             fi = math.exp(ln_fi_i)
             f = fi * self.p
-            print(f)
+            #print(f)
 
 
     #Метод расчета приведенной энергии Гиббса
@@ -260,7 +258,7 @@ class SRKEOS(EOS):
 
 
 if __name__ == '__main__':
-    comp = Composition({'C1': 0.5, 'C6': 0.4, 'C25': 0.1},
+    comp = Composition({'C1': 1},
                        c6_plus_bips_correlation= None,
                        c6_plus_correlations = {'critical_temperature': 'kesler_lee',
                                                         'critical_pressure' : 'rizari_daubert',
@@ -269,8 +267,9 @@ if __name__ == '__main__':
                                                         'k_watson': 'k_watson',
                                                         'shift_parameter': 'jhaveri_youngren'})
 
-    eos = PREOS(comp.composition,comp.composition_data, 5, 50)
-    eos.return_eos_root_and_fugacities()
+    eos = SRKEOS(comp.composition,comp.composition_data, 10, 293)
+    print(eos.calc_eos())
+    # eos.return_eos_root_and_fugacities()
     print(f' Z: {eos.choosen_eos_root}')
     print(f'fug_by_roots: {eos.fugacity_by_roots}')
     print(f' Е Гиббса: {eos.normalized_gibbs_energy}')

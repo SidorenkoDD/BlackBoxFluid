@@ -4,28 +4,28 @@ from FluidProperties import FluidProperties
 import pandas as pd
 from BaseClasses import CalculationModule, Calculator
 from abc import abstractmethod, ABC
-from dataclasses import dataclass
+# from dataclasses import dataclass
 from Results import TwoPhaseFlashResults
 
-@dataclass 
-class CompositionalResults:
-    stable: bool
-    yi_vapour: dict
-    xi_liquid: dict
-    fv: float
-    Ki: dict
+# @dataclass 
+# class CompositionalResults:
+#     stable: bool
+#     yi_vapour: dict
+#     xi_liquid: dict
+#     fv: float
+#     Ki: dict
 
-    z_vapour: float
-    z_liquid: float
+#     z_vapour: float
+#     z_liquid: float
 
-    MW_vapoour: float
-    MW_liquid:float
+#     MW_vapoour: float
+#     MW_liquid:float
 
-    volume_vapour: float
-    volume_liquid: float
+#     volume_vapour: float
+#     volume_liquid: float
 
-    density_vapour: float
-    density_liquid: float
+#     density_vapour: float
+#     density_liquid: float
 
 
 

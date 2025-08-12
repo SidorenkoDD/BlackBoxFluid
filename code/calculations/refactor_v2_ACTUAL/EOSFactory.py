@@ -1,6 +1,6 @@
 from BaseClasses import EOS
 from PREOS import PREOS
-from SRKEOS_MOCK import SRKEOS
+from code.calculations.refactor_v2_ACTUAL.SRKEOS import SRKEOS
 
 class EOSFactory:
     @staticmethod
