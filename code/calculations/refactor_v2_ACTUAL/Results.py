@@ -1,35 +1,65 @@
 from abc import ABC, abstractmethod
-from Flash import Flash
-
+from dataclasses import dataclass
 
 class Results(ABC):
 
     @abstractmethod
-    def get_results(self):
+    def to_df(self):
         pass
 
 
 
-class FlashResults(ABC, Results):
+# class FlashResults(ABC, Results):
+#     def __init__(self):
+#         super().__init__()
 
-    def get_results(self):
-        return super().get_results()
-    
-
-class OnePhaseFlashResults(FlashResults):
-
-    def __init__(self, flash_obj):
-        self.flash_obj = flash_obj
-
-    def get_results(self):
-        return super().get_results()
+#     def get_results(self):
+#         return super().get_results()
     
 
 
-class TwoPhaseFlashResults(FlashResults):
+@dataclass(frozen= True)
+class TwoPhaseFlashResults:
+    temperature : float
+    pressure : float
+    
+    stable : bool
+    
+    Fv : float | None
+    Ki: float | None
 
-    def __init__(self, flash_obj):
-        self.flash_obj = flash_obj
+    liquid_composition: dict | None
+    vapour_composition: dict | None
+    
+    liquid_z : float | None
+    vapour_z : float | None
+    
+    vapour_molecular_mass: float | None
+    liquid_molecular_mass: float | None
 
-    def get_results(self):
-        return super().get_results()
+    vapour_volume : float | None
+    liquid_volume : float | None
+
+    vapour_density: float | None
+    liquid_density: float | None
+
+    
+
+
+# class OnePhaseFlashResults(FlashResults):
+
+#     def __init__(self, flash_obj):
+#         self.flash_obj = flash_obj
+
+#     def get_results(self):
+#         return super().get_results()
+    
+
+
+# class TwoPhaseFlashResults(FlashResults):
+
+#     def __init__(self, flash_obj):
+#         self.flash_obj = flash_obj
+
+#     def get_results(self):
+#         return super().get_results()

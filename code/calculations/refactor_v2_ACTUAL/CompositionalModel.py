@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     comp_model = CompositionalModel(comp, eos = 'PREOS')
 
-    conditions = Conditions(0.1, 50)
+    conditions = Conditions(6, 50)
 
     comp_model.flash.TwoPhaseFlash.calculate_flash(conditions)
 
