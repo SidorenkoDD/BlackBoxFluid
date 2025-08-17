@@ -23,8 +23,9 @@ Fluid compositional modeling with use of EOS
 
 ### УРС ###
 * **Peng-Robinson Peneloux**
-* *Brusilovsky EOS*
-* *SRK*
+* **SRK**
+* Brusilovsky EOS*
+
 
 ### Корреляции свойств С6+ компонент ###
 

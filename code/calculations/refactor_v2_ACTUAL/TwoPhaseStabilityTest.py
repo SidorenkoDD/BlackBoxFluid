@@ -251,8 +251,6 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
 
 
     def interpetate_stability_analysis(self):
-        print(self.S_v, self.S_l)
-        print(self.trivial_solution_vapour, self.trivial_solution_liquid)
 
         if ((self.trivial_solution_vapour) or 
             ((self.S_v <= 1) and (self.trivial_solution_liquid)) or 

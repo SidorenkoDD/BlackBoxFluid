@@ -24,6 +24,7 @@ class TwoPhaseFlashResults:
     pressure : float
     
     stable : bool
+    EOS: str
     
     Fv : float | None
     Ki: float | None

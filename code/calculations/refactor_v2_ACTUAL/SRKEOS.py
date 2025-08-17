@@ -132,7 +132,6 @@ class SRKEOS(EOS):
             zk1 = -math.pow((-qk/2), (1/3)) - bk/3
             zk2 = -math.pow((-qk/2), (1/3)) - bk/3
 
-        print([zk0, zk1, zk2])
 
         return [zk0, zk1, zk2]
 
