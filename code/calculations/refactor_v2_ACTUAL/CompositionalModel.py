@@ -24,7 +24,7 @@ class CompositionalModel:
 if __name__ == '__main__':
 
 
-    comp = Composition({'C1': 0.55, 'C3': 0.4,  'C9':0.05},
+    comp = Composition({'C1': 0.55, 'C2':0.1,'C3': 0.3,  'C9':0.05},
                        c6_plus_bips_correlation= None,
                        c6_plus_correlations = {'critical_temperature': 'kesler_lee',
                                                         'critical_pressure' : 'rizari_daubert',
@@ -34,18 +34,19 @@ if __name__ == '__main__':
                                                         'shift_parameter': 'jhaveri_youngren'}
                        )
 
+    comp.show_composition_dataframes()
 
 
 
     comp_model = CompositionalModel(comp, eos = 'PREOS')
 
-    conditions1 = Conditions(6, 50)
-    conditions2 = Conditions(7,50)
+    conditions1 = Conditions(6, 70)
+    #conditions2 = Conditions(7,50)
 
     comp_model.flash(conditions=conditions1)
-    #print(comp_model.results)
-    comp_model.flash(conditions=conditions2)
-    print(comp_model.flash_results.keys())
+    print(comp_model.flash_results)
+    #comp_model.flash(conditions=conditions2)
+    #print(comp_model.flash_results.keys())
 
 
     
