@@ -9,14 +9,6 @@ class Results(ABC):
 
 
 
-# class FlashResults(ABC, Results):
-#     def __init__(self):
-#         super().__init__()
-
-#     def get_results(self):
-#         return super().get_results()
-    
-
 
 @dataclass(frozen= True)
 class TwoPhaseFlashResults:

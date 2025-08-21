@@ -1,5 +1,6 @@
 from PlusComponentProperties_v3 import PlusComponentProperties
 import math
+import re
 import json
 import pandas as pd
 
@@ -51,8 +52,14 @@ class Composition:
         '''Метод определяет, есть ли С6+ компоненты в составе.
         Если есть, то рассчитывается и формируется единый словарь свойств для конкретного состава.
         '''
+        def extract_number_from_end(text):
+            match = re.search(r'(\d+)$', text)
+            if match:
+                return int(match.group(1))
+            return None
 
-        c6_plus_components = [item for item in self.composition.keys() if int(item[1:]) > 6]
+        #c6_plus_components = [item for item in self.composition.keys() if int(item[1:]) > 6]
+        c6_plus_components = [item for item in self.composition.keys() if extract_number_from_end(item) > 6]
         self.c6_plus_components = c6_plus_components
         
     
@@ -156,7 +163,7 @@ class Composition:
 
 
 if __name__ == '__main__':
-    comp = Composition({'C1': 0.15, 'C2':0.15, 'C3': 0.1, 'C6': 0.1, 'C8':0.1, 'C9':0.1, 'C10': 0.1, 'C11': 0.1, 'C16':0.1}, c6_plus_bips_correlation=None,
+    comp = Composition({'C1': 0.15, 'C2':0.15, 'C3': 0.1, 'C6': 0.05, 'iC4': 0.05, 'nC5': 0.05, 'C8':0.05, 'C9':0.1, 'C10': 0.1, 'C11': 0.1, 'C16':0.1}, c6_plus_bips_correlation=None,
                        c6_plus_correlations={'critical_temperature': 'nokey',
                         'critical_pressure' : 'rizari_daubert',
                         'acentric_factor': 'Edmister',

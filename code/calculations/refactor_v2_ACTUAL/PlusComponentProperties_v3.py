@@ -34,6 +34,13 @@ class CriticalTemperatureCorrelation:
 
         return t_c_renkin * 5/9
 
+    @staticmethod
+    def pedersen(gamma, M):
+        return 163.12 * gamma + 86.052 * math.log(M) + 0.43475 * M - (1877.4/M)
+    
+    @staticmethod
+    def standing(gamma, M):
+        return 338 + 202 * math.log10(M - 71.2) + (1361 * math.log10(M) - 2111) * math.log10(gamma)
 
     @classmethod
     def get_correlation(cls, method: str) -> Callable:
@@ -50,7 +57,9 @@ class CriticalTemperatureCorrelation:
             'roess': ['gamma', 'Tb'],
             'nokey': ['gamma', 'Tb'],
             'cavett': ['Tb', 'gamma_api'],
-            'kesler_lee': ['gamma', 'Tb']
+            'kesler_lee': ['gamma', 'Tb'],
+            'pedersen' : ['gamma', 'M'],
+            'standing' : ['gamma', 'M']
         }
         return params_map.get(method, [])
 
@@ -69,6 +78,18 @@ class CriticalPressureCorrelation:
     def rizari_daubert(Tb, gamma):
         return (3.12281e9 * (Tb** -2.3125 * gamma**2.3201)) * 0.00689476
 
+
+    @staticmethod
+    def pedersen(gamma, M):
+        return (math.exp(-0.13408 + 2.5019 * gamma + (208.46/M) - (3987.2/ math.pow(M,2)))) / 10
+
+
+    @staticmethod
+    def standing(gamma, M):
+        return 8.191 - 2.97 * math.log10(M - 61.1) + (15.99 - 5.87 * math.log10(M - 53.7)) * (gamma - 0.8)
+
+
+
     @classmethod
     def get_correlation(cls, method: str) -> Callable:
         if not hasattr(cls, method):
@@ -81,7 +102,9 @@ class CriticalPressureCorrelation:
         """Возвращает список требуемых параметров для корреляции"""
         params_map = {
             'kesler_lee': ['gamma', 'Tb'],
-            'rizari_daubert' : ['gamma', 'Tb']
+            'rizari_daubert' : ['gamma', 'Tb'],
+            'pedersen' : ['gamma', 'M'], 
+            'standing' : ['gamma', 'M']
         }
         return params_map.get(method, [])
 
@@ -102,7 +125,8 @@ class AcentricFactorCorrelation:
     def get_required_params(cls, method: str) -> list:
         """Возвращает список требуемых параметров для корреляции"""
         params_map = {
-            'edmister': ['p_c','t_c','Tb']
+            'edmister': ['p_c','t_c','Tb'],
+            'rizari_al_sahhaf' : ['M']
         }
         return params_map.get(method, [])
     
@@ -114,6 +138,10 @@ class AcentricFactorCorrelation:
 
         return (3/7) * (math.log10(p_c/14.7)/((t_c/Tb)-1)) - 1
 
+
+    @staticmethod
+    def rizari_al_sahhaf(M):
+        return - (0.3 - math.exp(-6.252 + 3.64457 * math.pow(M, 0.1)))
 
 
 
@@ -176,7 +204,7 @@ class KWatson:
     @staticmethod
     def k_watson_approx(M, gamma):
         return 4.5579 * math.pow(M, 0.15178) * math.pow(gamma, -0.84573)
-    
+
 
 
 class ShiftParameterCorrelation:

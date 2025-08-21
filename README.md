@@ -22,35 +22,41 @@ Fluid compositional modeling with use of EOS
 ## Реализованные расчетные модули ##
 
 ### УРС ###
-* **Peng-Robinson Peneloux**
-* **SRK**
-* Brusilovsky EOS*
+* Peng-Robinson Peneloux
+* SRK
+* *Brusilovsky EOS -  в работе*
 
 
 ### Корреляции свойств С6+ компонент ###
 
 #### P critical ####
-* **Kesler - Lee**
-* **Rizari - Daubert**
+* Kesler - Lee
+* Rizari - Daubert
+* Pedersen
+* Standing
 
 #### T critical ####
-* **Roess**
-* **Nokey**
-* **Cavett**
-* **Kesler-Lee**
+* Roess
+* Nokey
+* Cavett
+* Kesler-Lee
+* Pedersen
+* Standing
 
 #### Critical volume ####
-* **Rizari - Daubert**
-* **Hall - Yarborough**
+* Rizari - Daubert
+* Hall - Yarborough
 
 #### Acentric factor ####
-* **Edmister**
+* Edmister
+* Rizari - Al-Sahhaf
 
 #### Shift Parametr ####
-* **Jhaveri-Youngren**
+* Jhaveri-Youngren
 
 #### BIPS ####
-* **Chueh-Prausnitz**
+* Chueh-Prausnitz
+* Zero
 
 
 
