@@ -1,0 +1,9 @@
+@startuml First
+class EOS{
+    <abstractclass>
+    + comosition : Composition.composition
+    + component_properties : Composition.composition_data
+    + calc_eos() *
+   
+}
+@endum

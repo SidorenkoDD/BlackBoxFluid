@@ -1,15 +1,13 @@
 from Composition import Composition
 import math as math
-import cmath
-import sympy as smp
-import numpy as np
+
 
 from logger import LogManager
 
 logger = LogManager(__name__)
 
 class EOS_PR:
-    def __init__(self, composition:Composition, p: float, t: float):
+    def __init__(self, zi, components_properties, p: float, t: float):
 
         '''
         Класс для решения УРС Пенга-Робинсона
@@ -22,11 +20,9 @@ class EOS_PR:
         Return:
             Z: Значение Z-фактора, определенное по приведенной энергии Гиббса
         '''
-        # Читаем .yaml файл с данными по компонентам
         try:
-            self.composition = composition
-            self.zi = self.composition.composition
-            self.db = self.composition.composition_data
+            self.zi = zi
+            self.components_properties = components_properties
             logger.log.debug('Данные компонент из Composition прочитаны успешно') 
 
         except Exception as e:
@@ -44,22 +40,6 @@ class EOS_PR:
         else:
             logger.log.debug('Сумма компонентов равна 1')
         
-        # Инициализация термобарических условий в зависимости от типа запуска модуля
-        # if __name__ == '__main__':
-        # # Давление для расчета
-        #     self.p = p * math.pow(10,5)
-        # # температура для расчета
-        #     self.t = t + 273.14
-
-        # else:
-        #     self.p = p
-        #     self.t = t
-
-        # if __name__ == '__main__':
-        #     self.p = p * math.pow(10,5)
-        #     self.t = t + 273.14
-
-        # else:
 
         if __name__ == '__main__':
             self.p = p
@@ -176,13 +156,13 @@ class EOS_PR:
         param: component - компонент, для которого проводится расчет
         param: omega_a - константа
         '''
-        if self.db['acentric_factor'][component] > 0.49:
-            m = 0.3796 + 1.485 * self.db['acentric_factor'][component]  - 0.1644 * math.pow(self.db['acentric_factor'][component],2) + 0.01667 * math.pow(self.db['acentric_factor'][component], 3)
+        if self.components_properties['acentric_factor'][component] > 0.49:
+            m = 0.3796 + 1.485 * self.components_properties['acentric_factor'][component]  - 0.1644 * math.pow(self.components_properties['acentric_factor'][component],2) + 0.01667 * math.pow(self.components_properties['acentric_factor'][component], 3)
         else:
-            m = 0.37464 + 1.54226 * self.db['acentric_factor'][component] - 0.26992 * math.pow(self.db['acentric_factor'][component], 2)
+            m = 0.37464 + 1.54226 * self.components_properties['acentric_factor'][component] - 0.26992 * math.pow(self.components_properties['acentric_factor'][component], 2)
 
-        alpha = math.pow(1 + m * (1 - math.sqrt(self.t/self.db['critical_temperature'][component])), 2)
-        return omega_a * math.pow(self.db['critical_temperature'][component],2) * math.pow(8.31, 2) * alpha / self.db['critical_pressure'][component]
+        alpha = math.pow(1 + m * (1 - math.sqrt(self.t/self.components_properties['critical_temperature'][component])), 2)
+        return omega_a * math.pow(self.components_properties['critical_temperature'][component],2) * math.pow(8.31, 2) * alpha / self.components_properties['critical_pressure'][component]
 
     # Метод расчета параметра b для компоненты
     def calc_b(self, component, omega_b = 0.0778):
@@ -190,7 +170,7 @@ class EOS_PR:
         param: component - компонент, для которого проводится расчет
         param: omega_b - константа
         '''
-        return omega_b * 8.31 * self.db['critical_temperature'][component] / self.db['critical_pressure'][component]
+        return omega_b * 8.31 * self.components_properties['critical_temperature'][component] / self.components_properties['critical_pressure'][component]
     
 
     # Метод расчета параметра А для компоненты
@@ -218,7 +198,7 @@ class EOS_PR:
             second_components = list(self.zi.keys())
             for i_component in self.zi.keys():
                 for j_component in second_components:
-                    a_mixed.append(self.zi[i_component] * self.zi[j_component] * math.sqrt(self.all_params_A[i_component] * self.all_params_A[j_component]) * (1 - self.db['bip'][i_component][j_component]))
+                    a_mixed.append(self.zi[i_component] * self.zi[j_component] * math.sqrt(self.all_params_A[i_component] * self.all_params_A[j_component]) * (1 - self.components_properties['bip'][i_component][j_component]))
 
             return sum(a_mixed)
 
@@ -243,7 +223,7 @@ class EOS_PR:
     def calc_shift_parametr(self):
         c_to_sum = []
         for component in self.zi.keys():
-            c_to_sum.append(self.zi[component] * self.db['shift_parameter'][component] * self.all_params_b[component])
+            c_to_sum.append(self.zi[component] * self.components_properties['shift_parameter'][component] * self.all_params_b[component])
 
         return sum(c_to_sum)
 
@@ -321,7 +301,7 @@ class EOS_PR:
             # for comp in [x for x in self.zi.keys() if x != component]:
             for comp in list(self.zi.keys()):
                 zi_Ai.append(self.zi[comp] * 
-                                (1 - self.db['bip'][component][comp]) * 
+                                (1 - self.components_properties['bip'][component][comp]) * 
                                 math.sqrt(self.all_params_A[component] * self.all_params_A[comp]))
             sum_zi_Ai = sum(zi_Ai)
 
@@ -362,7 +342,7 @@ class EOS_PR:
             zj_Aj = []
             for comp in [x for x in self.zi.keys() if x != component]:
                 zj_Aj.append(self.zi[comp] * 
-                                (1 - self.db['bip'][component][comp]) * 
+                                (1 - self.components_properties['bip'][component][comp]) * 
                                 math.sqrt(self.all_params_A[component] * self.all_params_A[comp]))
             sum_zj_Aj = sum(zj_Aj)
             

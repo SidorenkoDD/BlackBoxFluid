@@ -40,6 +40,7 @@ def setup_main_menu():
 
 def initialize_application():
     dpg.create_context()
+
     dpg.create_viewport(title="PVT Flash Calculator", width=850, height=700)
     
     with dpg.window(label="Main Window", tag="primary_window"):
@@ -47,6 +48,7 @@ def initialize_application():
     
     dpg.setup_dearpygui()
     dpg.show_viewport()
+
     dpg.set_primary_window("primary_window", True)
     dpg.start_dearpygui()
     dpg.destroy_context()

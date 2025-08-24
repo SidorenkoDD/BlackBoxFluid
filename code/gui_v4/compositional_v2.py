@@ -35,9 +35,9 @@ class CompositionalModule:
                     dpg.add_text("Compositional", color=(0, 200, 255))
                     dpg.add_separator()
                     
-                    dpg.add_button(label = 'Comonents Manager',
-                                   width= 180,
-                                   enabled= False)
+                    # dpg.add_button(label = 'Comonents Manager',
+                    #                width= 180,
+                    #                enabled= False)
                     
                     dpg.add_button(
                         label="Compositions Manager",
@@ -45,11 +45,11 @@ class CompositionalModule:
                         callback=self.show_compositions
                     )
 
-                    dpg.add_button(
-                        label="Composition Variants",
-                        width=180,
-                        callback=self.show_variants
-                    )
+                    # dpg.add_button(
+                    #     label="Composition Variants",
+                    #     width=180,
+                    #     callback=self.show_variants
+                    # )
 
                     dpg.add_button(
                         label='Library',

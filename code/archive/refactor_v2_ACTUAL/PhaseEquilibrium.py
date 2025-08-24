@@ -1,8 +1,6 @@
 import math as math
-from scipy.optimize import newton, bisect
-from logger import LogManager
-from EOS_PR_v2 import EOS_PR
-from PhaseStability_v3 import PhaseStability
+from BaseClasses import EOS
+from EOSFactory import EOSFactory
 from Composition import Composition
 
 
@@ -11,16 +9,14 @@ class PhaseEquilibrium:
 
     '''
 
-    def __init__(self, zi : dict, p:float, t:float, k_values):
-        self.zi = zi
+    def __init__(self, composition: Composition, p:float, t:float, k_values, eos: str | EOS):
+        self.zi = composition.composition
+        self.db = composition.composition_data
+        self.eos = EOSFactory().create_eos(eos)
 
-        if __name__ == '__main__':
-            self.p = p 
-            self.t = t + 273.14
+        self.p = p
+        self.t = t
 
-        else:
-            self.p = p
-            self.t = t
 
         self.k_values = k_values
 
@@ -86,7 +82,7 @@ class PhaseEquilibrium:
         return xi_l
 
     # Метод расчета Ri
-    def calc_Ri(self, eos_vapour:EOS_PR, eos_liquid: EOS_PR):
+    def calc_Ri(self, eos_vapour, eos_liquid):
         ri = {}
         for component in self.zi.keys():
             ri[component] = math.exp(eos_liquid.fugacity_by_roots[eos_liquid.choosen_eos_root][component]) / math.exp(eos_vapour.fugacity_by_roots[eos_vapour.choosen_eos_root][component]) 
@@ -144,9 +140,10 @@ class PhaseEquilibrium:
 
         # Создаем объекты УРС для решения газовой и жидкой фаз
 
-        self.eos_vapour = EOS_PR(Composition(self.yi_v), p = self.p, t = self.t)
-        self.eos_liquid = EOS_PR(Composition(self.xi_l), p = self.p, t = self.t)
-
+        self.eos_vapour = self.eos(zi= self.yi_v, components_properties= self.db, p = self.p, t = self.t)
+        self.eos_vapour.calc_eos()
+        self.eos_liquid = self.eos(zi = self.xi_l, components_properties= self.db, p = self.p, t = self.t)
+        self.eos_liquid.calc_eos()
         # Расчет Ri
         self.ri = self.calc_Ri(self.eos_vapour, self.eos_liquid)
 
@@ -164,8 +161,10 @@ class PhaseEquilibrium:
             self.yi_v = self.define_yi_v()
             self.xi_l = self.define_xi_l()
 
-            self.eos_vapour = EOS_PR(Composition(self.yi_v), p = self.p, t = self.t)
-            self.eos_liquid = EOS_PR(Composition(self.xi_l), p = self.p, t = self.t)
+            self.eos_vapour = self.eos(zi= self.yi_v, components_properties= self.db, p = self.p, t = self.t)
+            self.eos_vapour.calc_eos()
+            self.eos_liquid = self.eos(zi= self.xi_l, components_properties= self.db, p = self.p, t = self.t)
+            self.eos_liquid.calc_eos()
 
             self.ri = self.calc_Ri(self.eos_vapour, self.eos_liquid)
 
