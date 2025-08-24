@@ -1,8 +1,10 @@
 # import pandas as pd
 
-from Composition import Composition
-import Flash as flash
-from Conditions import Conditions
+from calculations.Composition.Composition import Composition
+from calculations.VLE.Flash import Flash as flash
+from calculations.Utils.Conditions import Conditions
+#import Flash as flash
+#from Conditions import Conditions
 
 
 

@@ -1,46 +1,26 @@
-from TwoPhaseStabilityTest import TwoPhaseStabilityTest
-from PhaseEquilibrium import PhaseEquilibrium
-from FluidProperties import FluidProperties
-import pandas as pd
-from BaseClasses import CalculationModule, Calculator
-from abc import abstractmethod, ABC
-from Results import TwoPhaseFlashResults
+from calculations.PhaseStability.TwoPhaseStabilityTest import TwoPhaseStabilityTest
+from calculations.VLE.PhaseEquilibrium import PhaseEquilibrium
+from calculations.Utils.FluidProperties import FluidProperties
+from calculations.Utils.BaseClasses import Calculator
+from calculations.Utils.Results import TwoPhaseFlashResults
 
 
-class FlashModule(CalculationModule):
+
+
+
+class FlashFactory:
+
     def __init__(self, composition, eos):
-        super().__init__()
         self.composition = composition
         self.eos = eos
+    
+    # @staticmethod
+    def create_flash(self, flash_type):
+        if flash_type == 'TwoPhaseFlash':
+            return TwoPhaseFlash(composition=self.composition, eos = self.eos)
+        else:
+            raise ValueError(f'Unknown flash: {flash_type}')
         
-
-        self.register_calculator("TwoPhaseFlash", TwoPhaseFlash(composition, eos))
-        self.register_calculator("ThreePhaseFlash", TwoPhaseFlash(composition, eos))
-    
-        TwoPhaseFlash : "TwoPhaseFlash"
-
-
-    @abstractmethod
-    def calculate_flash(self):
-        ...
-
-
-
-
-class FlashFasade:
-    def __init__(self, composition, eos):
-        self.composition = composition
-        self.eos = eos
-
-    
-    @property
-    def TwoPhaseFlash(self):
-        return TwoPhaseFlash(self.composition, self.eos)
-    
-    @property
-    def FourPhaseFlashMOCK(self):
-        return TwoPhaseFlash(self.composition, self.eos)
-
 
 class TwoPhaseFlash(Calculator):
     
@@ -129,39 +109,8 @@ class TwoPhaseFlash(Calculator):
                                            liquid_density= self.fluid_properties.liquid_density)
             
 
-        #print(results)
 
         return results
             
 
 
-    # def show_results(self):
-    #     if self.phase_stability.stable != True:
-    #         yi_vapour_df = pd.DataFrame.from_dict(self.results.yi_vapour, orient= 'index')
-    #         xi_liquid_df = pd.DataFrame.from_dict(self.results.xi_liquid, orient= 'index')
-    #         ki = pd.DataFrame.from_dict(self.results.Ki, orient= 'index')
-    #         flash_results = pd.DataFrame({'Stable': self.results.stable, 'Fv': self.results.fv,
-    #                                     'Z':[self.results.z_vapour, self.results.z_liquid],
-    #                                         'MW': [self.results.MW_liquid, self.results.MW_liquid], 
-    #                                     'Dens': [self.results.density_vapour,  self.results.density_liquid]})
-    #         print('COMP DATA')
-    #         print(self.composition.show_composition_dataframes())
-    #         print('=====')
-    #         print(f'FLASH RESULTS: P {self._conditions.p}, T: {self._conditions.t}')
-    #         print('Gas composition')
-    #         print(yi_vapour_df.to_markdown())
-    #         print('=====')
-    #         print('Liquid composition')
-    #         print(xi_liquid_df.to_markdown())
-    #         print('=====')
-    #         print(flash_results.to_markdown())
-    #         print('=====')
-    #         print('Ki')
-    #         print(ki.to_markdown())
-    #         print('=====')
-
-    #     else:
-    #         print('COMP DATA')
-    #         print(self.composition.show_composition_dataframes())
-    #         print('=====')
-    #         print(f'FLASH RESULTS: P {self._conditions.p}, T: {self._conditions.t}')
