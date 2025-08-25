@@ -1,9 +1,9 @@
 from calculations.Composition.PlusComponentProperties_v3 import PlusComponentProperties
+from calculations.Utils.JsonDBReader import JsonDBReader
 import math
 import json
 import pandas as pd
 import re
-#from PlusComponentProperties_v3 import PlusComponentProperties
 
 class Composition:
     ''' Класс для хранения и обработки состава флюида
@@ -64,8 +64,10 @@ class Composition:
         
     
     def _create_composition_db(self):
-        with open(r'code/db/new_db.json') as f:
-            self.composition_data = json.load(f)
+        jsondbreader = JsonDBReader()
+        self.composition_data = jsondbreader.load_database()
+        # with open(r'code/db/new_db.json') as f:
+        #     self.composition_data = json.load(f)
 
 
         if len(self.c6_plus_components) > 0:
