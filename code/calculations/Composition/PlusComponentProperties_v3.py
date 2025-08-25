@@ -1,4 +1,5 @@
 from typing import Dict, Callable, Any, List, Union
+from calculations.Utils.JsonDBReader import JsonDBReader
 import math
 import json
 
@@ -274,9 +275,10 @@ class PlusComponentProperties:
         'shift_parameter': ShiftParameterCorrelation
         }
 
-        
-        with open(r'code/db/new_db.json') as f:
-             self.katz_firuzabadi = json.load(f)
+        jsondbreader = JsonDBReader()
+        self.katz_firuzabadi = jsondbreader.load_database()
+        # with open(r'code/db/new_db.json') as f:
+        #      self.katz_firuzabadi = json.load(f)
 
         self.data = {'M': self.katz_firuzabadi['molar_mass'][component], 'gamma': self.katz_firuzabadi['gamma'][component], 'Tb': self.katz_firuzabadi['Tb'][component]}
         

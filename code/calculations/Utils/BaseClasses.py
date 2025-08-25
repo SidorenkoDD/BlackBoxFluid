@@ -1,5 +1,5 @@
 from abc import abstractmethod, ABC
-from calculations.Composition.Composition import Composition
+#from calculations.Composition.Composition import Composition
 from typing import Dict, TypeVar, Generic
 
 
@@ -39,7 +39,7 @@ class EOS(ABC):
 class PhaseStabilityTest:
     '''Абстрактный класс для stability test
     '''
-    def __init__(self, composition:Composition, p, t, eos: EOS | str):
+    def __init__(self, composition, p, t, eos: EOS | str):
         self.composition = composition
         self.p = p
         self.t = t
@@ -79,3 +79,10 @@ class CalculationModule:
         if name in self._calculators:
             return self._calculators[name]
         raise AttributeError(f"No calculator '{name}' in module")
+    
+class Reader(ABC):
+    '''Abstract class for data reader
+    '''
+    @abstractmethod
+    def load_database(self):
+        pass

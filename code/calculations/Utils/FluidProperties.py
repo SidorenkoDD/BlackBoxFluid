@@ -1,4 +1,5 @@
-from calculations.VLE.PhaseEquilibrium import PhaseEquilibrium 
+from calculations.VLE.PhaseEquilibrium import PhaseEquilibrium
+from calculations.Utils.JsonDBReader import JsonDBReader
 import json
 
 
@@ -7,8 +8,10 @@ class FluidProperties:
     
     def __init__(self, p, t, equil_obj: PhaseEquilibrium):
         
-        with open(r'code/db/new_db.json', 'r') as db_file:
-            self.db = json.load(db_file)
+        jsondbreader = JsonDBReader()
+        self.db = jsondbreader.load_database()
+        # with open(r'code/db/new_db.json', 'r') as db_file:
+        #     self.db = json.load(db_file)
         
         
         self.equil_obj = equil_obj
