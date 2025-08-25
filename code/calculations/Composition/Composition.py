@@ -64,7 +64,7 @@ class Composition:
         
     
     def _create_composition_db(self):
-        with open(r'C:\Users\user\Desktop\PVT_TSU\code\db\new_db.json') as f:
+        with open(r'code/db/new_db.json') as f:
             self.composition_data = json.load(f)
 
 

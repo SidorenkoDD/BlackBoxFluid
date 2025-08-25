@@ -1,12 +1,14 @@
-
-from calculations.EOS.BaseEOS import EOS
-import math as math
 from pathlib import Path
 import sys
-
 # Добавляем корневую директорию в PYTHONPATH
 root_path = Path(__file__).parent.parent.parent
 sys.path.append(str(root_path))
+
+
+from calculations.EOS.BaseEOS import EOS
+import math as math
+
+
 
 
 from calculations.Composition.Composition import Composition
@@ -196,7 +198,7 @@ class PREOS(EOS):
             ln_fi_i = root - 1 - math.log(root - self.B_linear_mixed) - self.mixed_A / (2* math.sqrt(2) * self.B_linear_mixed) *  math.log((root + (math.sqrt(2) + 1) * self.B_linear_mixed)/(root - (math.sqrt(2) - 1) * self.B_linear_mixed))
             fi = math.exp(ln_fi_i)
             f = fi * self.p
-            print(f)
+            
 
 
     #Метод расчета приведенной энергии Гиббса
@@ -259,15 +261,28 @@ class PREOS(EOS):
         self.normalized_gibbs_energy = self.calc_normalized_gibbs_energy()
         self.choosen_eos_root = self.choose_eos_root_by_gibbs_energy()
         self.choosen_fugacities = self.fugacity_by_roots[self.choosen_eos_root]
+
+        self._fugacities = self.choosen_fugacities
+        self._z = self.choosen_eos_root
         return self.choosen_eos_root, self.choosen_fugacities
     
-    def return_eos_root_and_fugacities(self):
-        return super().return_eos_root_and_fugacities()
+    # def return_eos_root_and_fugacities(self):
+    #     return super().return_eos_root_and_fugacities()
+    
+    @property
+    def z(self):
+        return super().z()
+
+
+    @property
+    def fugacities(self):
+        return super().fugacities()
+
     
 
 
 if __name__ == '__main__':
-    comp = Composition({'C1': 1},
+    comp = Composition({'C1': 0.5, 'C2':0.5},
                        c6_plus_bips_correlation= None,
                        c6_plus_correlations = {'critical_temperature': 'kesler_lee',
                                                         'critical_pressure' : 'rizari_daubert',
@@ -276,8 +291,8 @@ if __name__ == '__main__':
                                                         'k_watson': 'k_watson',
                                                         'shift_parameter': 'jhaveri_youngren'})
 
-    eos = PREOS(comp.composition,comp.composition_data, 10, 293)
+    eos = PREOS(comp.composition,comp.composition_data, 0.1, 293)
     eos.calc_eos()
-    print(f' Z: {eos.choosen_eos_root}')
-    print(f'fug_by_roots: {eos.fugacity_by_roots}')
+    print(f' Z: {eos.z}')
+    print(f'fug_by_roots: {eos.fugacities}')
     print(f' Е Гиббса: {eos.normalized_gibbs_energy}')

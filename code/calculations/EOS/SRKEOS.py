@@ -249,11 +249,23 @@ class SRKEOS(EOS):
         self.normalized_gibbs_energy = self.calc_normalized_gibbs_energy()
         self.choosen_eos_root = self.choose_eos_root_by_gibbs_energy()
         self.choosen_fugacities = self.fugacity_by_roots[self.choosen_eos_root]
+
+        self._z = self.choosen_eos_root
+        self._fugacities = self.choosen_fugacities
+
         return self.choosen_eos_root, self.choosen_fugacities
     
-    def return_eos_root_and_fugacities(self):
-        return super().return_eos_root_and_fugacities()
+    # def return_eos_root_and_fugacities(self):
+    #     return super().return_eos_root_and_fugacities()
     
+    @property
+    def z(self):
+        return super().z()
+    
+    @property
+    def fugacities(self):
+        return super().fugacities()
+
 
 
 if __name__ == '__main__':
