@@ -1,4 +1,12 @@
+from pathlib import Path
+import sys
+# Добавляем корневую директорию в PYTHONPATH
+root_path = Path(__file__).parent.parent.parent
+sys.path.append(str(root_path))
+
+
 from calculations.PhaseStability.BasePhaseStability import PhaseStabilityTest
+from calculations.EOS.BaseEOS import EOS
 import math as math
 from pathlib import Path
 import sys
@@ -9,7 +17,7 @@ from calculations.EOS.EOSFactory import EOSFactory
 
 class TwoPhaseStabilityTest(PhaseStabilityTest):
      
-    def __init__(self, composition, p, t, eos):
+    def __init__(self, composition, p, t, eos:EOS):
         super().__init__(composition, p, t, eos)
 
         self.convergence = False
@@ -124,8 +132,9 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
     def calc_ri_vapour(self, eos_vapour):
         ri_vapour = {}
         for component in eos_vapour.zi.keys():
-            ri = ((math.e ** self.initial_eos.fugacity_by_roots[self.initial_eos.choosen_eos_root][component]) /
-                   (((math.e ** eos_vapour.fugacity_by_roots[eos_vapour.choosen_eos_root][component])) * self.S_v))
+            #self.initial_eos.
+            ri = ((math.e ** self.initial_eos.fugacities[component]) /
+                   (((math.e ** eos_vapour.fugacities[component])) * self.S_v))
             ri_vapour[component] = ri
         return ri_vapour
 
@@ -134,8 +143,8 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
     def calc_ri_liquid(self, eos_liquid):
         ri_liquid = {}
         for component in eos_liquid.zi.keys():
-            ri = (((math.e ** eos_liquid.fugacity_by_roots[eos_liquid.choosen_eos_root][component]))/
-                  (math.e ** self.initial_eos.fugacity_by_roots[self.initial_eos.choosen_eos_root][component]) * self.S_l)
+            ri = (((math.e ** eos_liquid.fugacities[component]))/
+                  (math.e ** self.initial_eos.fugacities[component]) * self.S_l)
             ri_liquid[component] = ri 
         return ri_liquid
 
@@ -318,7 +327,7 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
 if __name__ == '__main__':
 
     from calculations.Composition.Composition import Composition
-    comp = Composition({'C1': 0.5, 'C6': 0.4, 'C25': 0.1},
+    comp = Composition({'C1': 0.6, 'C6': 0.4, },
                        c6_plus_bips_correlation= None,
                        c6_plus_correlations = {'critical_temperature': 'kesler_lee',
                                                         'critical_pressure' : 'rizari_daubert',

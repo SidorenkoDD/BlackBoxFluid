@@ -275,7 +275,7 @@ class PlusComponentProperties:
         }
 
         
-        with open(r'C:\Users\user\Desktop\PVT_TSU\code\db\new_db.json') as f:
+        with open(r'code/db/new_db.json') as f:
              self.katz_firuzabadi = json.load(f)
 
         self.data = {'M': self.katz_firuzabadi['molar_mass'][component], 'gamma': self.katz_firuzabadi['gamma'][component], 'Tb': self.katz_firuzabadi['Tb'][component]}

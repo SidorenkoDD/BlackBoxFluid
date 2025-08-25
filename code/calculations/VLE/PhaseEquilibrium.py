@@ -85,7 +85,7 @@ class PhaseEquilibrium:
     def calc_Ri(self, eos_vapour, eos_liquid):
         ri = {}
         for component in self.zi.keys():
-            ri[component] = math.exp(eos_liquid.fugacity_by_roots[eos_liquid.choosen_eos_root][component]) / math.exp(eos_vapour.fugacity_by_roots[eos_vapour.choosen_eos_root][component]) 
+            ri[component] = math.exp(eos_liquid.fugacities[component]) / math.exp(eos_vapour.fugacities[component]) 
         return ri
 
 

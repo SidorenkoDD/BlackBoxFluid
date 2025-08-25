@@ -7,7 +7,7 @@ class FluidProperties:
     
     def __init__(self, p, t, equil_obj: PhaseEquilibrium):
         
-        with open(r'C:\Users\user\Desktop\PVT_TSU\code\db\new_db.json', 'r') as db_file:
+        with open(r'code/db/new_db.json', 'r') as db_file:
             self.db = json.load(db_file)
         
         
