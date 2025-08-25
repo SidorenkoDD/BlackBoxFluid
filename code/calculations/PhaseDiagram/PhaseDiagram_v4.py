@@ -1,5 +1,7 @@
-from Composition import Composition
-from PhaseStability_v3 import PhaseStability
+from calculations.Composition.Composition import Composition
+from calculations.PhaseStability.TwoPhaseStabilityTest import TwoPhaseStabilityTest
+from calculations.EOS.BaseEOS import EOS
+#from PhaseStability_v3 import PhaseStability
 import math as math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -18,8 +20,8 @@ class SaturationPressure:
         self.results = {}
     
 
-    def define_s_sp(self, p):
-        phase_stability = PhaseStability(self.zi, p, self.temp)
+    def define_s_sp(self, p, eos:EOS):
+        phase_stability = TwoPhaseStabilityTest(self.zi, p, self.temp, eos)
 
         if (phase_stability.S_l - 1) < 10 ** -5 and (phase_stability.S_v) < 10 ** -5:
             y_sp = {component: 0 for component in self.zi.keys()}
@@ -65,8 +67,8 @@ class SaturationPressure:
         return {'s_sp': S_sp, 'y_sp': y_sp, 'k_sp': k_sp, 'r_sp': r_sp, 
                 'letuch_sp': letuch_sp, 'letuch_z': letuch_z}
 
-    def sp_process(self, lambd=1):
-        cur_s_sp = self.define_s_sp(self.p_i)
+    def sp_process(self, eos, lambd=1):
+        cur_s_sp = self.define_s_sp(self.p_i, eos)
 
         # Если s_sp 0, то обновляем давление
         while cur_s_sp['s_sp'] == 0:
@@ -101,13 +103,13 @@ class SaturationPressure:
             self.p_min_bub = self.p_i
             self.p_i = (self.p_max_bub + self.p_min_bub) / 2
 
-    def sp_convergence_loop(self):
-        self.sp_process()
+    def sp_convergence_loop(self, eos):
+        self.sp_process(eos)
         if self.p_max_bub - self.p_min_bub < math.pow(10, -5):
             return None
         
         while not (abs(1 - self.sum_y_sp) < math.pow(10, -3) or math.pow(self.Ykz, 2) < math.pow(10, -3)):
-            self.sp_process()
+            self.sp_process(eos)
             if self.p_max_bub - self.p_min_bub < math.pow(10, -5):
                 return None
 
@@ -115,8 +117,8 @@ class SaturationPressure:
         self.p_i = self.p_i / 2
         return self.p_b
 
-    def define_s_dp(self, p):
-        phase_stability = PhaseStability(self.zi, p, self.temp)
+    def define_s_dp(self, p, eos: EOS):
+        phase_stability = TwoPhaseStabilityTest(self.zi, p, self.temp, eos)
 
         if (phase_stability.S_l - 1) < 10 ** -5 and (phase_stability.S_v) < 10 ** -5:
             y_dp = {component: 0 for component in self.zi.keys()}
@@ -162,8 +164,8 @@ class SaturationPressure:
         return {'s_dp': S_dp, 'y_dp': y_dp, 'k_dp': k_dp, 'r_dp': r_dp, 
                 'letuch_dp': letuch_dp, 'letuch_z': letuch_z}
 
-    def dp_process(self, lambd=1):
-        cur_s_dp = self.define_s_dp(self.p_i)
+    def dp_process(self, eos:EOS, lambd=1):
+        cur_s_dp = self.define_s_dp(self.p_i, eos)
 
         # Если s_dp 0, то обновляем давление
         while cur_s_dp['s_dp'] == 0:
@@ -174,7 +176,7 @@ class SaturationPressure:
             if self.p_max_dew - self.p_min_dew < math.pow(10, -5):
                 return None
             
-            cur_s_dp = self.define_s_dp(self.p_i)
+            cur_s_dp = self.define_s_dp(self.p_i, eos)
 
         # если ssp не ноль, то начинается цикл расчета Pdew
         r_dp = {}
@@ -198,13 +200,13 @@ class SaturationPressure:
             self.p_max_dew = self.p_i
             self.p_i = (self.p_max_dew + self.p_min_dew) / 2
 
-    def dp_convergence_loop(self):
-        self.dp_process()
+    def dp_convergence_loop(self, eos):
+        self.dp_process(eos)
         if self.p_max_dew - self.p_min_dew < math.pow(10, -5):
             return None
         
         while not (abs(1 - self.sum_y_dp) < math.pow(10, -3) or math.pow(self.Ykz_dp, 2) < math.pow(10, -3)):
-            self.dp_process()
+            self.dp_process(eos)
             if self.p_max_dew - self.p_min_dew < math.pow(10, -5):
                 return None
 
@@ -214,19 +216,20 @@ class SaturationPressure:
 
 class PhaseDiagram:
     def __init__(self, zi: Composition, p_max, t_min, t_max, t_step):
-        self.zi = zi.composition
+        self.zi = zi
         self.p_max = p_max
         self.t_min = t_min
         self.t_max = t_max
         self.t_step = t_step
         self.temp_arange = np.arange(self.t_min + 273.14, self.t_max + 273.14, self.t_step)
+        
         self.results = {}
 
-    def calc_phase_diagram(self):
+    def calc_phase_diagram(self, eos):
         for temp in self.temp_arange:
             cur_saturation_pressure = SaturationPressure(self.zi, self.p_max, temp)
-            pb = cur_saturation_pressure.sp_convergence_loop()
-            pdew = cur_saturation_pressure.dp_convergence_loop()
+            pb = cur_saturation_pressure.sp_convergence_loop(eos)
+            pdew = cur_saturation_pressure.dp_convergence_loop(eos)
             self.results[temp] = [pb, pdew]
             print(f"Temp: {temp-273.14:.2f}°C, Pb: {pb}, Pdew: {pdew}")
 

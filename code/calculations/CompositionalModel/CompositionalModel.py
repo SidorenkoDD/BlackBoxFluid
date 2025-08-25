@@ -9,6 +9,7 @@ sys.path.append(str(root_path))
 from calculations.Composition.Composition import Composition
 from calculations.VLE.Flash import FlashFactory
 from calculations.Utils.Conditions import Conditions
+from calculations.PhaseDiagram.PhaseDiagram_v4 import PhaseDiagram
 
 
 
@@ -26,6 +27,11 @@ class CompositionalModel:
         #result = flash_calculator.calculate(conditions)
         self.flash_results[str(flash_type) + '_' + str(conditions.p)+'_' + str(conditions.t)] = result 
     
+    
+    def plot_phase_diagram(self, p_max = 40, t_min = 0, t_max = 200, t_step = 10):
+        self.phase_diagram_obj = PhaseDiagram(self.composition, p_max= p_max, t_min= t_min, t_max= t_max, t_step= t_step)
+        self.phase_diagram_obj.calc_phase_diagram(eos = self.eos)
+        self.phase_diagram_obj.plot_phase_diagram()
 
 
 if __name__ == '__main__':
@@ -52,6 +58,7 @@ if __name__ == '__main__':
 
     comp_model.flash(conditions=conditions1)
     print(comp_model.flash_results)
+    
     # comp_model.flash(conditions=conditions2)
     # print(comp_model.flash_results)
 
