@@ -15,23 +15,27 @@ from calculations.PhaseDiagram.PhaseDiagram_v4 import PhaseDiagram
 
 class CompositionalModel:
     def __init__(self,zi: Composition, eos: str = 'PREOS'):
-        self.composition = zi
-        self.eos = eos
-        self.flash_results = {}
+        self._composition = zi
+        self._eos = eos
+        self._flash_results = {}
 
     def flash(self, conditions, flash_type = 'TwoPhaseFlash'):
-        self.flash_object = FlashFactory(self.composition, self.eos)
-        flash_calculator = self.flash_object.create_flash(flash_type=flash_type)
+        self._flash_object = FlashFactory(self._composition, self._eos)
+        flash_calculator = self._flash_object.create_flash(flash_type=flash_type)
         result = flash_calculator.calculate(conditions=conditions)
-        #flash_calculator = getattr(self.flash_fasade, flash_type)
-        #result = flash_calculator.calculate(conditions)
-        self.flash_results[str(flash_type) + '_' + str(conditions.p)+'_' + str(conditions.t)] = result 
+
+        self._flash_results[str(flash_type) + '_' + str(conditions.p)+'_' + str(conditions.t)] = result 
     
     
     def plot_phase_diagram(self, p_max = 40, t_min = 0, t_max = 200, t_step = 10):
         self.phase_diagram_obj = PhaseDiagram(self.composition, p_max= p_max, t_min= t_min, t_max= t_max, t_step= t_step)
         self.phase_diagram_obj.calc_phase_diagram(eos = self.eos)
         self.phase_diagram_obj.plot_phase_diagram()
+
+
+    @property
+    def flashes(self):
+        return self._flash_results.keys()
 
 
 if __name__ == '__main__':
@@ -57,10 +61,10 @@ if __name__ == '__main__':
     conditions2 = Conditions(7,50)
 
     comp_model.flash(conditions=conditions1)
-    print(comp_model.flash_results)
+    #print(comp_model.flash_results)
     
-    # comp_model.flash(conditions=conditions2)
-    # print(comp_model.flash_results)
+    comp_model.flash(conditions=conditions2)
+    print(comp_model.flash_results)
 
 
     
