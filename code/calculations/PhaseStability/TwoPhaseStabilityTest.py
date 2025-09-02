@@ -24,8 +24,8 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
         self.convergence_trivial_solution = False
         self.eos = EOSFactory.create_eos(eos)
 
-        self.composition = composition.composition
-        self.composition_data = composition.composition_data
+        self.composition = composition._composition
+        self.composition_data = composition._composition_data
     
     # Расчет начального УРС
     def calc_initial_eos(self):

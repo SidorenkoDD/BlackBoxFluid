@@ -1,4 +1,12 @@
-from calculations.Composition.PlusComponentProperties_v3 import PlusComponentProperties
+from pathlib import Path
+import sys
+
+# Добавляем корневую директорию в PYTHONPATH
+root_path = Path(__file__).parent.parent.parent
+sys.path.append(str(root_path))
+
+
+from calculations.Composition.PlusComponentCorrelations import PlusComponentProperties
 from calculations.Utils.JsonDBReader import JsonDBReader
 import math
 import json
@@ -30,9 +38,9 @@ class Composition:
                                                         'k_watson': 'k_watson',
                                                         'shift_parameter': 'jhaveri_youngren'}):
 
-        self.composition = zi
-        self.c6_plus_correlations = c6_plus_correlations
-        self.c6_plus_bips_correlation = c6_plus_bips_correlation
+        self._composition = zi
+        self._c6_plus_correlations = c6_plus_correlations
+        self._c6_plus_bips_correlation = c6_plus_bips_correlation
 
         self._validate_composition_sum()
         self._validate_c6_plus_components()
@@ -41,12 +49,12 @@ class Composition:
         self._prepare_composition_data()
 
 
-
     def _validate_composition_sum(self):
-        sum_of_components = sum(self.composition.values())
+        '''Method checks sum of components, range 0.998 to 1.001
+        '''
+        sum_of_components = sum(self._composition.values())
         if not 0.998 <= sum_of_components <=1.001:
             raise ValueError('Сумма компонент не равна 1')
-
 
 
     def _validate_c6_plus_components(self):
@@ -59,100 +67,138 @@ class Composition:
             if match:
                 return int(match.group(1))
             return None
-        c6_plus_components = [item for item in self.composition.keys() if extract_number_from_end(item) > 6]
-        self.c6_plus_components = c6_plus_components
+        _c6_plus_components = [item for item in self._composition.keys() if extract_number_from_end(item) > 6]
+        self._c6_plus_components = _c6_plus_components
         
     
     def _create_composition_db(self):
+        '''Method creates component properties for composition,  loading from json
+        '''
         jsondbreader = JsonDBReader()
-        self.composition_data = jsondbreader.load_database()
+        self._composition_data = jsondbreader.load_database()
         # with open(r'code/db/new_db.json') as f:
         #     self.composition_data = json.load(f)
 
 
-        if len(self.c6_plus_components) > 0:
+        if len(self._c6_plus_components) > 0:
 
 
-            for component in self.c6_plus_components:
-                cur_comp_properties = PlusComponentProperties(component, correlations_config= self.c6_plus_correlations)
+            for component in self._c6_plus_components:
+                cur_comp_properties = PlusComponentProperties(component, correlations_config= self._c6_plus_correlations)
                 cur_comp_properties.calculate_all_props_v2()
 
-                self.composition_data['molar_mass'][component] = cur_comp_properties.data['M']
-                self.composition_data['critical_pressure'][component] = cur_comp_properties.data['p_c']
-                self.composition_data['critical_temperature'][component] = cur_comp_properties.data['t_c']
-                self.composition_data['acentric_factor'][component] = cur_comp_properties.data['acentric_factor']
-                self.composition_data['critical_volume'][component] = cur_comp_properties.data['crit_vol']
-                self.composition_data['shift_parameter'][component] = cur_comp_properties.data['Cpen']
-
+                self._composition_data['molar_mass'][component] = cur_comp_properties.data['M']
+                self._composition_data['critical_pressure'][component] = cur_comp_properties.data['p_c']
+                self._composition_data['critical_temperature'][component] = cur_comp_properties.data['t_c']
+                self._composition_data['acentric_factor'][component] = cur_comp_properties.data['acentric_factor']
+                self._composition_data['critical_volume'][component] = cur_comp_properties.data['crit_vol']
+                self._composition_data['shift_parameter'][component] = cur_comp_properties.data['Cpen']
 
 
     def _chueh_prausnitz_bip(self, component_i, component_j, A = 0.18, B = 6):
+        '''Chew-Parusnitz correlation for BIPS
+        '''
 
-        v_ci = self.composition_data['critical_volume'][component_i]
-        v_cj = self.composition_data['critical_volume'][component_j]
+        v_ci = self._composition_data['critical_volume'][component_i]
+        v_cj = self._composition_data['critical_volume'][component_j]
 
         return A * (1 - math.pow(((2 * math.pow(v_ci, 1/6) * math.pow(v_cj, 1/6))/(math.pow(v_ci, 1/3) + math.pow(v_cj, 1/3))), B))
 
 
     def _make_all_bips_zero_for_C6_plus(self):
+        '''returns 0 for bips'''
         return 0
-    
 
 
     def  _calculate_bips(self):
-        if len(self.c6_plus_components) > 0:
+        if len(self._c6_plus_components) > 0:
 
             # Этот цикл добавляет в уже существующие словари тяжелые компоненты
-            for component in [x for x in self.composition.keys() if x not in self.c6_plus_components]:
-                for plus_component in self.c6_plus_components:
-                    self.composition_data['bip'][component][plus_component] = self._make_all_bips_zero_for_C6_plus()
+            for component in [x for x in self._composition.keys() if x not in self._c6_plus_components]:
+                for plus_component in self._c6_plus_components:
+                    self._composition_data['bip'][component][plus_component] = self._make_all_bips_zero_for_C6_plus()
 
             # Этот цикл создает новые словари для тяжелых компонент
-            for plus_component in self.c6_plus_components:
+            for plus_component in self._c6_plus_components:
                 comp_dict = {}
-                for component in self.composition.keys():
+                for component in self._composition.keys():
                     comp_dict[component] = round(self._make_all_bips_zero_for_C6_plus(), 3)
                 
-                self.composition_data['bip'][plus_component] = comp_dict
-
-
+                self._composition_data['bip'][plus_component] = comp_dict
 
 
     def _prepare_composition_data(self):
+        '''Method generates composition db with C6+ components
+        '''
         filtered_data = {}
         
-        for main_key, inner_dict in self.composition_data.items():
+        for main_key, inner_dict in self._composition_data.items():
             if isinstance(inner_dict, dict):
                 # Для обычных вложенных словарей
                 filtered_inner = {}
                 for component, value in inner_dict.items():
-                    if component in self.composition.keys():
+                    if component in self._composition.keys():
                         filtered_inner[component] = value
                 filtered_data[main_key] = filtered_inner
             else:
                 # Если значение не словарь, оставляем как есть
                 filtered_data[main_key] = inner_dict
-        if 'bip' in self.composition_data.keys():
-            bip_dict = self.composition_data['bip']
+        if 'bip' in self._composition_data.keys():
+            bip_dict = self._composition_data['bip']
             filtered_bip = {}
             for comp1 in bip_dict:
-                if comp1 in self.composition:
+                if comp1 in self._composition:
                     filtered_inner_bip = {}
                     for comp2, value in bip_dict[comp1].items():
-                        if comp2 in self.composition:
+                        if comp2 in self._composition:
                             filtered_inner_bip[comp2] = value
                     if filtered_inner_bip:  # добавляем только если есть значения
                         filtered_bip[comp1] = filtered_inner_bip
             filtered_data['bip'] = filtered_bip
 
-        self.composition_data = filtered_data
+        self._composition_data = filtered_data
+
+
+    def edit_component_properties(self, component: str, properties:dict):
+        '''Method allows to change component properties
+        component - component label, str
+        properties - component properties, dict:
+            molar_mass
+            gamma
+            Tb
+            critical_pressure
+            critical_temperature
+            acentric_factor
+            shift_parameter
+            critical_volume
+            bip
+        
+        Должна быть логика, что есть db по умолчанию, что передано в словаре - то заменяется в db, а остальное остается без изменений
+        '''
+        
+        avalible_properties = ['molar_mass', 'gamma', 'Tb', 'critical_pressure', 'critical_temperature', 
+                               'acentric_factor', 'shift_parameter', 'critical_volume', 'bip']
+        
+        for property in list(properties.keys()):
+            if property not in avalible_properties:
+                raise KeyError(f'Property {property} not in db!')
+            else:
+                self._composition_data[property][component] = properties[property]
+                print(f'{property}')
+
+
+
 
     def show_composition_dataframes(self):
-        composition_df = pd.DataFrame.from_dict(self.composition, orient= 'index').to_markdown()
-        main_data_df = pd.DataFrame.from_dict({k: self.composition_data[k] for k in list(self.composition_data.keys())[:-1]}).to_markdown()
+
+        '''Print composition, component properties and bips'''
 
 
-        bips_df = pd.DataFrame.from_dict(self.composition_data['bip']).to_markdown()
+        composition_df = pd.DataFrame.from_dict(self._composition, orient= 'index').to_markdown()
+        main_data_df = pd.DataFrame.from_dict({k: self._composition_data[k] for k in list(self._composition_data.keys())[:-1]}).to_markdown()
+
+
+        bips_df = pd.DataFrame.from_dict(self._composition_data['bip']).to_markdown()
         
 
         print(composition_df)
@@ -174,5 +220,11 @@ if __name__ == '__main__':
                         'k_watson': 'k_watson',
                         'shift_parameter': 'jhaveri_youngren'})
     
+    comp.show_composition_dataframes()
+    
+    comp.edit_component_properties('C1', {'molar_mass': 0.95, 'critical_pressure': 500})
+
+    
+
     comp.show_composition_dataframes()
 

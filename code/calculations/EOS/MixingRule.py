@@ -1,0 +1,6 @@
+class ClassicMixingRule:
+    ...
+
+class HuronVidalMixingRule:
+    ...
+

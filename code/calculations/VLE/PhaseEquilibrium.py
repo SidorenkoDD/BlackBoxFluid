@@ -10,8 +10,8 @@ class PhaseEquilibrium:
     '''
 
     def __init__(self, composition: Composition, p:float, t:float, k_values, eos: str | EOS):
-        self.zi = composition.composition
-        self.db = composition.composition_data
+        self.zi = composition._composition
+        self.db = composition._composition_data
         self.eos = EOSFactory().create_eos(eos)
 
         self.p = p
