@@ -1,6 +1,16 @@
-class ClassicMixingRule:
+from abc import ABC, abstractmethod 
+
+
+class MixingRule(ABC):
     ...
 
-class HuronVidalMixingRule:
+class ClassicMixingRule(MixingRule):
     ...
 
+class HuronVidalMixingRule(MixingRule):
+    ...
+
+
+
+class MixingRuleFactory:
+    ...
