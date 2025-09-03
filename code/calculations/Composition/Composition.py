@@ -195,6 +195,8 @@ class Composition:
 
 
         composition_df = pd.DataFrame.from_dict(self._composition, orient= 'index').to_markdown()
+
+        ## Костыль чтобы убрать bips
         main_data_df = pd.DataFrame.from_dict({k: self._composition_data[k] for k in list(self._composition_data.keys())[:-1]}).to_markdown()
 
 
@@ -207,6 +209,19 @@ class Composition:
         print('========')
         print(bips_df)
 
+
+
+    @property
+    def composition_df(self):
+        return pd.DataFrame.from_dict(self._composition, orient= 'index')
+    
+    @property
+    def composition_properties_df(self):
+        return pd.DataFrame.from_dict({k: self._composition_data[k] for k in list(self._composition_data.keys())[:-1]})
+    
+    @property
+    def composition_bips_df(self):
+        return pd.DataFrame.from_dict(self._composition_data['bip'])
 
 
 

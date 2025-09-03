@@ -35,7 +35,7 @@ class CompositionalModel:
 
     @property
     def show_flashes(self):
-        return list(self._flash_results.keys())
+        return self._flash_results
 
 
 if __name__ == '__main__':
