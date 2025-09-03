@@ -28,8 +28,8 @@ class CompositionalModel:
     
     
     def plot_phase_diagram(self, p_max = 40, t_min = 0, t_max = 200, t_step = 10):
-        self.phase_diagram_obj = PhaseDiagram(self.composition, p_max= p_max, t_min= t_min, t_max= t_max, t_step= t_step)
-        self.phase_diagram_obj.calc_phase_diagram(eos = self.eos)
+        self.phase_diagram_obj = PhaseDiagram(self._composition, p_max= p_max, t_min= t_min, t_max= t_max, t_step= t_step)
+        self.phase_diagram_obj.calc_phase_diagram(eos = self._eos)
         self.phase_diagram_obj.plot_phase_diagram()
 
 

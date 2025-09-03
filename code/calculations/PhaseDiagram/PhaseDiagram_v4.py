@@ -1,7 +1,14 @@
+from pathlib import Path
+import sys
+
+# Добавляем корневую директорию в PYTHONPATH
+root_path = Path(__file__).parent.parent.parent
+sys.path.append(str(root_path))
+
 from calculations.Composition.Composition import Composition
 from calculations.PhaseStability.TwoPhaseStabilityTest import TwoPhaseStabilityTest
 from calculations.EOS.BaseEOS import EOS
-#from PhaseStability_v3 import PhaseStability
+
 import math as math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,9 +29,10 @@ class SaturationPressure:
 
     def define_s_sp(self, p, eos:EOS):
         phase_stability = TwoPhaseStabilityTest(self.zi, p, self.temp, eos)
+        phase_stability.calculate_phase_stability()
 
         if (phase_stability.S_l - 1) < 10 ** -5 and (phase_stability.S_v) < 10 ** -5:
-            y_sp = {component: 0 for component in self.zi.keys()}
+            y_sp = {component: 0 for component in self.zi._composition.keys()}
             return {'s_sp': 0, 'y_sp': y_sp, 'k_sp': None, 'r_sp': None, 
                     'letuch_sp': None, 'letuch_z': None}
 
@@ -32,20 +40,20 @@ class SaturationPressure:
             if phase_stability.S_l > phase_stability.S_v:
                 k_sp = phase_stability.k_values_liquid
                 r_sp = phase_stability.ri_l
-                letuch_z = phase_stability.initial_eos.fugacity_by_roots[phase_stability.initial_eos.choosen_eos_root]
-                letuch_sp = phase_stability.liquid_eos.fugacity_by_roots[phase_stability.liquid_eos.choosen_eos_root]
-                y_sp = {component: self.zi[component] / phase_stability.k_values_liquid[component] 
-                        for component in self.zi.keys()}
+                letuch_z = phase_stability.initial_eos.choosen_fugacities
+                letuch_sp = phase_stability.liquid_eos.choosen_fugacities
+                y_sp = {component: self.zi._composition[component] / phase_stability.k_values_liquid[component] 
+                        for component in self.zi._composition.keys()}
             else:
                 k_sp = phase_stability.k_values_vapour
                 r_sp = phase_stability.ri_v
-                letuch_z = phase_stability.initial_eos.fugacity_by_roots[phase_stability.initial_eos.choosen_eos_root]
-                letuch_sp = phase_stability.vapour_eos.fugacity_by_roots[phase_stability.vapour_eos.choosen_eos_root]
-                y_sp = {component: self.zi[component] * phase_stability.k_values_vapour[component] 
-                        for component in self.zi.keys()}
+                letuch_z = phase_stability.initial_eos.choosen_fugacities
+                letuch_sp = phase_stability.vapour_eos.choosen_fugacities
+                y_sp = {component: self.zi._composition[component] * phase_stability.k_values_vapour[component] 
+                        for component in self.zi._composition.keys()}
         else:
             if phase_stability.S_v < 1:
-                y_sp = {component: 0 for component in self.zi.keys()}
+                y_sp = {component: 0 for component in self.zi._composition.keys()}
                 return {'s_sp': 0, 'y_sp': y_sp, 'k_sp': None, 'r_sp': None, 
                         'letuch_sp': None, 'letuch_z': None}
 
@@ -53,13 +61,13 @@ class SaturationPressure:
             if phase_stability.S_v > phase_stability.S_l:
                 k_sp = phase_stability.k_values_vapour
                 r_sp = phase_stability.ri_v
-                letuch_z = phase_stability.initial_eos.fugacity_by_roots[phase_stability.initial_eos.choosen_eos_root]
-                letuch_sp = phase_stability.vapour_eos.fugacity_by_roots[phase_stability.vapour_eos.choosen_eos_root]
-                y_sp = {component: self.zi[component] * phase_stability.k_values_vapour[component] 
-                        for component in self.zi.keys()}
+                letuch_z = phase_stability.initial_eos.choosen_fugacities
+                letuch_sp = phase_stability.vapour_eos.choosen_fugacities
+                y_sp = {component: self.zi._composition[component] * phase_stability.k_values_vapour[component] 
+                        for component in self.zi._composition.keys()}
             else:
                 if phase_stability.S_l < 1:
-                    y_sp = {component: 0 for component in self.zi.keys()}
+                    y_sp = {component: 0 for component in self.zi._composition.keys()}
                     return {'s_sp': 0, 'y_sp': y_sp, 'k_sp': None, 'r_sp': None, 
                             'letuch_sp': None, 'letuch_z': None}
 
@@ -79,7 +87,7 @@ class SaturationPressure:
             if self.p_max_bub - self.p_min_bub < math.pow(10, -5):
                 return None
             
-            cur_s_sp = self.define_s_sp(self.p_i)
+            cur_s_sp = self.define_s_sp(self.p_i, eos)
 
         # если ssp не ноль, то начинается цикл расчета Pb
         r_sp = {}
@@ -92,10 +100,10 @@ class SaturationPressure:
 
         self.sum_y_sp = sum(y_sp.values())
 
-        self.Sum = sum(math.log(r_sp[component]) / math.log(y_sp[component]) / self.zi[component] 
-                       for component in self.zi)
+        self.Sum = sum(math.log(r_sp[component]) / math.log(y_sp[component]) / self.zi._composition[component] 
+                       for component in self.zi._composition.keys())
         
-        self.Ykz = sum(y_sp[component] / self.zi[component] for component in self.zi)
+        self.Ykz = sum(y_sp[component] / self.zi._composition[component] for component in self.zi._composition.keys())
 
         if abs(1 - self.sum_y_sp) < math.pow(10, -3) or math.pow(self.Ykz, 2) < math.pow(10, -3):
             print(f'Pb найдено: {self.p_i}')
@@ -119,9 +127,10 @@ class SaturationPressure:
 
     def define_s_dp(self, p, eos: EOS):
         phase_stability = TwoPhaseStabilityTest(self.zi, p, self.temp, eos)
+        phase_stability.calculate_phase_stability()
 
         if (phase_stability.S_l - 1) < 10 ** -5 and (phase_stability.S_v) < 10 ** -5:
-            y_dp = {component: 0 for component in self.zi.keys()}
+            y_dp = {component: 0 for component in self.zi._composition.keys()}
             return {'s_dp': 0, 'y_dp': y_dp, 'k_dp': None, 'r_dp': None, 
                     'letuch_dp': None, 'letuch_z': None}
 
@@ -129,20 +138,20 @@ class SaturationPressure:
             if phase_stability.S_l > phase_stability.S_v:
                 k_dp = phase_stability.k_values_liquid
                 r_dp = phase_stability.ri_l
-                letuch_z = phase_stability.initial_eos.fugacity_by_roots[phase_stability.initial_eos.choosen_eos_root]
-                letuch_dp = phase_stability.liquid_eos.fugacity_by_roots[phase_stability.liquid_eos.choosen_eos_root]
-                y_dp = {component: self.zi[component] / phase_stability.k_values_liquid[component] 
-                        for component in self.zi.keys()}
+                letuch_z = phase_stability.initial_eos.choosen_fugacities
+                letuch_dp = phase_stability.liquid_eos.choosen_fugacities
+                y_dp = {component: self.zi._composition[component] / phase_stability.k_values_liquid[component] 
+                        for component in self.zi._composition.keys()}
             else:
                 k_dp = phase_stability.k_values_vapour
                 r_dp = phase_stability.ri_v
-                letuch_z = phase_stability.initial_eos.fugacity_by_roots[phase_stability.initial_eos.choosen_eos_root]
-                letuch_dp = phase_stability.vapour_eos.fugacity_by_roots[phase_stability.vapour_eos.choosen_eos_root]
-                y_dp = {component: self.zi[component] * phase_stability.k_values_vapour[component] 
-                        for component in self.zi.keys()}
+                letuch_z = phase_stability.initial_eos.choosen_fugacities
+                letuch_dp = phase_stability.vapour_eos.choosen_fugacities
+                y_dp = {component: self.zi._composition[component] * phase_stability.k_values_vapour[component] 
+                        for component in self.zi._composition.keys()}
         else:
             if phase_stability.S_v < 1:
-                y_dp = {component: 0 for component in self.zi.keys()}
+                y_dp = {component: 0 for component in self.zi._composition.keys()}
                 return {'s_dp': 0, 'y_dp': y_dp, 'k_dp': None, 'r_dp': None, 
                         'letuch_dp': None, 'letuch_z': None}
 
@@ -150,13 +159,13 @@ class SaturationPressure:
             if phase_stability.S_v > phase_stability.S_l:
                 k_dp = phase_stability.k_values_vapour
                 r_dp = phase_stability.ri_v
-                letuch_z = phase_stability.initial_eos.fugacity_by_roots[phase_stability.initial_eos.choosen_eos_root]
-                letuch_dp = phase_stability.vapour_eos.fugacity_by_roots[phase_stability.vapour_eos.choosen_eos_root]
-                y_dp = {component: self.zi[component] * phase_stability.k_values_vapour[component] 
-                        for component in self.zi.keys()}
+                letuch_z = phase_stability.initial_eos.choosen_fugacities
+                letuch_dp = phase_stability.vapour_eos.choosen_fugacities
+                y_dp = {component: self.zi._composition[component] * phase_stability.k_values_vapour[component] 
+                        for component in self.zi._composition.keys()}
             else:
                 if phase_stability.S_l < 1:
-                    y_dp = {component: 0 for component in self.zi.keys()}
+                    y_dp = {component: 0 for component in self.zi._composition.keys()}
                     return {'s_dp': 0, 'y_dp': y_dp, 'k_dp': None, 'r_dp': None, 
                             'letuch_dp': None, 'letuch_z': None}
 
@@ -189,10 +198,10 @@ class SaturationPressure:
 
         self.sum_y_dp = sum(y_dp.values())
 
-        self.Sum_dp = sum(math.log(r_dp[component]) / math.log(y_dp[component]) / self.zi[component] 
-                          for component in self.zi)
+        self.Sum_dp = sum(math.log(r_dp[component]) / math.log(y_dp[component]) / self.zi._composition[component] 
+                          for component in self.zi._composition.keys())
         
-        self.Ykz_dp = sum(y_dp[component] / self.zi[component] for component in self.zi)
+        self.Ykz_dp = sum(y_dp[component] / self.zi._composition[component] for component in self.zi._composition.keys())
 
         if abs(1 - self.sum_y_dp) < math.pow(10, -3) or math.pow(self.Ykz_dp, 2) < math.pow(10, -3):
             print(f'Pdew найдено: {self.p_i}')
@@ -231,7 +240,7 @@ class PhaseDiagram:
             pb = cur_saturation_pressure.sp_convergence_loop(eos)
             pdew = cur_saturation_pressure.dp_convergence_loop(eos)
             self.results[temp] = [pb, pdew]
-            print(f"Temp: {temp-273.14:.2f}°C, Pb: {pb}, Pdew: {pdew}")
+            #print(f"Temp: {temp-273.14:.2f}°C, Pb: {pb}, Pdew: {pdew}")
 
     def plot_phase_diagram(self):
         bubble_points = []
@@ -278,5 +287,5 @@ class PhaseDiagram:
 if __name__ == '__main__':
     composition = Composition({'C1': 0.4, 'C2': 0.2,  'nC4': 0.1,  'C6': 0.3})
     phase_diag = PhaseDiagram(composition, 40, 0, 200, 10)
-    phase_diag.calc_phase_diagram()
+    phase_diag.calc_phase_diagram('PREOS')
     phase_diag.plot_phase_diagram()
