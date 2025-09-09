@@ -47,7 +47,7 @@ class PhaseEquilibrium:
             raise ValueError("Нет решения в диапазоне fvv ∈ [0, 1]. Проверьте K_i и z_i.")
 
         # Метод бисекции
-        for _ in range(100):
+        for _ in range(1000):
             fvv = (fv_min + fv_max) / 2
             sum_mid = compute_sum(fvv)
 
@@ -90,7 +90,7 @@ class PhaseEquilibrium:
 
 
     # Метод проверки сходимости
-    def check_convergence_ri(self, e = math.pow(10,-9)):
+    def check_convergence_ri(self, e = math.pow(10,-12)):
             
         ri_massive = []
         for ri in list(self.ri.values()):
@@ -121,7 +121,7 @@ class PhaseEquilibrium:
         for component in self.k_values.keys():
             ln_ki.append(math.pow(math.log(self.k_values[component]), 2))
         
-        if sum(ln_ki) < math.pow(10, -3):
+        if sum(ln_ki) < math.pow(10, -4):
             self.trivial_solution = True
             return True
         else:

@@ -57,7 +57,7 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
         return k_initial_vapour
     
 
-    # Расчет начальных констант равновесия для газовой фазы
+    # Расчет начальных констант равновесия для жидкой фазы
     def calc_k_initial_for_liquid_wilson(self):
         k_initial_liquid = {}
         for component in list(self.composition.keys()):
@@ -171,7 +171,7 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
     
 
     ### Новый метод анализа стабильности 
-    def check_convergence(self, e = math.pow(10, -6)):
+    def check_convergence(self, e = math.pow(10, -12)):
     
 
         ri_v_to_sum = []
@@ -232,8 +232,8 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
         self.check_trivial_solution()
         while (self.convergence == False) and (self.convergence_trivial_solution == False):
 
-            # self.k_values_vapour = self.update_k_values_vapour()
-            # self.k_values_liquid = self.update_k_values_liquid()
+            self.k_values_vapour = self.update_k_values_vapour()
+            self.k_values_liquid = self.update_k_values_liquid()
     
             self.Yi_v = self.calc_Yi_v(self.composition)
             self.Xi_l = self.calc_Xi_l(self.composition)
@@ -251,8 +251,8 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
             self.ri_v = self.calc_ri_vapour(self.vapour_eos)
             self.ri_l = self.calc_ri_liquid(self.liquid_eos)
             
-            self.k_values_vapour = self.update_k_values_vapour()
-            self.k_values_liquid = self.update_k_values_liquid()
+            #self.k_values_vapour = self.update_k_values_vapour()
+            #self.k_values_liquid = self.update_k_values_liquid()
 
             iter += 1
             self.check_convergence()
@@ -266,7 +266,7 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
 
     def interpetate_stability_analysis(self):
 
-        if ((self.trivial_solution_vapour) or 
+        if (((self.trivial_solution_vapour) and (self.trivial_solution_liquid)) or 
             ((self.S_v <= 1) and (self.trivial_solution_liquid)) or 
             ((self.trivial_solution_vapour) and (self.S_l <= 1)) or 
             ((self.S_v <= 1) and (self.S_l<= 1))):

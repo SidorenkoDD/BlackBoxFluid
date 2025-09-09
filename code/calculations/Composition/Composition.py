@@ -53,7 +53,7 @@ class Composition:
         '''Method checks sum of components, range 0.998 to 1.001
         '''
         sum_of_components = sum(self._composition.values())
-        if not 0.998 <= sum_of_components <=1.001:
+        if not 0.997 <= sum_of_components <=1.002:
             raise ValueError('Сумма компонент не равна 1')
 
 
@@ -66,7 +66,7 @@ class Composition:
             match = re.search(r'(\d+)$', text)
             if match:
                 return int(match.group(1))
-            return None
+            return 0
         _c6_plus_components = [item for item in self._composition.keys() if extract_number_from_end(item) > 6]
         self._c6_plus_components = _c6_plus_components
         
