@@ -36,6 +36,10 @@ class TwoPhaseFlashResults:
     vapour_density: float | None
     liquid_density: float | None
 
+
+    def show_compositions(self):
+        ...
+        #df = pd.D
     
 
 
