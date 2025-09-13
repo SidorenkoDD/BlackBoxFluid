@@ -19,6 +19,7 @@ class TwoPhaseFlashResults:
     EOS: str
     
     Fv : float | None
+    Fl : float | None
     Ki: float | None
 
     liquid_composition: dict | None

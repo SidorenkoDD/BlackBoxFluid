@@ -12,8 +12,8 @@ class ResultsViewer(ABC):
 class FlashResultsViewer(ResultsViewer):
 
     def view(self, dataclass_obj):
-        util_data = [dataclass_obj.pressure, dataclass_obj.temperature, dataclass_obj.stable, dataclass_obj.EOS, dataclass_obj.Fv]
-        util_df = pd.DataFrame(util_data, index = ['Pressure', 'Temperature', 'Stable', 'EOS', 'Fv'])
+        util_data = [dataclass_obj.pressure, dataclass_obj.temperature, dataclass_obj.stable, dataclass_obj.EOS, dataclass_obj.Fv, dataclass_obj.Fl]
+        util_df = pd.DataFrame(util_data, index = ['Pressure', 'Temperature', 'Stable', 'EOS', 'Fv', 'Fl'])
 
 
         composition_df = pd.DataFrame({'Component': list(dataclass_obj.vapour_composition.keys()),

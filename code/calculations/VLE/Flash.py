@@ -96,6 +96,7 @@ class TwoPhaseFlash(Calculator):
                                            EOS= str(self.eos),
                                            stable= self.phase_stability.stable,
                                            Fv= self.phase_equilibrium.fv,
+                                           Fl = (1 - self.phase_equilibrium.fv),
                                            Ki= self.phase_equilibrium.k_values,
                                            liquid_composition= self.phase_equilibrium.xi_l,
                                            vapour_composition= self.phase_equilibrium.yi_v,

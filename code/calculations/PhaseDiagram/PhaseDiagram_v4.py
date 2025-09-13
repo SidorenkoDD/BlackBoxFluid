@@ -288,4 +288,4 @@ if __name__ == '__main__':
     composition = Composition({'C1': 0.4, 'C2': 0.2,  'nC4': 0.1,  'C6': 0.3})
     phase_diag = PhaseDiagram(composition, 40, 0, 200, 10)
     phase_diag.calc_phase_diagram('PREOS')
-    phase_diag.plot_phase_diagram()
+    

@@ -9,8 +9,7 @@ sys.path.append(str(root_path))
 from calculations.Composition.Composition import Composition
 from calculations.VLE.Flash import FlashFactory
 from calculations.Utils.Conditions import Conditions
-from calculations.PhaseDiagram.PhaseDiagram_v4 import PhaseDiagram
-from calculations.Experiments.StandardSeparation import StandardSeparation
+from calculations.PhaseDiagram.PhaseDiagram_v4 import PhaseDiagram, SaturationPressure
 from calculations.Experiments.ExperimentsFacade import ExperimentsFacade
 
 
@@ -21,6 +20,7 @@ class CompositionalModel:
         self._eos = eos
         self._flash_results = {}
         self.experiments = ExperimentsFacade(self._composition, self._eos)
+        
 
     def flash(self, conditions, flash_type = 'TwoPhaseFlash'):
         self._flash_object = FlashFactory(self._composition, self._eos)
@@ -31,10 +31,15 @@ class CompositionalModel:
     
     
     def plot_phase_diagram(self, p_max = 40, t_min = 0, t_max = 200, t_step = 10):
-        self.phase_diagram_obj = PhaseDiagram(self._composition, p_max= p_max, t_min= t_min, t_max= t_max, t_step= t_step)
-        self.phase_diagram_obj.calc_phase_diagram(eos = self._eos)
-        self.phase_diagram_obj.plot_phase_diagram()
+        self._phase_diagram_obj = PhaseDiagram(self._composition, p_max= p_max, t_min= t_min, t_max= t_max, t_step= t_step)
+        self._phase_diagram_obj.calc_phase_diagram(eos = self._eos)
+        self._phase_diagram_obj.plot_phase_diagram()
 
+
+    
+    def saturation_pressure(self,t, p_max= 40):
+        _sat_pressure_obj = SaturationPressure(self._composition, p_max=p_max, temp=t)
+        return _sat_pressure_obj.sp_convergence_loop(eos = self._eos)
 
     @property
     def show_flashes(self):
