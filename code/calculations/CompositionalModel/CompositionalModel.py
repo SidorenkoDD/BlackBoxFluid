@@ -10,6 +10,8 @@ from calculations.Composition.Composition import Composition
 from calculations.VLE.Flash import FlashFactory
 from calculations.Utils.Conditions import Conditions
 from calculations.PhaseDiagram.PhaseDiagram_v4 import PhaseDiagram
+from calculations.Experiments.StandardSeparation import StandardSeparation
+from calculations.Experiments.ExperimentsFacade import ExperimentsFacade
 
 
 
@@ -18,6 +20,7 @@ class CompositionalModel:
         self._composition = zi
         self._eos = eos
         self._flash_results = {}
+        self.experiments = ExperimentsFacade(self._composition, self._eos)
 
     def flash(self, conditions, flash_type = 'TwoPhaseFlash'):
         self._flash_object = FlashFactory(self._composition, self._eos)

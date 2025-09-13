@@ -1,4 +1,4 @@
-from BaseClasses import EOS
+from BaseEOS import EOS
 
 class BrusilovskiyEOS(EOS):
     def __init__(self, zi, components_properties, p, t):
