@@ -1,0 +1,119 @@
+import math as math
+from calculations.PhaseStability.TwoPhaseStabilityTest import TwoPhaseStabilityTest
+from calculations.EOS.BaseEOS import EOS
+
+
+class SaturationPressureCalculation:
+
+    def __init__(self, zi, p_max:float, temp, p_min = 0.1):
+        self.zi = zi
+        self.p_min_bub = p_min
+        self.p_max_bub = p_max
+        self.p_i = self.p_max_bub / 2
+
+        self.temp = temp
+        self.results = {}
+    
+
+    def define_s_sp(self, p, eos:EOS):
+        phase_stability = TwoPhaseStabilityTest(self.zi, p, self.temp, eos)
+        phase_stability.calculate_phase_stability()
+
+        if (phase_stability.S_l - 1) < (10 ** -5) and (phase_stability.S_v - 1) < (10 ** -5):
+            y_sp = {component: 0 for component in self.zi._composition.keys()}
+            return {'s_sp': 0, 'y_sp': y_sp, 'k_sp': None, 'r_sp': None, 
+                    'letuch_sp': None, 'letuch_z': None}
+
+        if phase_stability.S_l > 1:
+            if phase_stability.S_l > phase_stability.S_v:
+                k_sp = phase_stability.k_values_liquid
+                r_sp = phase_stability.ri_l
+                letuch_z = phase_stability.initial_eos.choosen_fugacities
+                letuch_sp = phase_stability.liquid_eos.choosen_fugacities
+                y_sp = {component: self.zi._composition[component] / phase_stability.k_values_liquid[component] 
+                        for component in self.zi._composition.keys()}
+            else:
+                k_sp = phase_stability.k_values_vapour
+                r_sp = phase_stability.ri_v
+                letuch_z = phase_stability.initial_eos.choosen_fugacities
+                letuch_sp = phase_stability.vapour_eos.choosen_fugacities
+                y_sp = {component: self.zi._composition[component] * phase_stability.k_values_vapour[component] 
+                        for component in self.zi._composition.keys()}
+        else:
+            if phase_stability.S_v < 1:
+                y_sp = {component: 0 for component in self.zi._composition.keys()}
+                return {'s_sp': 0, 'y_sp': y_sp, 'k_sp': None, 'r_sp': None, 
+                        'letuch_sp': None, 'letuch_z': None}
+
+        if phase_stability.S_v > 1:
+            if phase_stability.S_v > phase_stability.S_l:
+                k_sp = phase_stability.k_values_vapour
+                r_sp = phase_stability.ri_v
+                letuch_z = phase_stability.initial_eos.choosen_fugacities
+                letuch_sp = phase_stability.vapour_eos.choosen_fugacities
+                y_sp = {component: self.zi._composition[component] * phase_stability.k_values_vapour[component] 
+                        for component in self.zi._composition.keys()}
+            else:
+                if phase_stability.S_l < 1:
+                    y_sp = {component: 0 for component in self.zi._composition.keys()}
+                    return {'s_sp': 0, 'y_sp': y_sp, 'k_sp': None, 'r_sp': None, 
+                            'letuch_sp': None, 'letuch_z': None}
+
+        S_sp = sum(y_sp.values())
+        return {'s_sp': S_sp, 'y_sp': y_sp, 'k_sp': k_sp, 'r_sp': r_sp, 
+                'letuch_sp': letuch_sp, 'letuch_z': letuch_z}
+
+    def sp_process(self, eos, lambd=1):
+        cur_s_sp = self.define_s_sp(self.p_i, eos)
+
+        # Если s_sp 0, то обновляем давление
+        while cur_s_sp['s_sp'] == 0:
+            self.p_max_bub = self.p_i
+            self.p_i = (self.p_max_bub + self.p_min_bub) / 2
+            
+            # Проверка на отсутствие решения
+            if self.p_max_bub - self.p_min_bub < math.pow(10, -5):
+                return None
+            
+            cur_s_sp = self.define_s_sp(self.p_i, eos)
+
+        # если ssp не ноль, то начинается цикл расчета Pb
+        r_sp = {}
+        for component in cur_s_sp['letuch_z'].keys():
+            r_sp[component] = math.exp(cur_s_sp['letuch_z'][component]) / (
+                math.exp(cur_s_sp['letuch_sp'][component]) * cur_s_sp['s_sp'])
+        
+        y_sp = {component: cur_s_sp['y_sp'][component] * math.pow(r_sp[component], lambd) 
+                for component in r_sp.keys()}
+
+        self.sum_y_sp = sum(y_sp.values())
+
+        self.Sum = sum(math.log(r_sp[component]) / math.log(y_sp[component] / self.zi._composition[component]) 
+                       for component in self.zi._composition.keys())
+        
+        self.Ykz = sum(y_sp[component] / self.zi._composition[component] for component in self.zi._composition.keys())
+
+        if (abs(1 - self.sum_y_sp) < math.pow(10, -3)) or (math.pow(self.Ykz, 2) < math.pow(10, -3)):
+            print(f'Pb найдено: {self.p_i}')
+        else:
+            self.p_min_bub = self.p_i
+            self.p_i = (self.p_max_bub + self.p_min_bub) / 2
+
+    def sp_convergence_loop(self, eos):
+        self.sp_process(eos)
+        print(self.p_max_bub, self.p_min_bub)
+        if self.p_max_bub - self.p_min_bub < math.pow(10, -5):
+            return None
+        
+        #while not (abs(1 - self.sum_y_sp) < math.pow(10, -3) or math.pow(self.Ykz, 2) < math.pow(10, -3)):
+        while ((abs(1 - self.sum_y_sp) < math.pow(10, -3)) == False) and ((math.pow(self.Ykz, 2) < math.pow(10, -3)) == False):
+            self.sp_process(eos)
+            print('loop')
+            if self.p_max_bub - self.p_min_bub < math.pow(10, -5):
+                return None
+
+        self.p_b = self.p_i
+        self.p_i = self.p_i / 2
+        return self.p_b
+    
+

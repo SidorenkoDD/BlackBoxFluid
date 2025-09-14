@@ -31,7 +31,7 @@ class SaturationPressure:
         phase_stability = TwoPhaseStabilityTest(self.zi, p, self.temp, eos)
         phase_stability.calculate_phase_stability()
 
-        if (phase_stability.S_l - 1) < 10 ** -5 and (phase_stability.S_v) < 10 ** -5:
+        if (phase_stability.S_l - 1) < (10 ** -5) and (phase_stability.S_v - 1) < (10 ** -5):
             y_sp = {component: 0 for component in self.zi._composition.keys()}
             return {'s_sp': 0, 'y_sp': y_sp, 'k_sp': None, 'r_sp': None, 
                     'letuch_sp': None, 'letuch_z': None}
@@ -100,12 +100,12 @@ class SaturationPressure:
 
         self.sum_y_sp = sum(y_sp.values())
 
-        self.Sum = sum(math.log(r_sp[component]) / math.log(y_sp[component]) / self.zi._composition[component] 
+        self.Sum = sum(math.log(r_sp[component]) / math.log(y_sp[component] / self.zi._composition[component]) 
                        for component in self.zi._composition.keys())
         
         self.Ykz = sum(y_sp[component] / self.zi._composition[component] for component in self.zi._composition.keys())
 
-        if abs(1 - self.sum_y_sp) < math.pow(10, -3) or math.pow(self.Ykz, 2) < math.pow(10, -3):
+        if (abs(1 - self.sum_y_sp) < math.pow(10, -3)) or (math.pow(self.Ykz, 2) < math.pow(10, -3)):
             print(f'Pb найдено: {self.p_i}')
         else:
             self.p_min_bub = self.p_i
@@ -129,7 +129,7 @@ class SaturationPressure:
         phase_stability = TwoPhaseStabilityTest(self.zi, p, self.temp, eos)
         phase_stability.calculate_phase_stability()
 
-        if (phase_stability.S_l - 1) < 10 ** -5 and (phase_stability.S_v) < 10 ** -5:
+        if (phase_stability.S_l - 1) < 10 ** -5 and (phase_stability.S_v - 1) < 10 ** -5:
             y_dp = {component: 0 for component in self.zi._composition.keys()}
             return {'s_dp': 0, 'y_dp': y_dp, 'k_dp': None, 'r_dp': None, 
                     'letuch_dp': None, 'letuch_z': None}
@@ -198,7 +198,7 @@ class SaturationPressure:
 
         self.sum_y_dp = sum(y_dp.values())
 
-        self.Sum_dp = sum(math.log(r_dp[component]) / math.log(y_dp[component]) / self.zi._composition[component] 
+        self.Sum_dp = sum(math.log(r_dp[component]) / math.log(y_dp[component] / self.zi._composition[component]) 
                           for component in self.zi._composition.keys())
         
         self.Ykz_dp = sum(y_dp[component] / self.zi._composition[component] for component in self.zi._composition.keys())

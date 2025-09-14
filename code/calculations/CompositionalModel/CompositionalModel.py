@@ -11,6 +11,7 @@ from calculations.VLE.Flash import FlashFactory
 from calculations.Utils.Conditions import Conditions
 from calculations.PhaseDiagram.PhaseDiagram_v4 import PhaseDiagram, SaturationPressure
 from calculations.Experiments.ExperimentsFacade import ExperimentsFacade
+from calculations.PhaseDiagram.SaturationPressure import SaturationPressureCalculation
 
 
 
@@ -36,10 +37,14 @@ class CompositionalModel:
         self._phase_diagram_obj.plot_phase_diagram()
 
 
-    
+    def sat_pressure_v2(self, t): 
+        self._sat_pres_obj = SaturationPressureCalculation(self._composition, 40, t)
+        self._sat_pres_obj.sp_process(self._eos)
+        
+
     def saturation_pressure(self,t, p_max= 40):
-        _sat_pressure_obj = SaturationPressure(self._composition, p_max=p_max, temp=t)
-        return _sat_pressure_obj.sp_convergence_loop(eos = self._eos)
+        self._sat_pressure_obj = SaturationPressure(self._composition, p_max=p_max, temp=t)
+        return self._sat_pressure_obj.sp_convergence_loop(eos = self._eos)
 
     @property
     def show_flashes(self):
