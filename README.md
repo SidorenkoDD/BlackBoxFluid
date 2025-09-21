@@ -9,7 +9,7 @@ This module is the result of a study into compositional fluid modeling and is be
 
 The author strives to avoid errors in the calculation modules, but does not guarantee their absence.
 
-## Реализованный функционал ##
+## Abilities ##
 
 * Creation of a composition up to C45
 * Conducting a two-phase equilibrium stability analysis at given PT conditions
