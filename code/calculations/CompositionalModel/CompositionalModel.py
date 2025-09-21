@@ -12,7 +12,7 @@ from calculations.Utils.Conditions import Conditions
 from calculations.PhaseDiagram.PhaseDiagram_v4 import PhaseDiagram, SaturationPressure
 from calculations.Experiments.ExperimentsFacade import ExperimentsFacade
 from calculations.PhaseDiagram.SaturationPressure import SaturationPressureCalculation
-
+from calculations.PhaseDiagram.PhaseEnvelope import PhaseEnvelope
 
 
 class CompositionalModel:
@@ -21,6 +21,7 @@ class CompositionalModel:
         self._eos = eos
         self._flash_results = {}
         self.experiments = ExperimentsFacade(self._composition, self._eos)
+        self.PHASE_ENVELOPE = PhaseEnvelope(self._composition, 50, 250)
         
 
     def flash(self, conditions, flash_type = 'TwoPhaseFlash'):

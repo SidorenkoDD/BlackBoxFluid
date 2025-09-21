@@ -116,7 +116,7 @@ class SaturationPressureCalculation:
             self.p_i = (self.p_max_bub + self.p_min_bub) / 2
 
 
-    def sp_convergence_loop(self, eos):
+    def sp_convergence_loop(self, eos:EOS):
         self.sp_process(eos)
         if self.p_max_bub - self.p_min_bub < math.pow(10, -5):
             return None
