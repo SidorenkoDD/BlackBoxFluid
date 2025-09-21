@@ -1,33 +1,32 @@
-Fluid compositional modeling with use of EOS
-
 # Python PVT сompositional modeling  #
 
-Модуль для композиционного моделирования PVT-свойств флюида
+Fluid compositional modeling with use of EOS
 
 
-## Описание ##
+## Description ##
 
-Данный модуль является результатом изучения композиционного моделирования флюида, активно дополняется и развивается. 
+This module is the result of a study into compositional fluid modeling and is being actively expanded and developed.
 
-Автор старается избегать ошибок в расчетных модулях, но не гарантирует их отсутствия.
+The author strives to avoid errors in the calculation modules, but does not guarantee their absence.
 
 ## Реализованный функционал ##
 
-* Создание состава до С45
-* Проведение анализа стабильности двухфазного равновесия при заданных РТ условиях
-* Проведение flash-расчета при заданных РТ условиях
-* Построение фазовой диаграммы
+* Creation of a composition up to C45
+* Conducting a two-phase equilibrium stability analysis at given PT conditions
+* Conducting a flash calculation at given PT conditions
+* Calculating the saturation pressure at a given temperature
+* *Phase diagram construction - in progress*
 
 
-## Реализованные расчетные модули ##
+## Modules ##
 
-### УРС ###
+### EOS ###
 * Peng-Robinson Peneloux
 * SRK
-* *Brusilovsky EOS -  в работе*
+* *Brusilovsky EOS -  in progress*
 
 
-### Корреляции свойств С6+ компонент ###
+###  С6+ properties correlations  ###
 
 #### P critical ####
 * Kesler - Lee
