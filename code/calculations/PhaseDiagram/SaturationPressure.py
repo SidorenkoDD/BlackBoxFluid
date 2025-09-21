@@ -1,19 +1,32 @@
 import math as math
 from calculations.PhaseStability.TwoPhaseStabilityTest import TwoPhaseStabilityTest
 from calculations.EOS.BaseEOS import EOS
+from calculations.Composition.Composition import Composition
 
 
 class SaturationPressureCalculation:
-
-    def __init__(self, zi, p_max:float, temp, p_min = 0.1):
-        self.zi = zi
+    def __init__(self, composition_object: Composition, p_max:float, temp, p_min = 0.1):
+        self.zi = composition_object
         self.p_min_bub = p_min
         self.p_max_bub = p_max
         self.p_i = self.p_max_bub / 2
 
-        self.temp = temp
+        self.temp = temp + 273.14
         self.results = {}
-    
+        
+
+    def calculate_inital_p_sat(self):
+
+
+        pi_to_summerize = []
+        for component in self.composition._composition.keys():
+            value = ((self.composition._composition[component] * self.composition._composition_data['critical_pressure'][component]) * 
+                     math.exp(5.37 * (1 + self.composition._composition_data['acentric_factor'][component]) * (1 - (self.composition._composition_data['critical_temperature'][component]/self.temp))))
+            print(component, value)
+            pi_to_summerize.append(value)
+
+        self.init_saturation_pressure_wilson = sum(pi_to_summerize)
+
 
     def define_s_sp(self, p, eos:EOS):
         phase_stability = TwoPhaseStabilityTest(self.zi, p, self.temp, eos)
@@ -63,7 +76,8 @@ class SaturationPressureCalculation:
         return {'s_sp': S_sp, 'y_sp': y_sp, 'k_sp': k_sp, 'r_sp': r_sp, 
                 'letuch_sp': letuch_sp, 'letuch_z': letuch_z}
 
-    def sp_process(self, eos, lambd=1):
+
+    def sp_process(self, eos:EOS, lambd=1):
         cur_s_sp = self.define_s_sp(self.p_i, eos)
 
         # Если s_sp 0, то обновляем давление
@@ -94,26 +108,24 @@ class SaturationPressureCalculation:
         self.Ykz = sum(y_sp[component] / self.zi._composition[component] for component in self.zi._composition.keys())
 
         if (abs(1 - self.sum_y_sp) < math.pow(10, -3)) or (math.pow(self.Ykz, 2) < math.pow(10, -3)):
-            print(f'Pb найдено: {self.p_i}')
+            #print(f'Pb найдено: {self.p_i}')
+            pass
+
         else:
             self.p_min_bub = self.p_i
             self.p_i = (self.p_max_bub + self.p_min_bub) / 2
 
+
     def sp_convergence_loop(self, eos):
         self.sp_process(eos)
-        print(self.p_max_bub, self.p_min_bub)
         if self.p_max_bub - self.p_min_bub < math.pow(10, -5):
             return None
         
-        #while not (abs(1 - self.sum_y_sp) < math.pow(10, -3) or math.pow(self.Ykz, 2) < math.pow(10, -3)):
         while ((abs(1 - self.sum_y_sp) < math.pow(10, -3)) == False) and ((math.pow(self.Ykz, 2) < math.pow(10, -3)) == False):
             self.sp_process(eos)
-            print('loop')
             if self.p_max_bub - self.p_min_bub < math.pow(10, -5):
                 return None
 
         self.p_b = self.p_i
         self.p_i = self.p_i / 2
         return self.p_b
-    
-

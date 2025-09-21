@@ -37,14 +37,14 @@ class CompositionalModel:
         self._phase_diagram_obj.plot_phase_diagram()
 
 
-    def sat_pressure_v2(self, t): 
-        self._sat_pres_obj = SaturationPressureCalculation(self._composition, 40, t)
-        self._sat_pres_obj.sp_process(self._eos)
-        
-
     def saturation_pressure(self,t, p_max= 40):
-        self._sat_pressure_obj = SaturationPressure(self._composition, p_max=p_max, temp=t)
-        return self._sat_pressure_obj.sp_convergence_loop(eos = self._eos)
+        self._sat_pres_obj = SaturationPressureCalculation(self._composition, p_max, t)
+        self._sat_pres_obj.sp_convergence_loop(eos = self._eos)
+        print('SATURATION PRESSURE CALCULATION')
+        print('=====')
+        print(f'CALCULATED SATURATION PRESSURE: {self._sat_pres_obj.p_b * 10} bar')
+        print(f'TEMPERATURE: {t} C')
+
 
     @property
     def show_flashes(self):
