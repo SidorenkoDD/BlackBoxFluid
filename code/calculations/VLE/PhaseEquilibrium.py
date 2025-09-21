@@ -90,8 +90,8 @@ class PhaseEquilibrium:
 
 
     # Метод проверки сходимости
-    def check_convergence_ri(self, e = math.pow(10,-12)):
-            
+    def check_convergence_ri(self, e = math.pow(10,-9)):
+    
         ri_massive = []
         for ri in list(self.ri.values()):
             ri_massive.append((ri-1) ** 2)
@@ -119,6 +119,7 @@ class PhaseEquilibrium:
     def check_trivial_solution(self):
         ln_ki = []
         for component in self.k_values.keys():
+            #print(component, self.k_values[component])
             ln_ki.append(math.pow(math.log(self.k_values[component]), 2))
         
         if sum(ln_ki) < math.pow(10, -4):
