@@ -90,7 +90,7 @@ class PhaseEquilibrium:
 
 
     # Метод проверки сходимости
-    def check_convergence_ri(self, e = math.pow(10,-12)):
+    def check_convergence_ri(self, e = math.pow(10,-9)):
     
         ri_massive = []
         for ri in list(self.ri.values()):

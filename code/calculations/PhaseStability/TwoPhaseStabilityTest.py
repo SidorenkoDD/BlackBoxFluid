@@ -171,7 +171,7 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
     
 
     ### Новый метод анализа стабильности 
-    def check_convergence(self, e = math.pow(10, -12)):
+    def check_convergence(self, e = math.pow(10, -9)):
     
 
         ri_v_to_sum = []
