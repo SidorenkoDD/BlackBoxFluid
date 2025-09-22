@@ -99,7 +99,8 @@ class PREOS(EOS):
         bk = self.B_linear_mixed - 1
         ck = self.mixed_A - 3 * (self.B_linear_mixed ** 2) - 2 * self.B_linear_mixed
         dk = (self.B_linear_mixed ** 2) + (self.B_linear_mixed ** 3) - self.mixed_A * self.B_linear_mixed
-        pk = - (bk ** 2) / 3 + ck
+        # тут было pk = -(bk ** 2) / 3 + ck
+        pk = pk = -(bk ** 2) / 3 + ck
         qk = 2 * (bk ** 3) / 27 - (bk * ck/ 3 ) + dk
         s = ((pk/3) ** 3) + ((qk/2) ** 2) 
 
@@ -172,7 +173,7 @@ class PREOS(EOS):
             sum_zi_Ai = sum(zi_Ai)
 
 
-            if (eos_root - self.B_linear_mixed) > 0:
+            if ((eos_root - self.B_linear_mixed) > 0) and (eos_root > 0):
 
                 ln_fi_i = ((self.all_params_B[component] / self.B_linear_mixed) * (eos_root - 1) -
                             (math.log(eos_root - self.B_linear_mixed)) + 
@@ -182,7 +183,7 @@ class PREOS(EOS):
 
 
                 #try:
-                print(component, self.zi[component])
+                #print(component, self.zi[component])
                 ln_f_i = ln_fi_i + math.log(self.p * self.zi[component]) 
                     #return ln_f_i
                 #except ValueError as e:
@@ -218,7 +219,7 @@ class PREOS(EOS):
         normalized_gibbs_energy = {}
         for root in self.fugacity_by_roots:
             gibbs_energy_by_roots = []
-            if root == 0:
+            if root <= 0.05:
                 normalized_gibbs_energy[root] = math.pow(10,6)
 
             else:

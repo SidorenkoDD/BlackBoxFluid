@@ -90,7 +90,7 @@ class PhaseEquilibrium:
 
 
     # Метод проверки сходимости
-    def check_convergence_ri(self, e = math.pow(10,-9)):
+    def check_convergence_ri(self, e = math.pow(10,-12)):
     
         ri_massive = []
         for ri in list(self.ri.values()):
@@ -143,8 +143,16 @@ class PhaseEquilibrium:
 
         self.eos_vapour = self.eos(zi= self.yi_v, components_properties= self.db, p = self.p, t = self.t)
         self.eos_vapour.calc_eos()
+        
+        # print(f'vapour_real_roots: {self.eos_vapour.real_roots_eos}')
+        # print(f'vapour_eos_norm_gibbs_en: {self.eos_vapour.normalized_gibbs_energy}')
+        # print(f'vapour_eos_choosen_root: {self.eos_vapour.choosen_eos_root}')
         self.eos_liquid = self.eos(zi = self.xi_l, components_properties= self.db, p = self.p, t = self.t)
         self.eos_liquid.calc_eos()
+        
+        # print(f'liquid_eos_real_roots: {self.eos_liquid.real_roots_eos}')
+        # print(f'liquid_eos_norm_gibbs: {self.eos_liquid.normalized_gibbs_energy}')
+        # print(f'liquid_eos_choosen_root: {self.eos_liquid.choosen_eos_root}')
         # Расчет Ri
         self.ri = self.calc_Ri(self.eos_vapour, self.eos_liquid)
 

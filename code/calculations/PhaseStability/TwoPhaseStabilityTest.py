@@ -171,7 +171,7 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
     
 
     ### Новый метод анализа стабильности 
-    def check_convergence(self, e = math.pow(10, -9)):
+    def check_convergence(self, e = math.pow(10, -12)):
     
 
         ri_v_to_sum = []
@@ -245,7 +245,13 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
             self.xi_l = self.normalize_mole_fractions_liquid(self.Xi_l, self.S_l)
 
             self.vapour_eos = self.calc_eos_for_vapour(self.yi_v)
+            # print(f'vapour_real_roots: {self.vapour_eos.real_roots_eos}')
+            # print(f'vapour_eos_norm_gibbs_en: {self.vapour_eos.normalized_gibbs_energy}')
+            # print(f'vapour_eos_choosen_root: {self.vapour_eos.choosen_eos_root}')
             self.liquid_eos = self.calc_eos_for_vapour(self.xi_l)
+            # print(f'liquid_eos_real_roots: {self.liquid_eos.real_roots_eos}')
+            # print(f'liquid_eos_norm_gibbs: {self.liquid_eos.normalized_gibbs_energy}')
+            # print(f'liquid_eos_choosen_root: {self.liquid_eos.choosen_eos_root}')
 
 
             self.ri_v = self.calc_ri_vapour(self.vapour_eos)
