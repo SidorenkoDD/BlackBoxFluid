@@ -340,7 +340,7 @@ if __name__ == '__main__':
 
     model1 = CompositionalModel(comp)
 
-    conds2 = Conditions(9,350)
+    conds2 = Conditions(14,400)
 
     model1.flash(conds2)
     print(model1.show_flashes)

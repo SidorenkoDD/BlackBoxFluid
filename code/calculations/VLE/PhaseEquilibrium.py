@@ -121,7 +121,6 @@ class PhaseEquilibrium:
     def check_trivial_solution(self):
         ln_ki = []
         for component in self.k_values.keys():
-            #print(component, self.k_values[component])
             ln_ki.append(math.pow(math.log(self.k_values[component]), 2))
         
         if sum(ln_ki) < math.pow(10, -4):
@@ -145,16 +144,22 @@ class PhaseEquilibrium:
 
         self.eos_vapour = self.eos(zi= self.yi_v, components_properties= self.db, p = self.p, t = self.t)
         self.eos_vapour.calc_eos()
+        self.eos_root_chooser = EOSRootChooser(self.eos_vapour)
+        self.eos_root_chooser.define_root_for_phase('vapour')
         
-        # print(f'vapour_real_roots: {self.eos_vapour.real_roots_eos}')
-        # print(f'vapour_eos_norm_gibbs_en: {self.eos_vapour.normalized_gibbs_energy}')
-        # print(f'vapour_eos_choosen_root: {self.eos_vapour.choosen_eos_root}')
+        print(f'vapour_real_roots: {self.eos_vapour.real_roots_eos}')
+        print(f'vapour_eos_norm_gibbs_en: {self.eos_vapour.normalized_gibbs_energy}')
+        print(f'vapour_eos_choosen_root: {self.eos_vapour.choosen_eos_root}')
         self.eos_liquid = self.eos(zi = self.xi_l, components_properties= self.db, p = self.p, t = self.t)
         self.eos_liquid.calc_eos()
+        self.eos_root_chooser = EOSRootChooser(self.eos_liquid)
+        self.eos_root_chooser.define_root_for_phase('liquid')
         
-        # print(f'liquid_eos_real_roots: {self.eos_liquid.real_roots_eos}')
-        # print(f'liquid_eos_norm_gibbs: {self.eos_liquid.normalized_gibbs_energy}')
-        # print(f'liquid_eos_choosen_root: {self.eos_liquid.choosen_eos_root}')
+        print(f'liquid_eos_real_roots: {self.eos_liquid.real_roots_eos}')
+        print(f'liquid_eos_norm_gibbs: {self.eos_liquid.normalized_gibbs_energy}')
+        print(f'liquid_eos_choosen_root: {self.eos_liquid.choosen_eos_root}')
+        
+        print(f'K-vals: {self.k_values}')
         # Расчет Ri
         self.ri = self.calc_Ri(self.eos_vapour, self.eos_liquid)
 
@@ -181,7 +186,8 @@ class PhaseEquilibrium:
             self.eos_liquid = self.eos(zi= self.xi_l, components_properties= self.db, p = self.p, t = self.t)
             self.eos_liquid.calc_eos()
             self.eos_root_chooser = EOSRootChooser(self.eos_liquid)
-            self.eos_root_chooser.define_root_for_phase('vapour')
+            self.eos_root_chooser.define_root_for_phase('liquid')
+            
 
             self.ri = self.calc_Ri(self.eos_vapour, self.eos_liquid)
 

@@ -182,19 +182,18 @@ class PREOS(EOS):
                             math.log((eos_root + ((1 + math.sqrt(2))* self.B_linear_mixed))/(eos_root + ((1 - math.sqrt(2))* self.B_linear_mixed))))
 
 
-                #try:
-                #print(component, self.zi[component])
-                ln_f_i = ln_fi_i + math.log(self.p * self.zi[component]) 
-                    #return ln_f_i
-                #except ValueError as e:
-                #    if "math domain error" in str(e):
-                #        return 0 
+                try:
+                    ln_f_i = ln_fi_i + math.log(self.p * self.zi[component]) 
+                    return ln_f_i
+                except ValueError as e:
+                   if "math domain error" in str(e):
+                       return 0 
 
 
 
 
 
-                return ln_f_i
+                #return ln_f_i
         
             else:
                 return 0

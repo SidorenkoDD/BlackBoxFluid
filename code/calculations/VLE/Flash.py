@@ -45,6 +45,7 @@ class TwoPhaseFlash(Calculator):
                                            stable=self.phase_stability.stable,
                                            EOS= str(self.eos),
                                            Fv= None,
+                                           Fl= None,
                                            Ki= None,
                                            liquid_composition=None,
                                            vapour_composition= None,

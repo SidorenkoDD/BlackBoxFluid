@@ -7,6 +7,7 @@ sys.path.append(str(root_path))
 
 from calculations.PhaseStability.BasePhaseStability import PhaseStabilityTest
 from calculations.EOS.BaseEOS import EOS
+from calculations.EOS.RootChooser import EOSRootChooser
 import math as math
 from pathlib import Path
 import sys
@@ -317,7 +318,12 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
         self.xi_l =self.normalize_mole_fractions_liquid(Xi_l=self.Xi_l, S_l= self.S_l)
 
         self.vapour_eos = self.calc_eos_for_vapour(y_i_v= self.yi_v)
+        self.eos_root_chooser = EOSRootChooser(self.vapour_eos)
+        self.eos_root_chooser.define_root_for_phase('vapour')
+        
         self.liquid_eos = self.calc_eos_for_liquid(x_i_l= self.xi_l)
+        self.eos_root_chooser = EOSRootChooser(self.liquid_eos)
+        self.eos_root_chooser.define_root_for_phase('liquid')
 
         self.ri_v = self.calc_ri_vapour(self.vapour_eos)
         self.ri_l = self.calc_ri_liquid(self.liquid_eos)
