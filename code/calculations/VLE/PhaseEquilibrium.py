@@ -1,7 +1,9 @@
 import math as math
 from calculations.EOS.BaseEOS import EOS
 from calculations.EOS.EOSFactory import EOSFactory
+from calculations.EOS.RootChooser import EOSRootChooser
 from calculations.Composition.Composition import Composition
+
 
 
 class PhaseEquilibrium:
@@ -170,10 +172,16 @@ class PhaseEquilibrium:
             self.yi_v = self.define_yi_v()
             self.xi_l = self.define_xi_l()
 
+            
             self.eos_vapour = self.eos(zi= self.yi_v, components_properties= self.db, p = self.p, t = self.t)
             self.eos_vapour.calc_eos()
+            self.eos_root_chooser = EOSRootChooser(self.eos_vapour)
+            self.eos_root_chooser.define_root_for_phase('vapour')
+
             self.eos_liquid = self.eos(zi= self.xi_l, components_properties= self.db, p = self.p, t = self.t)
             self.eos_liquid.calc_eos()
+            self.eos_root_chooser = EOSRootChooser(self.eos_liquid)
+            self.eos_root_chooser.define_root_for_phase('vapour')
 
             self.ri = self.calc_Ri(self.eos_vapour, self.eos_liquid)
 
