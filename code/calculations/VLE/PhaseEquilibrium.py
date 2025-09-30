@@ -3,6 +3,7 @@ from calculations.EOS.BaseEOS import EOS
 from calculations.EOS.EOSFactory import EOSFactory
 from calculations.EOS.RootChooser import EOSRootChooser
 from calculations.Composition.Composition import Composition
+from calculations.Utils.ConvergenceConstants import TOL_TWO_PHASE_FLASH_CONVERGENCE, TOL_TWO_PHASE_FLASH_BISECTION_CONVERGENCE, TOL_TWO_PHASE_FLASH_TRIVIAL_SOLUTION
 
 
 
@@ -15,7 +16,7 @@ class PhaseEquilibrium:
         self.zi = composition._composition
         self.db = composition._composition_data
         self.eos = EOSFactory().create_eos(eos)
-
+        
         self.p = p
         self.t = t
 
@@ -26,7 +27,7 @@ class PhaseEquilibrium:
 
     # Метод расчета ур-ия Рэшфорда-Райса
 
-    def find_solve_bisection_v4(self, tol=1e-13):
+    def find_solve_bisection_v4(self, tol = TOL_TWO_PHASE_FLASH_BISECTION_CONVERGENCE):
         fv_min = 0.0  # Минимально возможная доля пара
         fv_max = 1.0  # Максимально возможная доля пара
 
@@ -92,7 +93,7 @@ class PhaseEquilibrium:
 
 
     # Метод проверки сходимости
-    def check_convergence_ri(self, e = math.pow(10,-9)):
+    def check_convergence_ri(self, e = TOL_TWO_PHASE_FLASH_CONVERGENCE):
     
         ri_massive = []
         for ri in list(self.ri.values()):
@@ -123,7 +124,7 @@ class PhaseEquilibrium:
         for component in self.k_values.keys():
             ln_ki.append(math.pow(math.log(self.k_values[component]), 2))
         
-        if sum(ln_ki) < math.pow(10, -4):
+        if sum(ln_ki) < TOL_TWO_PHASE_FLASH_TRIVIAL_SOLUTION:
             self.trivial_solution = True
             return True
         else:
@@ -147,19 +148,13 @@ class PhaseEquilibrium:
         self.eos_root_chooser = EOSRootChooser(self.eos_vapour)
         self.eos_root_chooser.define_root_for_phase('vapour')
         
-        print(f'vapour_real_roots: {self.eos_vapour.real_roots_eos}')
-        print(f'vapour_eos_norm_gibbs_en: {self.eos_vapour.normalized_gibbs_energy}')
-        print(f'vapour_eos_choosen_root: {self.eos_vapour.choosen_eos_root}')
+
         self.eos_liquid = self.eos(zi = self.xi_l, components_properties= self.db, p = self.p, t = self.t)
         self.eos_liquid.calc_eos()
         self.eos_root_chooser = EOSRootChooser(self.eos_liquid)
         self.eos_root_chooser.define_root_for_phase('liquid')
         
-        print(f'liquid_eos_real_roots: {self.eos_liquid.real_roots_eos}')
-        print(f'liquid_eos_norm_gibbs: {self.eos_liquid.normalized_gibbs_energy}')
-        print(f'liquid_eos_choosen_root: {self.eos_liquid.choosen_eos_root}')
         
-        print(f'K-vals: {self.k_values}')
         # Расчет Ri
         self.ri = self.calc_Ri(self.eos_vapour, self.eos_liquid)
 

@@ -63,17 +63,13 @@ class PREOS(EOS):
     
     # Метод расчета параметра А для УРС
     def calc_mixed_A(self):
-        # if len(list(self.zi.keys())) == 1 or ((len(list(self.zi.keys())) == 2) and (0 in list(self.zi.values()))):
-        #     return list(self.all_params_A.values())[0]
-        
-        # else:
-            a_mixed = []
-            second_components = list(self.zi.keys())
-            for i_component in self.zi.keys():
-                for j_component in second_components:
-                    a_mixed.append(self.zi[i_component] * self.zi[j_component] * math.sqrt(self.all_params_A[i_component] * self.all_params_A[j_component]) * (1 - self.components_properties['bip'][i_component][j_component]))
+        a_mixed = []
+        second_components = list(self.zi.keys())
+        for i_component in self.zi.keys():
+            for j_component in second_components:
+                a_mixed.append(self.zi[i_component] * self.zi[j_component] * math.sqrt(self.all_params_A[i_component] * self.all_params_A[j_component]) * (1 - self.components_properties['bip'][i_component][j_component]))
 
-            return sum(a_mixed)
+        return sum(a_mixed)
 
 
     # Метод расчета взвешенного параметра В для УРС
@@ -110,13 +106,12 @@ class PREOS(EOS):
             if itt < 0:
 
                 itt =  abs(itt)
-                # В этой строке ломается код
+
                 it =  (itt ** (1/3))
                 it = - (itt ** (1/3))
             else:
                  it = itt ** (1/3)
             
-            #it = itt ** (1/3)
 
             if vb < 0:
                     zk0 = it - ((abs(vb)) ** (1/3)) - bk/3
@@ -272,9 +267,7 @@ class PREOS(EOS):
         self._fugacities = self.choosen_fugacities
         self._z = self.choosen_eos_root
         return self.choosen_eos_root, self.choosen_fugacities
-    
-    # def return_eos_root_and_fugacities(self):
-    #     return super().return_eos_root_and_fugacities()
+
     
     @property
     def z(self):

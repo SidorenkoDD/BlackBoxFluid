@@ -16,17 +16,12 @@ class EOS(ABC):
     def calc_eos(self) -> list:
         pass
     
-    # Будто не нужно, реализовано через property
-    # @abstractmethod
-    # def return_eos_root_and_fugacities(self) -> float | dict :
-    #     pass
+
 
     @abstractmethod
-    #@property
     def z(self) -> float:
         return self._z
     
     @abstractmethod
-    #@property
     def fugacities(self) -> dict:
         return self._fugacities

@@ -29,7 +29,7 @@ class CompositionalModel:
         flash_calculator = self._flash_object.create_flash(flash_type=flash_type)
         result = flash_calculator.calculate(conditions=conditions)
 
-        self._flash_results[str(flash_type) + '_' + str(conditions.p)+'_' + str(conditions.t)] = result 
+        self._flash_results[str(flash_type) + '_' + str(conditions.p)+'_' + str(conditions.t - 273.14)] = result 
     
     
     def plot_phase_diagram(self, p_max = 40, t_min = 0, t_max = 200, t_step = 10):

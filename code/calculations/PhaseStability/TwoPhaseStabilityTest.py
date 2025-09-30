@@ -1,20 +1,16 @@
 from pathlib import Path
 import sys
-# Добавляем корневую директорию в PYTHONPATH
-root_path = Path(__file__).parent.parent.parent
-sys.path.append(str(root_path))
-
+import math as math
 
 from calculations.PhaseStability.BasePhaseStability import PhaseStabilityTest
 from calculations.EOS.BaseEOS import EOS
 from calculations.EOS.RootChooser import EOSRootChooser
-import math as math
-from pathlib import Path
-import sys
-
-
-
 from calculations.EOS.EOSFactory import EOSFactory
+from calculations.Utils.ConvergenceConstants import TOL_TWO_PHASE_STABILITY_CONVERGENCE, TOL_TWO_PHASE_STABILITY_CONVERGENCE_TRIVIAL_SOLUTION
+# Добавляем корневую директорию в PYTHONPATH
+root_path = Path(__file__).parent.parent.parent
+sys.path.append(str(root_path))
+
 
 class TwoPhaseStabilityTest(PhaseStabilityTest):
      
@@ -34,19 +30,6 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
         initial_eos.calc_eos()
         return initial_eos
 
-
-    # Расчет начальных констант равновесия по уравнению Вильсона
-    ## Начальные константы равновесия одинаковы для жидкой и газовой фазы
-    def calc_initial_k_values_wilson(self):
-        k_initial = {}
-        for component in list(self.composition.keys()):
-            k_initial[component] = (math.pow(math.e, 5.37 * (1 + self.composition_data['acentric_factor'][component]) * 
-                                             (1 - (self.composition_data['critical_temperature'][component]/self.t))) / 
-                                    (self.p / self.composition_data['critical_pressure'][component]))
-            
-        return k_initial
-    
-
     # Расчет начальных констант равновесия для газовой фазы
     def calc_k_initial_for_vapour_wilson(self):
         k_initial_vapour = {}
@@ -62,9 +45,6 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
     def calc_k_initial_for_liquid_wilson(self):
         k_initial_liquid = {}
         for component in list(self.composition.keys()):
-            # k_initial_liquid[component] = (math.pow(math.e, 5.37 * (1 + self.db['acentric_factor'][component]) 
-            #                                         * (1 - (self.db['critical_temperature'][component]/self.t))) / 
-            #                         (self.p / self.db['critical_pressure'][component]))
             k_initial_liquid[component] = math.exp(5.37 * (1 + self.composition_data['acentric_factor'][component]) * (1 - (self.composition_data['critical_temperature'][component]/self.t))) / (self.p / self.composition_data['critical_pressure'][component])
             
         return k_initial_liquid
@@ -172,7 +152,7 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
     
 
     ### Новый метод анализа стабильности 
-    def check_convergence(self, e = math.pow(10, -9)):
+    def check_convergence(self, e = TOL_TWO_PHASE_STABILITY_CONVERGENCE):
     
 
         ri_v_to_sum = []
@@ -210,21 +190,19 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
         for ki_l in list(self.k_values_liquid.values()):
             ki_l_to_sum.append(math.pow((math.log(ki_l)),2))
 
-        if sum(ki_v_to_sum) < math.pow(10,-4):
+        if sum(ki_v_to_sum) < TOL_TWO_PHASE_STABILITY_CONVERGENCE_TRIVIAL_SOLUTION:
             self.trivial_solution_vapour = True
-            #self.convergence_trivial_solution = True
 
 
-        elif sum(ki_l_to_sum) < math.pow(10,-4):
+
+        elif sum(ki_l_to_sum) < TOL_TWO_PHASE_STABILITY_CONVERGENCE_TRIVIAL_SOLUTION:
             self.trivial_solution_liquid = True
-            #self.convergence_trivial_solution = True
 
         if self.trivial_solution_liquid and self.trivial_solution_vapour:
             self.convergence_trivial_solution = True
         else:
             self.convergence_trivial_solution = False
-        #else:
-            #self.convergence_trivial_solution = False
+
         
 
     def stability_loop(self):
@@ -246,20 +224,10 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
             self.xi_l = self.normalize_mole_fractions_liquid(self.Xi_l, self.S_l)
 
             self.vapour_eos = self.calc_eos_for_vapour(self.yi_v)
-            # print(f'vapour_real_roots: {self.vapour_eos.real_roots_eos}')
-            # print(f'vapour_eos_norm_gibbs_en: {self.vapour_eos.normalized_gibbs_energy}')
-            # print(f'vapour_eos_choosen_root: {self.vapour_eos.choosen_eos_root}')
             self.liquid_eos = self.calc_eos_for_vapour(self.xi_l)
-            # print(f'liquid_eos_real_roots: {self.liquid_eos.real_roots_eos}')
-            # print(f'liquid_eos_norm_gibbs: {self.liquid_eos.normalized_gibbs_energy}')
-            # print(f'liquid_eos_choosen_root: {self.liquid_eos.choosen_eos_root}')
-
 
             self.ri_v = self.calc_ri_vapour(self.vapour_eos)
             self.ri_l = self.calc_ri_liquid(self.liquid_eos)
-            
-            #self.k_values_vapour = self.update_k_values_vapour()
-            #self.k_values_liquid = self.update_k_values_liquid()
 
             iter += 1
             self.check_convergence()
@@ -269,6 +237,7 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
 
             if iter > 100000:
                 break
+            #raise StopIteration('PhaseStabilityIterationBreak')
 
 
     def interpetate_stability_analysis(self):

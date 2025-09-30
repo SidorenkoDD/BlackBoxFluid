@@ -13,6 +13,7 @@ import json
 import pandas as pd
 import re
 
+
 class Composition:
     ''' Класс для хранения и обработки состава флюида
     
@@ -173,7 +174,7 @@ class Composition:
             critical_volume
             bip
         
-        Должна быть логика, что есть db по умолчанию, что передано в словаре - то заменяется в db, а остальное остается без изменений
+        ##TODO: Должна быть логика, что есть db по умолчанию, что передано в словаре - то заменяется в db, а остальное остается без изменений
         '''
         
         avalible_properties = ['molar_mass', 'gamma', 'Tb', 'critical_pressure', 'critical_temperature', 
@@ -188,7 +189,7 @@ class Composition:
 
 
 
-
+    
     def show_composition_dataframes(self):
 
         '''Print composition, component properties and bips'''
@@ -212,15 +213,15 @@ class Composition:
 
 
     @property
-    def composition_df(self):
+    def COMPOSITION(self):
         return pd.DataFrame.from_dict(self._composition, orient= 'index')
     
     @property
-    def composition_properties_df(self):
+    def COMPOSITION_PROPERTIES(self):
         return pd.DataFrame.from_dict({k: self._composition_data[k] for k in list(self._composition_data.keys())[:-1]})
     
     @property
-    def composition_bips_df(self):
+    def BIPS(self):
         return pd.DataFrame.from_dict(self._composition_data['bip'])
 
 
