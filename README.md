@@ -9,8 +9,8 @@ This module is the result of a study into compositional fluid modeling and is be
 
 The author strives to avoid errors in the calculation modules, but does not guarantee their absence.
 
-### PVTSim comparison ###
-View [notebook](https://github.com/SidorenkoDD/BlackBoxFluid/blob/main/code/exmp_notebooks/exmp_pvtsim_comparison.ipynb) with PVTSim comparison
+### Comparison ###
+View [notebook](https://github.com/SidorenkoDD/BlackBoxFluid/blob/main/code/exmp_notebooks/exmp_pvtsim_comparison.ipynb) with comparison
 
 ![Two phase flash calculation comparison for Fv](./images/Fv_hist_error.png)
 
