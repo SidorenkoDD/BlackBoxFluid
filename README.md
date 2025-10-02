@@ -9,6 +9,11 @@ This module is the result of a study into compositional fluid modeling and is be
 
 The author strives to avoid errors in the calculation modules, but does not guarantee their absence.
 
+### PVTSim comparison ###
+
+![Two phase flash calculation comparison for Fv](./images/Fv_hist_error.png)
+
+
 ## Abilities ##
 
 * Creation of a composition up to C45
@@ -16,6 +21,7 @@ The author strives to avoid errors in the calculation modules, but does not guar
 * Conducting a flash calculation at given PT conditions
 * Calculating the saturation pressure at a given temperature
 * *Phase diagram construction - in progress*
+
 
 
 ## Modules ##
