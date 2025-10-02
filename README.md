@@ -5,9 +5,15 @@ Fluid compositional modeling with use of EOS
 
 ## Description ##
 
-This module is the result of a study into compositional fluid modeling and is being actively expanded and developed.
+This package is the result of a study into compositional fluid modeling and is being actively expanded and developed.
 
-The author strives to avoid errors in the calculation modules, but does not guarantee their absence.
+* View [nootebook](https://github.com/SidorenkoDD/BlackBoxFluid/blob/main/code/exmp_notebooks/exmp_how_to_use.ipynb) how to use this package
+
+* View [modules description](https://github.com/SidorenkoDD/BlackBoxFluid/blob/main/MODULES.md)
+
+
+
+``The author strives to avoid errors in the calculation modules, but does not guarantee their absence``.
 
 ### Comparison ###
 View [notebook](https://github.com/SidorenkoDD/BlackBoxFluid/blob/main/code/exmp_notebooks/exmp_pvtsim_comparison.ipynb) with comparison
