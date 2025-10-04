@@ -40,24 +40,5 @@ class TwoPhaseFlashResults:
 
     def show_compositions(self):
         ...
-        #df = pd.D
+        
     
-
-
-# class OnePhaseFlashResults(FlashResults):
-
-#     def __init__(self, flash_obj):
-#         self.flash_obj = flash_obj
-
-#     def get_results(self):
-#         return super().get_results()
-    
-
-
-# class TwoPhaseFlashResults(FlashResults):
-
-#     def __init__(self, flash_obj):
-#         self.flash_obj = flash_obj
-
-#     def get_results(self):
-#         return super().get_results()

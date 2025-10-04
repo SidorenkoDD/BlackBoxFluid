@@ -1,11 +1,6 @@
 from pathlib import Path
 import sys
 
-# Добавляем корневую директорию в PYTHONPATH
-root_path = Path(__file__).parent.parent.parent
-sys.path.append(str(root_path))
-
-
 from calculations.Composition.Composition import Composition
 from calculations.VLE.Flash import FlashFactory
 from calculations.Utils.Conditions import Conditions
@@ -13,6 +8,10 @@ from calculations.PhaseDiagram.PhaseDiagram_v4 import PhaseDiagram, SaturationPr
 from calculations.Experiments.ExperimentsFacade import ExperimentsFacade
 from calculations.PhaseDiagram.SaturationPressure import SaturationPressureCalculation
 from calculations.PhaseDiagram.PhaseEnvelope import PhaseEnvelope
+
+root_path = Path(__file__).parent.parent.parent
+sys.path.append(str(root_path))
+
 
 
 class CompositionalModel:

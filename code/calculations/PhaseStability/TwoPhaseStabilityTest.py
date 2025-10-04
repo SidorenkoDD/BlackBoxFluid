@@ -1,13 +1,12 @@
 from pathlib import Path
 import sys
 import math as math
-
 from calculations.PhaseStability.BasePhaseStability import PhaseStabilityTest
 from calculations.EOS.BaseEOS import EOS
 from calculations.EOS.RootChooser import EOSRootChooser
 from calculations.EOS.EOSFactory import EOSFactory
 from calculations.Utils.ConvergenceConstants import TOL_TWO_PHASE_STABILITY_CONVERGENCE, TOL_TWO_PHASE_STABILITY_CONVERGENCE_TRIVIAL_SOLUTION
-# Добавляем корневую директорию в PYTHONPATH
+
 root_path = Path(__file__).parent.parent.parent
 sys.path.append(str(root_path))
 
@@ -81,8 +80,7 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
     def normalize_mole_fractions_vapour(self, Yi_v:dict, S_v: float):
         normalized_mole_fractions_vapour = {}
         for component in list(Yi_v.keys()):
-            normalized_mole_fractions_vapour[component] = Yi_v[component] / S_v #round((Yi_v[component] / S_v), 5)
-            #normalized_mole_fractions_vapour[component] = round((Yi_v[component] / S_v), 5)
+            normalized_mole_fractions_vapour[component] = Yi_v[component] / S_v 
         return normalized_mole_fractions_vapour
 
 
@@ -90,8 +88,7 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
     def normalize_mole_fractions_liquid(self, Xi_l:dict, S_l:float):
         normalized_mole_fractions_liquid = {}
         for component in list(Xi_l.keys()):
-            normalized_mole_fractions_liquid[component] = Xi_l[component] / S_l #round((Xi_l[component] / S_l), 5)
-            #normalized_mole_fractions_liquid[component] = round((Xi_l[component] / S_l), 5)
+            normalized_mole_fractions_liquid[component] = Xi_l[component] / S_l 
         return normalized_mole_fractions_liquid
 
 
