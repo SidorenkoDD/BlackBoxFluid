@@ -5,9 +5,34 @@ Fluid compositional modeling with use of EOS
 
 ## Description ##
 
-This module is the result of a study into compositional fluid modeling and is being actively expanded and developed.
+This package is the result of a study into compositional fluid modeling and is being actively expanded and developed.
 
-The author strives to avoid errors in the calculation modules, but does not guarantee their absence.
+* View [nootebook](https://github.com/SidorenkoDD/BlackBoxFluid/blob/main/code/exmp_notebooks/exmp_how_to_use.ipynb) how to use this package
+
+* View [modules description](https://github.com/SidorenkoDD/BlackBoxFluid/blob/main/MODULES.md)
+
+
+
+``The author strives to avoid errors in the calculation modules, but does not guarantee their absence``.
+
+## PVTSim comparison ##
+View [notebook](https://github.com/SidorenkoDD/BlackBoxFluid/blob/main/code/exmp_notebooks/exmp_pvtsim_comparison.ipynb) with comparison
+
+### Two phase flash
+#### Fv ####
+
+![Two phase flash calculation comparison for Fv](./images/Fv_hist_error.png)
+
+#### Z-factor ####
+![Vapour Z](./images/Z_vapour_hist_error.png) 
+![Liquid Z](./images/Z_liquid_hist_error.png)
+
+#### Compositions ####
+Comparison of phase compositions and k-factors for P=140 bar, T = 150 C 
+
+![Gas composition](./images/gas_composition_error_hist.png)
+![Liquid composition](./images/liquid_composition_error_hist.png)
+![K-values](./images/kvals_err_hist.png)
 
 ## Abilities ##
 
@@ -16,6 +41,7 @@ The author strives to avoid errors in the calculation modules, but does not guar
 * Conducting a flash calculation at given PT conditions
 * Calculating the saturation pressure at a given temperature
 * *Phase diagram construction - in progress*
+
 
 
 ## Modules ##
