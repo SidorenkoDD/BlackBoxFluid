@@ -191,4 +191,4 @@ class PhaseEquilibrium:
 
 
 
-        return {'yi_v': self.yi_v,'xi_l':self.xi_l,  'Ki': self.k_values, 'Fv': self.fv, 'Z_v': self.eos_vapour.choosen_eos_root, 'Z_l': self.eos_liquid.choosen_eos_root}
+        return {'yi_v': self.yi_v,'xi_l':self.xi_l,  'Ki': self.k_values, 'Fv': self.fv, 'Z_v': self.eos_vapour._z, 'Z_l': self.eos_liquid._z}

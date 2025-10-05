@@ -39,9 +39,15 @@ Comparison of phase compositions and k-factors for P=140 bar, T = 150 C
 * Creation of a composition up to C45
 * Conducting a two-phase equilibrium stability analysis at given PT conditions
 * Conducting a flash calculation at given PT conditions
-* Calculating the saturation pressure at a given temperature
 * *Phase diagram construction - in progress*
 
+### Experiments ###
+#### PVT Routine Simulation ####
+* Saturation Pressure
+* Standard Separation
+* Separator Test
+* *Differential Libration - in progress*
+* *Constant Mass Expansion - in progress*
 
 
 ## Modules ##

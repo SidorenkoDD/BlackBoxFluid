@@ -1,6 +1,7 @@
 from abc import abstractmethod, ABC
 #from calculations.Composition.Composition import Composition
 from typing import Dict, TypeVar, Generic
+from calculations.EOS.BaseEOS import EOS
 
 
 T = TypeVar('T')

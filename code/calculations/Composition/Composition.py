@@ -185,7 +185,6 @@ class Composition:
                 raise KeyError(f'Property {property} not in db!')
             else:
                 self._composition_data[property][component] = properties[property]
-                print(f'{property}')
 
 
 

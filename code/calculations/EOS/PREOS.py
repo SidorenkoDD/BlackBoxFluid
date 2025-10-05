@@ -70,7 +70,7 @@ class PREOS(EOS):
             ---------
                 parameter **A** for component
         '''
-        return self.calc_a(component) * self.p/math.pow((8.31 * self.t), 2)
+        return self._calc_a(component) * self.p/math.pow((8.31 * self.t), 2)
     
     
     
@@ -85,7 +85,7 @@ class PREOS(EOS):
             ---------
                 parameter **B** for component
         '''
-        return self.calc_b(component) * self.p/ (8.31 * self.t)
+        return self._calc_b(component) * self.p/ (8.31 * self.t)
     
     
     def _calc_mixed_A(self) -> float:
@@ -282,7 +282,7 @@ class PREOS(EOS):
             self.all_params_A[key] = self._calc_A(component=key)
             self.all_params_B[key] = self._calc_B(component=key)
 
-        self.mixed_A = self.calc_mixed_A()
+        self.mixed_A = self._calc_mixed_A()
         self.B_linear_mixed = self._calc_linear_mixed_B()
         self.shift_parametr = self._calc_shift_parametr()
 
@@ -297,7 +297,7 @@ class PREOS(EOS):
 
         self.normalized_gibbs_energy = self._calc_normalized_gibbs_energy()
         self._z = self._choose_eos_root_by_gibbs_energy()
-        self._fugacities = self.fugacity_by_roots[self.choosen_eos_root]
+        self._fugacities = self.fugacity_by_roots[self._z]
 
         return None
 
