@@ -2,7 +2,10 @@ from calculations.Composition.Composition import Composition
 from calculations.Experiments.BaseExperiment import PVTExperiment
 from calculations.Utils.Errors import LenthMissMatchError, nStagesError
 from calculations.Utils.Conditions import Conditions
+from calculations.Utils.Results import SeparatorTestResults
 from calculations.VLE.Flash import FlashFactory
+
+import pandas as pd
 
 
 class SeparatorTest(PVTExperiment):
@@ -56,3 +59,42 @@ class SeparatorTest(PVTExperiment):
                 self.third_stage_result = flash_calculator.calculate(conditions=self.third_stage_conditions)
 
 
+        self.result = SeparatorTestResults(first_stage_pressure = self.first_stage_conditions.p,
+                                      first_stage_temperature = self.first_stage_conditions.t,
+                                      first_stage_fv = self.first_stage_result.Fv,
+                                      first_stage_fl = self.first_stage_result.Fl,
+                                      first_stage_vapour_composition = self.first_stage_result.vapour_composition,
+                                      first_stage_liquid_composition = self.first_stage_result.liquid_composition,
+                                      first_stage_liquid_z = self.first_stage_result.liquid_z,
+                                      first_stage_vapour_z = self.first_stage_result.vapour_z,
+                                      first_stage_k_values = self.first_stage_result.Ki,
+                                    
+                                      second_stage_pressure = self.second_stage_conditions.p,
+                                      second_stage_temperature = self.second_stage_conditions.t,
+                                      second_stage_fv = self.second_stage_result.Fv,
+                                      second_stage_fl = self.second_stage_result.Fl,
+                                      second_stage_vapour_composition = self.second_stage_result.vapour_composition,
+                                      second_stage_liquid_composition = self.second_stage_result.liquid_composition,
+                                      second_stage_liquid_z = self.second_stage_result.liquid_z,
+                                      second_stage_vapour_z = self.second_stage_result.vapour_z,
+                                      second_stage_k_values = self.second_stage_result.Ki,
+
+                                      third_stage_pressure = self.third_stage_conditions.p,
+                                      third_stage_temperature = self.third_stage_conditions.t,
+                                      third_stage_fv = self.third_stage_result.Fv,
+                                      third_stage_fl = self.third_stage_result.Fl,
+                                      third_stage_vapour_composition = self.third_stage_result.vapour_composition,
+                                      third_stage_liquid_composition = self.third_stage_result.liquid_composition,
+                                      third_stage_liquid_z = self.third_stage_result.liquid_z,
+                                      third_stage_vapour_z = self.third_stage_result.vapour_z,
+                                      third_stage_k_values = self.third_stage_result.Ki,
+
+                                      )
+        
+        return self.result
+
+    @property
+    def gas_compositions(self):
+        return pd.DataFrame({f'First Stage\n P:{self.first_stage_conditions.p}, T {self.first_stage_conditions.t}': self.result.first_stage_vapour_composition,
+                             f'Second Stage\n P:{self.second_stage_conditions.p}, T {self.second_stage_conditions.t}': self.result.second_stage_vapour_composition,
+                             f'Third Stage\n P:{self.third_stage_conditions.p}, T {self.third_stage_conditions.t}': self.result.third_stage_vapour_composition,})

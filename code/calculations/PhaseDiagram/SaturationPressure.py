@@ -41,15 +41,15 @@ class SaturationPressureCalculation:
             if phase_stability.S_l > phase_stability.S_v:
                 k_sp = phase_stability.k_values_liquid
                 r_sp = phase_stability.ri_l
-                letuch_z = phase_stability.initial_eos.choosen_fugacities
-                letuch_sp = phase_stability.liquid_eos.choosen_fugacities
+                letuch_z = phase_stability.initial_eos.fugacities
+                letuch_sp = phase_stability.liquid_eos.fugacities
                 y_sp = {component: self.zi._composition[component] / phase_stability.k_values_liquid[component] 
                         for component in self.zi._composition.keys()}
             else:
                 k_sp = phase_stability.k_values_vapour
                 r_sp = phase_stability.ri_v
-                letuch_z = phase_stability.initial_eos.choosen_fugacities
-                letuch_sp = phase_stability.vapour_eos.choosen_fugacities
+                letuch_z = phase_stability.initial_eos.fugacities
+                letuch_sp = phase_stability.vapour_eos.fugacities
                 y_sp = {component: self.zi._composition[component] * phase_stability.k_values_vapour[component] 
                         for component in self.zi._composition.keys()}
         else:
@@ -62,8 +62,8 @@ class SaturationPressureCalculation:
             if phase_stability.S_v > phase_stability.S_l:
                 k_sp = phase_stability.k_values_vapour
                 r_sp = phase_stability.ri_v
-                letuch_z = phase_stability.initial_eos.choosen_fugacities
-                letuch_sp = phase_stability.vapour_eos.choosen_fugacities
+                letuch_z = phase_stability.initial_eos.fugacities
+                letuch_sp = phase_stability.vapour_eos.fugacities
                 y_sp = {component: self.zi._composition[component] * phase_stability.k_values_vapour[component] 
                         for component in self.zi._composition.keys()}
             else:
