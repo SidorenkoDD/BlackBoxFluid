@@ -1,5 +1,11 @@
-class LenthMissMatchError:
+class NoComponentError(Exception):
     pass
 
-class nStagesError:
+class LenthMissMatchError(Exception):
+    pass
+
+class nStagesError(Exception):
+    pass
+
+class CompositionSumError(Exception):
     pass

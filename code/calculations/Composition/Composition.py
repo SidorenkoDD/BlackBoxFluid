@@ -1,17 +1,16 @@
 from pathlib import Path
 import sys
+import re
+import math
+import pandas as pd
+from calculations.Composition.PlusComponentCorrelations import PlusComponentProperties
+from calculations.Utils.JsonDBReader import JsonDBReader
+from calculations.Utils.Errors import NoComponentError, CompositionSumError
 
 # Добавляем корневую директорию в PYTHONPATH
 root_path = Path(__file__).parent.parent.parent
 sys.path.append(str(root_path))
 
-
-from calculations.Composition.PlusComponentCorrelations import PlusComponentProperties
-from calculations.Utils.JsonDBReader import JsonDBReader
-import math
-import json
-import pandas as pd
-import re
 
 
 class Composition:
@@ -51,11 +50,11 @@ class Composition:
 
 
     def _validate_composition_sum(self):
-        '''Method checks sum of components, range 0.998 to 1.001
+        '''Method checks sum of components, range 0.999 to 1.001
         '''
         sum_of_components = sum(self._composition.values())
-        if not 0.997 <= sum_of_components <=1.002:
-            raise ValueError('Сумма компонент не равна 1')
+        if not 0.999 <= sum_of_components <=1.001:
+            raise CompositionSumError(f'Sum of components {sum_of_components}\n not equal to 1!')
 
 
     def _validate_c6_plus_components(self):
@@ -85,16 +84,17 @@ class Composition:
 
 
             for component in self._c6_plus_components:
-                cur_comp_properties = PlusComponentProperties(component, correlations_config= self._c6_plus_correlations)
-                cur_comp_properties.calculate_all_props_v2()
-
-                self._composition_data['molar_mass'][component] = cur_comp_properties.data['M']
-                self._composition_data['critical_pressure'][component] = cur_comp_properties.data['p_c']
-                self._composition_data['critical_temperature'][component] = cur_comp_properties.data['t_c']
-                self._composition_data['acentric_factor'][component] = cur_comp_properties.data['acentric_factor']
-                self._composition_data['critical_volume'][component] = cur_comp_properties.data['crit_vol']
-                self._composition_data['shift_parameter'][component] = cur_comp_properties.data['Cpen']
-
+                try:
+                    cur_comp_properties = PlusComponentProperties(component, correlations_config= self._c6_plus_correlations)
+                    cur_comp_properties.calculate_all_props_v2()
+                    self._composition_data['molar_mass'][component] = cur_comp_properties.data['M']
+                    self._composition_data['critical_pressure'][component] = cur_comp_properties.data['p_c']
+                    self._composition_data['critical_temperature'][component] = cur_comp_properties.data['t_c']
+                    self._composition_data['acentric_factor'][component] = cur_comp_properties.data['acentric_factor']
+                    self._composition_data['critical_volume'][component] = cur_comp_properties.data['crit_vol']
+                    self._composition_data['shift_parameter'][component] = cur_comp_properties.data['Cpen']
+                except Exception as e:
+                    raise ValueError(f"Can't create composition: no component {component} in DB!")
 
     def _chueh_prausnitz_bip(self, component_i, component_j, A = 0.18, B = 6):
         '''Chew-Parusnitz correlation for BIPS
@@ -192,14 +192,10 @@ class Composition:
     def show_composition_dataframes(self):
 
         '''Print composition, component properties and bips'''
-
-
         composition_df = pd.DataFrame.from_dict(self._composition, orient= 'index').to_markdown()
 
         ## Костыль чтобы убрать bips
         main_data_df = pd.DataFrame.from_dict({k: self._composition_data[k] for k in list(self._composition_data.keys())[:-1]}).to_markdown()
-
-
         bips_df = pd.DataFrame.from_dict(self._composition_data['bip']).to_markdown()
         
 
