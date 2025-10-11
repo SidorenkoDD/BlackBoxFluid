@@ -10,22 +10,11 @@ class FluidProperties:
         
         jsondbreader = JsonDBReader()
         self.db = jsondbreader.load_database()
-        # with open(r'code/db/new_db.json', 'r') as db_file:
-        #     self.db = json.load(db_file)
-        
         
         self.equil_obj = equil_obj
 
-
-        if __name__ == '__main__':
-            self.p = p
-            self.t = t + 273.14
-
-        else:
-            self.p = p
-            self.t = t
-
-
+        self.p = p
+        self.t = t
 
     # Метод расчета молекулярной массы
     ## Для расчета молекулярной массы газовой фазы
@@ -51,14 +40,14 @@ class FluidProperties:
     ## Расчет объема для газовой фазы
     @property
     def vapour_volume(self):
-        return self.equil_obj.fv * ((8.314 * self.t * self.equil_obj.eos_vapour._z/ self.p) - self.equil_obj.eos_vapour.shift_parametr)
+        return self.equil_obj.fv * ((8.314 * self.t * self.equil_obj.eos_vapour._z / (self.p)) - self.equil_obj.eos_vapour.shift_parametr)
 
 
     ## Расчет объема для жидкой фазы
     @property
     def liquid_volume(self):
-        return (1 - self.equil_obj.fv) * ((8.314 * self.t *self.equil_obj.eos_liquid._z/ self.p) - self.equil_obj.eos_liquid.shift_parametr)
-    
+        return (1 - self.equil_obj.fv) * ((8.314 * self.t *self.equil_obj.eos_liquid._z / (self.p)) - self.equil_obj.eos_liquid.shift_parametr)
+
 
     # Методы расчета плотности
     ## Расчет плотности для газовой фазы
