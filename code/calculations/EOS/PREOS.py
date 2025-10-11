@@ -1,6 +1,7 @@
 from pathlib import Path
 import sys
 import math as math
+import numpy as np
 from calculations.EOS.BaseEOS import EOS
 from calculations.Composition.Composition import Composition
 
@@ -88,7 +89,7 @@ class PREOS(EOS):
         return self._calc_b(component) * self.p/ (8.31 * self.t)
     
     
-    def _calc_mixed_A(self) -> float:
+    def _calc_mixed_A_old(self) -> float:
         '''Calculation of mixed **A** parameter  for EOS
         
         Returns
@@ -101,6 +102,30 @@ class PREOS(EOS):
                 a_mixed.append(self.zi[i_component] * self.zi[j_component] * math.sqrt(self.all_params_A[i_component] * self.all_params_A[j_component]) * (1 - self.components_properties['bip'][i_component][j_component]))
 
         return sum(a_mixed)
+    
+    def _calc_mixed_A(self) -> float:
+        '''Calculation of mixed **A** parameter for EOS'''
+        
+        # Преобразуем данные в numpy arrays
+        components = list(self.zi.keys())
+        n = len(components)
+        
+        # Создаем векторы
+        zi_vector = np.array([self.zi[comp] for comp in components])
+        a_vector = np.array([self.all_params_A[comp] for comp in components])
+        
+        # Создаем матрицы взаимодействия
+        zi_matrix = np.outer(zi_vector, zi_vector)  # zi_i * zi_j
+        a_matrix = np.outer(a_vector, a_vector)     # a_i * a_j
+        sqrt_a_matrix = np.sqrt(a_matrix)           # sqrt(a_i * a_j)
+        
+        # Матрица бинарных параметров взаимодействия
+        bip_matrix = np.array([[1 - self.components_properties['bip'][i][j] 
+                            for j in components] for i in components])
+        
+        # Вычисляем результат
+        result_matrix = zi_matrix * sqrt_a_matrix * bip_matrix
+        return np.sum(result_matrix)
 
 
     def _calc_linear_mixed_B(self) -> float:
@@ -230,6 +255,101 @@ class PREOS(EOS):
             else:
                 return 0
 
+
+    
+
+
+    def _calc_fugacity_for_component_PR_numpy_vers(self, eos_root=None, component=None):
+        # Кэшируем ключи и предвычисляем константы
+        zi_keys = list(self.zi.keys())
+        num_components = len(zi_keys)
+        
+        # Предварительно вычисленные константы для numpy
+        sqrt2 = np.sqrt(2)
+        sqrt2_plus_1 = sqrt2 + 1
+        sqrt2_minus_1 = sqrt2 - 1
+        
+        if num_components == 1:
+            # Векторизованная обработка корней с numpy
+            eos_roots = np.array(self.real_roots_eos)
+            B = self.B_linear_mixed
+            A = self.mixed_A
+            
+            # Векторизованные вычисления для всех корней
+            root_minus_B = eos_roots - B
+            valid_roots_mask = root_minus_B > 0
+            
+            for i, root in enumerate(eos_roots):
+                if not valid_roots_mask[i]:
+                    continue
+                    
+                # Вычисляем числитель и знаменатель для логарифма
+                numerator = root + sqrt2_plus_1 * B
+                denominator = root - sqrt2_minus_1 * B
+                
+                if denominator <= 0:
+                    continue
+                    
+                # Векторизованное вычисление логарифма
+                log_term2 = np.log(numerator / denominator)
+                
+                ln_fi_i = (root - 1 - np.log(root - B) - 
+                        A / (2 * sqrt2 * B) * log_term2)
+                return ln_fi_i
+            
+        else:
+            # Многокомпонентный случай
+            if eos_root is None or component is None:
+                return 0
+                
+            B = self.B_linear_mixed
+            A = self.mixed_A
+            
+            # Проверка условий
+            if (eos_root - B) <= 0 or eos_root <= 0:
+                return 0
+            
+            # Векторизованное вычисление zi_Ai с numpy
+            zi_Ai = []
+            for comp in zi_keys:
+                bip_val = self.components_properties['bip'][component][comp]
+                sqrt_A = np.sqrt(self.all_params_A[component] * self.all_params_A[comp])
+                zi_Ai.append(self.zi[comp] * (1 - bip_val) * sqrt_A)
+            
+            sum_zi_Ai = np.sum(zi_Ai)
+            
+            # Вычисление логарифмического члена
+            numerator_log = eos_root + ((1 + sqrt2) * B)
+            denominator_log = eos_root + ((1 - sqrt2) * B)
+            
+            if numerator_log <= 0 or denominator_log <= 0:
+                return 0
+                
+            log_term = np.log(numerator_log / denominator_log)
+            
+            # Основное вычисление
+            Bi_over_B = self.all_params_B[component] / B
+            
+            ln_fi_i = ((Bi_over_B * (eos_root - 1)) -
+                    np.log(eos_root - B) + 
+                    (A / (2 * sqrt2 * B)) * 
+                    (Bi_over_B - (2 / A) * sum_zi_Ai) * log_term)
+            
+            # Финальное вычисление
+            try:
+                pressure_term = self.p * self.zi[component]
+                if pressure_term > 0:
+                    ln_f_i = ln_fi_i + np.log(pressure_term)
+                    return ln_f_i
+                else:
+                    return 0
+            except (ValueError, ArithmeticError):
+                return 0
+        
+        return 0
+
+
+
     def _calc_normalized_gibbs_energy(self) -> dict:
         '''Calculation of normalized Gibbs energy. 
         
@@ -289,7 +409,7 @@ class PREOS(EOS):
         self.real_roots_eos = self._solve_cubic_equation()
 
         self.fugacity_by_roots = {}
-        for root in self.real_roots_eos:
+        for root in [x for x in self.real_roots_eos if x != 0]:
             fugacity_by_components = {}
             for component in self.zi.keys():
                 fugacity_by_components[component] = self._calc_fugacity_for_component_PR(component, root)
