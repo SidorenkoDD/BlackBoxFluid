@@ -1,6 +1,6 @@
 from calculations.PhaseStability.TwoPhaseStabilityTest import TwoPhaseStabilityTest
 from calculations.VLE.PhaseEquilibrium import PhaseEquilibrium
-from code.calculations.Utils.fluid_properties import FluidProperties
+from calculations.Utils.fluid_properties import FluidProperties
 from calculations.Utils.BaseClasses import Calculator
 from calculations.Utils.Results import TwoPhaseFlashResults
 
@@ -43,7 +43,7 @@ class TwoPhaseFlash(Calculator):
                                            Ki= None,
                                            liquid_composition=None,
                                            vapour_composition= None,
-                                           liquid_z= None, 
+                                           liquid_z= None,
                                            vapour_z= None,
                                            vapour_molecular_mass= None,
                                            liquid_molecular_mass= None,
@@ -70,13 +70,13 @@ class TwoPhaseFlash(Calculator):
                                                                self.phase_stability.k_values_vapour,
                                                                self.eos)
                     self.phase_equilibrium.find_solve_loop()
-            if (self.phase_stability.S_v > 1) and (self.phase_stability.S_l < 1):
+            if self.phase_stability.S_l < 1 < self.phase_stability.S_v:
                 self.phase_equilibrium = PhaseEquilibrium(self.composition, self._conditions.p,
                                                                self._conditions.t,
                                                                self.phase_stability.k_values_vapour,
                                                                self.eos)
                 self.phase_equilibrium.find_solve_loop()
-            if (self.phase_stability.S_v < 1) and (self.phase_stability.S_l > 1):
+            if self.phase_stability.S_v < 1 < self.phase_stability.S_l:
                 self.phase_equilibrium = PhaseEquilibrium(self.composition, self._conditions.p,
                                                                self._conditions.t,
                                                                self.phase_stability.k_values_liquid,

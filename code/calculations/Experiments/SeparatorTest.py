@@ -3,7 +3,7 @@ from calculations.Experiments.BaseExperiment import PVTExperiment
 from calculations.Utils.Errors import LenthMissMatchError, nStagesError
 from calculations.Utils.Conditions import Conditions
 from calculations.Utils.Results import SeparatorTestResults
-from calculations.VLE.Flash import FlashFactory
+from calculations.VLE.flash import FlashFactory
 
 import pandas as pd
 
@@ -13,7 +13,7 @@ class SeparatorTest(PVTExperiment):
         self._composition = composition
         self._eos = eos
         self.result = {}
-    
+
     def check_stages(self, stages_pressure, stages_temperature):
         if len(stages_pressure) != len(stages_temperature):
             raise LenthMissMatchError(f'{stages_pressure} and {stages_temperature} are different length!')
@@ -87,10 +87,8 @@ class SeparatorTest(PVTExperiment):
                                       third_stage_liquid_composition = self.third_stage_result.liquid_composition,
                                       third_stage_liquid_z = self.third_stage_result.liquid_z,
                                       third_stage_vapour_z = self.third_stage_result.vapour_z,
-                                      third_stage_k_values = self.third_stage_result.Ki,
+                                      third_stage_k_values = self.third_stage_result.Ki)
 
-                                      )
-        
         return self.result
 
     @property
