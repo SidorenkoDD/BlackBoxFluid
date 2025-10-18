@@ -1,16 +1,16 @@
 import math
-from typing import Dict, Callable, Any, List, Union
+from typing import Dict, Callable
 from calculations.Utils.JsonDBReader import JsonDBReader
 from calculations.Utils.Constants import CONSTANT_R
 import sys
 from pathlib import Path
-# Добавляем корневую директорию в PYTHONPATH
+# Добавляем корневую директорию в PYTHONPATH 
 root_path = Path(__file__).parent.parent.parent
 sys.path.append(str(root_path))
 
 class CriticalTemperatureCorrelation:
     """Класс для расчета критической температуры, содержащий все корреляции"""
-    
+
     @staticmethod
     def roess(gamma: float, Tb: float) -> float:
         t_bf_fahrenheit = Tb * 9/5 + 32
@@ -36,14 +36,14 @@ class CriticalTemperatureCorrelation:
 
     @staticmethod
     def kesler_lee(gamma, Tb):
-        t_c_renkin = 341.7 + 811 * gamma + (0.4244 + 0.1174 * gamma)*Tb + ((0.4669 - 3.2623 * gamma)* math.pow(10,5)) /(Tb)
-
+        t_c_renkin = (341.7 + 811 * gamma + (0.4244 + 0.1174 * gamma) * 
+                      Tb + ((0.4669 - 3.2623 * gamma)* math.pow(10,5)) /(Tb))
         return t_c_renkin * 5/9
 
     @staticmethod
     def pedersen(gamma, M):
         return 163.12 * gamma + 86.052 * math.log(M) + 0.43475 * M - (1877.4/M)
-    
+
     @staticmethod
     def standing(gamma, M):
         return 338 + 202 * math.log10(M - 71.2) + (1361 * math.log10(M) - 2111) * math.log10(gamma)
@@ -89,7 +89,8 @@ class CriticalPressureCorrelation:
 
     @staticmethod
     def standing(gamma, M):
-        return 8.191 - 2.97 * math.log10(M - 61.1) + (15.99 - 5.87 * math.log10(M - 53.7)) * (gamma - 0.8)
+        return (8.191 - 2.97 * math.log10(M - 61.1) + (15.99 - 5.87 *
+                                                        math.log10(M - 53.7)) * (gamma - 0.8))
 
 
     @staticmethod
@@ -131,12 +132,11 @@ class CriticalPressureCorrelation:
         bk = ((p_std * b * molar_volume - (2 * CONSTANT_R * t_std * b) + a) /
                (p_std * math.pow(molar_volume, 2) - (CONSTANT_R * t_std * molar_volume)))
         
-        ck =  (((3 * p_std * math.pow(b,2) * molar_volume) + (math.pow(b, 2) * CONSTANT_R * t_std) - (a * b)) /
+        ck =  (((3 * p_std * math.pow(b,2) * molar_volume) + 
+                (math.pow(b, 2) * CONSTANT_R * t_std) - (a * b)) /
                ((p_std * math.pow(molar_volume, 3)) - (CONSTANT_R * t_std * math.pow(molar_volume, 2))))
-        
         dk = (p_std * math.pow(b,3) / 
               ((p_std * math.pow(molar_volume, 3)) - (CONSTANT_R * t_std * math.pow(molar_volume, 2))))
-
         pk = -(bk ** 2) / 3 + ck
         qk = 2 * (bk ** 3) / 27 - (bk * ck/ 3 ) + dk
         s = ((pk/3) ** 3) + ((qk/2) ** 2) 
@@ -152,17 +152,12 @@ class CriticalPressureCorrelation:
                 it = - (itt ** (1/3))
             else:
                  it = itt ** (1/3)
-            
-
             if vb < 0:
                     zk0 = it - ((abs(vb)) ** (1/3)) - bk/3
-                
             else:
                     zk0 = it + ((-qk/2 - math.sqrt(s)) ** (1/3)) - bk/3
-
             zk1 = 0
             zk2 = 0
-        
         elif s < 0:
             if qk < 0:
                 f = math.atan(math.sqrt(-s) / (-qk/2))
@@ -333,6 +328,8 @@ class ShiftParameterCorrelation:
         return 1 - (a0 / (math.pow(M, a1)))
 
 class PlusComponentProperties:
+    '''Main class to calculate all properties.
+    '''
     def __init__(self, component: str,  
                  correlations_config: Dict[str, str] ):
         self.component = component
