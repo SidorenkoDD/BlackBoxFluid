@@ -64,9 +64,6 @@ class CriticalTemperatureCorrelation:
         }
         return params_map.get(method, [])
 
-
-
-
 class CriticalPressureCorrelation:
     """Класс для расчета критического давления"""
     
@@ -109,9 +106,6 @@ class CriticalPressureCorrelation:
         }
         return params_map.get(method, [])
 
-
-
-
 class AcentricFactorCorrelation:
 
     @classmethod
@@ -144,8 +138,6 @@ class AcentricFactorCorrelation:
     def rizari_al_sahhaf(M):
         return - (0.3 - math.exp(-6.252 + 3.64457 * math.pow(M, 0.1)))
 
-
-
 class CriticalVolumeCorrelation:
     @classmethod
     def get_correlation(cls, method: str) -> Callable:
@@ -174,10 +166,6 @@ class CriticalVolumeCorrelation:
     def hall_yarborough(M, gamma):
         return 0.025 * math.pow(M, 1.15) * math.pow(gamma, -0.7935)
 
-
-
-
-
 class KWatson:
 
     @classmethod
@@ -205,8 +193,6 @@ class KWatson:
     @staticmethod
     def k_watson_approx(M, gamma):
         return 4.5579 * math.pow(M, 0.15178) * math.pow(gamma, -0.84573)
-
-
 
 class ShiftParameterCorrelation:
     @classmethod
@@ -248,15 +234,6 @@ class ShiftParameterCorrelation:
 
 
         return 1 - (a0 / (math.pow(M, a1)))
-
-
-
-
-
-
-
-
-
 
 class PlusComponentProperties:
     def __init__(self, component: str,  
