@@ -5,7 +5,7 @@ from calculations.PhaseStability.BasePhaseStability import PhaseStabilityTest
 from calculations.EOS.BaseEOS import EOS
 from calculations.EOS.RootChooser import EOSRootChooser
 from calculations.EOS.EOSFactory import EOSFactory
-from calculations.Utils.ConvergenceConstants import TOL_TWO_PHASE_STABILITY_CONVERGENCE, TOL_TWO_PHASE_STABILITY_CONVERGENCE_TRIVIAL_SOLUTION
+from code.calculations.Utils.Constants import TOL_TWO_PHASE_STABILITY_CONVERGENCE, TOL_TWO_PHASE_STABILITY_CONVERGENCE_TRIVIAL_SOLUTION
 
 root_path = Path(__file__).parent.parent.parent
 sys.path.append(str(root_path))

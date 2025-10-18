@@ -1,7 +1,12 @@
+import math
 from typing import Dict, Callable, Any, List, Union
 from calculations.Utils.JsonDBReader import JsonDBReader
-import math
-import json
+from calculations.Utils.Constants import CONSTANT_R
+import sys
+from pathlib import Path
+# Добавляем корневую директорию в PYTHONPATH
+root_path = Path(__file__).parent.parent.parent
+sys.path.append(str(root_path))
 
 class CriticalTemperatureCorrelation:
     """Класс для расчета критической температуры, содержащий все корреляции"""
@@ -87,6 +92,97 @@ class CriticalPressureCorrelation:
         return 8.191 - 2.97 * math.log10(M - 61.1) + (15.99 - 5.87 * math.log10(M - 53.7)) * (gamma - 0.8)
 
 
+    @staticmethod
+    def pc_from_eos(gamma, M, Tc):
+
+        def calc_a(omega_a = 0.45724) -> float:
+            '''Caclulation of **a** parameter for EOS
+
+            Parameters:
+                ---------
+                    component - component for calculation parameter a
+                    omega_a - constant 0.45724
+
+            Returns:
+                --------
+                    parameter **a** for component
+            '''
+            acentric_factor =  - (0.3 - math.exp(-6.252 + 3.64457 * math.pow(M, 0.1)))
+            if acentric_factor > 0.49:
+                m = (0.3796 + 1.485 * acentric_factor  - 
+                    0.1644 * math.pow(acentric_factor,2) + 
+                    0.01667 * math.pow(acentric_factor, 3))
+            else:
+                m = (0.37464 + 1.54226 * acentric_factor - 
+                    0.26992 * math.pow(acentric_factor, 2))
+
+            alpha = math.pow(1 + m * (1 - math.sqrt(293.14/Tc)), 2)
+            
+            return (omega_a * math.pow(Tc,2) * 
+                    math.pow(8.31, 2) * alpha)
+
+        p_std = 101325 # Pa
+        t_std = 293.14 # K
+        molar_mass_kg_mole = M / 1000
+        molar_volume = (molar_mass_kg_mole) / (gamma * math.pow(10,3))
+        a = calc_a(Tc)
+        b = 0.0778 * CONSTANT_R * Tc
+
+        bk = ((p_std * b * molar_volume - (2 * CONSTANT_R * t_std * b) + a) /
+               (p_std * math.pow(molar_volume, 2) - (CONSTANT_R * t_std * molar_volume)))
+        
+        ck =  (((3 * p_std * math.pow(b,2) * molar_volume) + (math.pow(b, 2) * CONSTANT_R * t_std) - (a * b)) /
+               ((p_std * math.pow(molar_volume, 3)) - (CONSTANT_R * t_std * math.pow(molar_volume, 2))))
+        
+        dk = (p_std * math.pow(b,3) / 
+              ((p_std * math.pow(molar_volume, 3)) - (CONSTANT_R * t_std * math.pow(molar_volume, 2))))
+
+        pk = -(bk ** 2) / 3 + ck
+        qk = 2 * (bk ** 3) / 27 - (bk * ck/ 3 ) + dk
+        s = ((pk/3) ** 3) + ((qk/2) ** 2) 
+
+        if s > 0:
+            vb = -qk/2 - (s ** (1/2)) 
+            itt = -qk/2 + (s ** (1/2)) 
+            if itt < 0:
+
+                itt =  abs(itt)
+
+                it =  (itt ** (1/3))
+                it = - (itt ** (1/3))
+            else:
+                 it = itt ** (1/3)
+            
+
+            if vb < 0:
+                    zk0 = it - ((abs(vb)) ** (1/3)) - bk/3
+                
+            else:
+                    zk0 = it + ((-qk/2 - math.sqrt(s)) ** (1/3)) - bk/3
+
+            zk1 = 0
+            zk2 = 0
+        
+        elif s < 0:
+            if qk < 0:
+                f = math.atan(math.sqrt(-s) / (-qk/2))
+            elif qk > 0:
+                f = math.atan(math.sqrt(-s) / (-qk/2)) + math.pi
+            else:
+                f = math.pi / 2
+
+            zk0 = 2 * math.sqrt(-pk/3) * math.cos(f/3) - bk/3
+            zk1 = 2 * math.sqrt(-pk/3) * math.cos(f/3 + 2 * math.pi /3) - bk/3 
+            zk2 = 2 * math.sqrt(-pk/3) * math.cos(f/3 + 4 * math.pi /3) - bk/3
+        
+        elif s == 0:
+            zk0 = 2 * math.sqrt(-qk / 2) - bk/3
+            zk1 = -math.pow((-qk/2), (1/3)) - bk/3
+            zk2 = -math.pow((-qk/2), (1/3)) - bk/3
+
+
+        return [zk0, zk1, zk2]
+
 
     @classmethod
     def get_correlation(cls, method: str) -> Callable:
@@ -102,7 +198,8 @@ class CriticalPressureCorrelation:
             'kesler_lee': ['gamma', 'Tb'],
             'rizari_daubert' : ['gamma', 'Tb'],
             'pedersen' : ['gamma', 'M'], 
-            'standing' : ['gamma', 'M']
+            'standing' : ['gamma', 'M'],
+            'pc_from_eos' : ['gamma', 'M', 'Tc']
         }
         return params_map.get(method, [])
 
@@ -239,7 +336,7 @@ class PlusComponentProperties:
     def __init__(self, component: str,  
                  correlations_config: Dict[str, str] ):
         self.component = component
-        #self.data = data
+
         self.correlations_config = correlations_config
         
 
@@ -254,10 +351,11 @@ class PlusComponentProperties:
 
         jsondbreader = JsonDBReader()
         self.katz_firuzabadi = jsondbreader.load_database()
-        # with open(r'code/db/new_db.json') as f:
-        #      self.katz_firuzabadi = json.load(f)
 
-        self.data = {'M': self.katz_firuzabadi['molar_mass'][component], 'gamma': self.katz_firuzabadi['gamma'][component], 'Tb': self.katz_firuzabadi['Tb'][component]}
+
+        self.data = {'M': self.katz_firuzabadi['molar_mass'][component],
+                    'gamma': self.katz_firuzabadi['gamma'][component],
+                    'Tb': self.katz_firuzabadi['Tb'][component]}
         
     
 
@@ -286,10 +384,6 @@ class PlusComponentProperties:
                 params[param] = 141.5/self.data['gamma'] - 131.5
             if param == 'Tb' and 'Tb' in self.data.keys():
                 params[param] = self.data['Tb'] * 1.8
-            # if param == 'p_c' and 'p_c' in self.data.keys():
-            #     params[param] = self.data['p_c'] * 145.038
-            # if param == 't_c' and 't_c' in self.data.keys():
-            #     params[param] = self.data['t_c'] * 1.8
             elif param in self.data.keys():
                 params[param] = self.data[param]
             else:
@@ -313,46 +407,6 @@ class PlusComponentProperties:
         self.data['Kw'] = self.calculate_property('k_watson')
 
         self.data['Cpen'] = self.calculate_property('shift_parameter')
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # def calculate_all_properties(self) -> Dict[str, Union[float, Dict[str, Any]]]:
-    #     """
-    #     Рассчитывает все свойства, указанные в correlations_config
-        
-    #     Возвращает словарь с результатами и дополнительной информацией:
-    #     {
-    #         'results': {property_name: value},
-    #         'errors': {property_name: error_message},
-    #         'used_correlations': correlations_config
-    #     }
-    #     """
-    #     results = {}
-    #     errors = {}
-    #     self.component_data_with_calc = {}
-        
-    #     for property_name in self.correlations_config:
-    #         try:
-    #             results[property_name] = self.calculate_property(property_name)
-    #         except ValueError as e:
-    #             errors[property_name] = str(e)
-        
-    #     return {
-    #         'results': results,
-    #         'errors': errors,
-    #         'used_correlations': self.correlations_config
-    #     }
-
 
 
 

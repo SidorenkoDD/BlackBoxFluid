@@ -3,7 +3,7 @@ from calculations.EOS.BaseEOS import EOS
 from calculations.EOS.EOSFactory import EOSFactory
 from calculations.EOS.RootChooser import EOSRootChooser
 from calculations.Composition.Composition import Composition
-from calculations.Utils.ConvergenceConstants import TOL_TWO_PHASE_FLASH_CONVERGENCE, TOL_TWO_PHASE_FLASH_BISECTION_CONVERGENCE, TOL_TWO_PHASE_FLASH_TRIVIAL_SOLUTION
+from code.calculations.Utils.Constants import TOL_TWO_PHASE_FLASH_CONVERGENCE, TOL_TWO_PHASE_FLASH_BISECTION_CONVERGENCE, TOL_TWO_PHASE_FLASH_TRIVIAL_SOLUTION
 
 
 
