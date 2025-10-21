@@ -108,6 +108,7 @@ class CriticalPressureCorrelation:
                     parameter **a** for component
             '''
             acentric_factor =  - (0.3 - math.exp(-6.252 + 3.64457 * math.pow(M, 0.1)))
+            print(acentric_factor)
             if acentric_factor > 0.49:
                 m = (0.3796 + 1.485 * acentric_factor  - 
                     0.1644 * math.pow(acentric_factor,2) + 
