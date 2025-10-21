@@ -2,7 +2,7 @@ from pathlib import Path
 import sys
 
 from calculations.Composition.Composition import Composition
-from calculations.VLE.Flash import FlashFactory
+from calculations.VLE.flash import FlashFactory
 from calculations.Utils.Conditions import Conditions
 from calculations.PhaseDiagram.PhaseDiagram_v4 import PhaseDiagram, SaturationPressure
 from calculations.Experiments.ExperimentsFacade import ExperimentsFacade

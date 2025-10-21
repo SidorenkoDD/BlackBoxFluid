@@ -1,4 +1,4 @@
-from calculations.VLE.Flash import FlashFactory
+from calculations.VLE.flash import FlashFactory
 from calculations.Experiments.BaseExperiment import PVTExperiment
 from calculations.Utils.Conditions import Conditions
 

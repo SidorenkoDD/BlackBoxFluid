@@ -1,5 +1,5 @@
 from calculations.Experiments.BaseExperiment import PVTExperiment
-from calculations.VLE.Flash import FlashFactory
+from calculations.VLE.flash import FlashFactory
 from calculations.Utils.Conditions import Conditions
 
 class DL(PVTExperiment):
