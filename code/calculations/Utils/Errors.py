@@ -9,3 +9,6 @@ class nStagesError(Exception):
 
 class CompositionSumError(Exception):
     pass
+
+class InvalidMolarFractionError(Exception):
+    pass
