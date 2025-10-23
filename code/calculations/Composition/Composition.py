@@ -3,9 +3,11 @@ import sys
 import re
 import math
 import pandas as pd
+from typing import List
 from calculations.Composition.PlusComponentCorrelations import PlusComponentProperties
 from calculations.Utils.JsonDBReader import JsonDBReader
 from calculations.Utils.Errors import NoComponentError, CompositionSumError
+from calculations.Composition.component import Component
 
 # Добавляем корневую директорию в PYTHONPATH
 root_path = Path(__file__).parent.parent.parent
@@ -187,8 +189,6 @@ class Composition:
                 self._composition_data[property][component] = properties[property]
 
 
-
-    
     def show_composition_dataframes(self):
 
         '''Print composition, component properties and bips'''
@@ -205,19 +205,34 @@ class Composition:
         print('========')
         print(bips_df)
 
-
-
     @property
     def COMPOSITION(self):
         return pd.DataFrame.from_dict(self._composition, orient= 'index')
-    
+
     @property
     def COMPOSITION_PROPERTIES(self):
         return pd.DataFrame.from_dict({k: self._composition_data[k] for k in list(self._composition_data.keys())[:-1]})
-    
+
     @property
     def BIPS(self):
         return pd.DataFrame.from_dict(self._composition_data['bip'])
+
+class Composition2:
+    '''fgb'''
+
+    def __init__(self, component_list : List[Component], bips_corr : None | str = None):
+        self.component_list = component_list
+
+    def _create_composition_df(self):
+        pass
+
+    def _validate_composition_sum(self):
+        '''Method checks sum of components, range 0.999 to 1.001
+        '''
+        sum_of_components = sum(self._composition.values())
+        if not 0.999 <= sum_of_components <=1.001:
+            raise CompositionSumError(f'Sum of components {sum_of_components}\n not equal to 1!')
+
 
 
 
