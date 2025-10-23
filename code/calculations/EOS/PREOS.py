@@ -43,7 +43,6 @@ class PREOS(EOS):
         return (omega_a * math.pow(self.components_properties['critical_temperature'][component],2) * 
                 math.pow(8.31, 2) * alpha / self.components_properties['critical_pressure'][component])
 
-
     def _calc_b(self, component, omega_b = 0.0778) -> float:
         '''Calculation of **b** parameter for EOS
         Parameters:
@@ -57,9 +56,7 @@ class PREOS(EOS):
         '''
         return (omega_b * 8.31 * self.components_properties['critical_temperature'][component] /
                  self.components_properties['critical_pressure'][component])
-    
 
-    
     def _calc_A(self, component) -> float:
         '''Calculation of **A** parameter for EOS
         
@@ -72,9 +69,7 @@ class PREOS(EOS):
                 parameter **A** for component
         '''
         return self._calc_a(component) * self.p/math.pow((8.31 * self.t), 2)
-    
-    
-    
+
     def _calc_B(self, component) -> float:
         '''Calculation of **B** parameter for EOS
         
@@ -87,8 +82,7 @@ class PREOS(EOS):
                 parameter **B** for component
         '''
         return self._calc_b(component) * self.p/ (8.31 * self.t)
-    
-    
+
     def _calc_mixed_A_old(self) -> float:
         '''Calculation of mixed **A** parameter  for EOS
         
@@ -102,7 +96,7 @@ class PREOS(EOS):
                 a_mixed.append(self.zi[i_component] * self.zi[j_component] * math.sqrt(self.all_params_A[i_component] * self.all_params_A[j_component]) * (1 - self.components_properties['bip'][i_component][j_component]))
 
         return sum(a_mixed)
-    
+
     def _calc_mixed_A(self) -> float:
         '''Calculation of mixed **A** parameter for EOS'''
         
@@ -127,7 +121,6 @@ class PREOS(EOS):
         result_matrix = zi_matrix * sqrt_a_matrix * bip_matrix
         return np.sum(result_matrix)
 
-
     def _calc_linear_mixed_B(self) -> float:
         '''Calculation of mixed **B** parameter  for EOS
         
@@ -139,8 +132,7 @@ class PREOS(EOS):
         for i, b in enumerate(list(self.all_params_B.values())):
             linear_mixed_B.append(b * list(self.zi.values())[i])
         return sum(linear_mixed_B)
-        
-    
+
     def _calc_shift_parametr(self) -> float:
         '''Calculation of shift parameter  for EOS
         
@@ -154,7 +146,6 @@ class PREOS(EOS):
             c_to_sum.append(self.zi[component] * self.components_properties['shift_parameter'][component] * self.all_params_b[component])
 
         return sum(c_to_sum)
-
 
     def _solve_cubic_equation(self) -> list:
         '''Calculation of cubic equation
@@ -213,7 +204,6 @@ class PREOS(EOS):
 
         return [zk0, zk1, zk2]
 
-
     def _calc_fugacity_for_component_PR(self, component, eos_root) -> float:
         '''Calculation of fugacity for component
 
@@ -255,10 +245,6 @@ class PREOS(EOS):
                        return 0 
             else:
                 return 0
-
-
-    
-
 
     def _calc_fugacity_for_component_PR_numpy_vers(self, eos_root=None, component=None):
         # Кэшируем ключи и предвычисляем константы
@@ -349,8 +335,6 @@ class PREOS(EOS):
         
         return 0
 
-
-
     def _calc_normalized_gibbs_energy(self) -> dict:
         '''Calculation of normalized Gibbs energy. 
         
@@ -372,7 +356,6 @@ class PREOS(EOS):
                     normalized_gibbs_energy[root] = sum(gibbs_energy_by_roots)
 
         return normalized_gibbs_energy 
-    
 
     def _choose_eos_root_by_gibbs_energy(self) -> float:
         '''Choosing EOS root by normalized Gibbs energy. 
@@ -383,7 +366,6 @@ class PREOS(EOS):
         '''
         min_gibbs_energy = min(self.normalized_gibbs_energy.values())
         return [k for k, v in self.normalized_gibbs_energy.items() if v == min_gibbs_energy][0]
-    
 
     def calc_eos(self):
         '''Pipeline to calculate EOS
