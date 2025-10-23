@@ -5,10 +5,11 @@ import numpy as np
 import pandas as pd
 import time
 
+
 root_path = Path(__file__).parent.parent.parent
 sys.path.append(str(root_path))
 
-
+from numba import jit
 from calculations.EOS.BaseEOS import EOS
 from calculations.Composition.component import Component
 from calculations.Composition.Composition import Composition2
@@ -471,7 +472,7 @@ class PREOS(EOS):
             DataFrame with ln f_i for each component and each root
         '''
         df = self.composition_dataframe
-        eos_roots = self.real_roots_eos
+        eos_roots = self.real_roots_eos #[x for x in self.real_roots_eos if x != 0]
         
         # Создаем датафрейм для результатов
         fugacity_results = pd.DataFrame(index=df.index, 
@@ -503,7 +504,9 @@ class PREOS(EOS):
                         bip_value = 1.0
                     
                     # Получаем параметры A из столбцов датафрейма
+
                     A_i = df.loc[component, 'A_parameter']
+
                     A_j = df.loc[comp, 'A_parameter']
                     
                     zi_Ai.append(z_j * bip_value * math.sqrt(A_i * A_j))
@@ -512,6 +515,7 @@ class PREOS(EOS):
             
             # Расчет для всех компонентов и всех корней
             for component in df.index:
+                
                 B_i = df.loc[component, 'B_parameter']
                 z_i = df.loc[component, 'mole_fraction']
                 sum_zi_Ai = sum_zi_Ai_dict[component]
@@ -616,7 +620,7 @@ class PREOS(EOS):
         self.shift_parametr = self._calc_shift_parameter_vectorized()
 
         self._solve_cubic_equation()
-
+        
         self.fugacities_by_roots = self._calc_fugacity_for_all_components_PR_new()
 
 
@@ -634,17 +638,17 @@ class PREOS(EOS):
 
 if __name__ == '__main__':
 
-    component_obj1 = Component('C1',0.9)
-    component_obj6 = Component('C6',0.5)
-    component_obj7 = Component('C7',0.5)
+    component_obj1 = Component('C1',0.2)
+    component_obj6 = Component('C6',0.2)
+    component_obj7 = Component('C7',0.2)
     component_obj2 = Component('C9', 0.2)
     component_obj3 = Component('C13', 0.2)
     component_obj4 = Component('C14', 0.2)
-    #composition_obj = Composition2([component_obj1, component_obj2, component_obj3, component_obj4, component_obj6])
-    composition_obj2 = Composition2([component_obj6, component_obj7])
+    composition_obj = Composition2([component_obj1, component_obj2, component_obj3, component_obj4, component_obj6])
+    #composition_obj2 = Composition2([component_obj6, component_obj7])
     
 
-    eos = PREOS(composition_dataframe=composition_obj2._properties, bips = composition_obj2.bips, p = 10, t = 393.14)
+    eos = PREOS(composition_dataframe=composition_obj._properties, bips = composition_obj.bips, p = 10, t = 393.14)
     start_time = time.time()
     eos.calc_eos_vectorized()
     end_time = time.time()
