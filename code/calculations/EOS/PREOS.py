@@ -511,7 +511,7 @@ class PREOS(EOS):
             
             # Расчет для всех компонентов и всех корней
             for component in df.index:
-                B_i = df.loc[component, 'b_parameter']
+                B_i = df.loc[component, 'B_parameter']
                 z_i = df.loc[component, 'mole_fraction']
                 sum_zi_Ai = sum_zi_Ai_dict[component]
                 
@@ -635,16 +635,18 @@ class PREOS(EOS):
 
 if __name__ == '__main__':
     component_obj1 = Component('C1',0.9)
-    component_obj6 = Component('C6',0.1)
+    component_obj6 = Component('C6',0.5)
+    component_obj7 = Component('C7',0.5)
     component_obj2 = Component('C9', 0.2)
     component_obj3 = Component('C13', 0.2)
     component_obj4 = Component('C14', 0.2)
     #composition_obj = Composition2([component_obj1, component_obj2, component_obj3, component_obj4, component_obj6])
-    composition_obj2 = Composition2([component_obj1, component_obj6])
+    composition_obj2 = Composition2([component_obj6, component_obj7])
     
 
     eos = PREOS(composition_dataframe=composition_obj2._properties, bips = composition_obj2.bips, p = 10, t = 393.14)
     eos.calc_eos_vectorized()
     print(eos._solve_cubic_equation())
+    print(eos.real_roots_eos)
     print(eos._calc_fugacity_for_all_components_PR_new())
     print(eos.fugacity_results)
