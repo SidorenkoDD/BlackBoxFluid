@@ -2,11 +2,12 @@ from pathlib import Path
 import sys
 import math as math
 import numpy as np
-from calculations.EOS.BaseEOS import EOS
-from calculations.Composition.Composition import Composition
 
 root_path = Path(__file__).parent.parent.parent
 sys.path.append(str(root_path))
+from calculations.EOS.BaseEOS import EOS
+from calculations.Composition.Composition import Composition
+
 
 class PREOS(EOS):
     def __init__(self, zi, components_properties, p, t):
@@ -417,7 +418,7 @@ class PREOS(EOS):
 
 
 if __name__ == '__main__':
-    comp = Composition({'C1': 0.5, 'C2':0.5},
+    comp = Composition({'C1': 0.9, 'C6':0.1},
                        c6_plus_bips_correlation= None,
                        c6_plus_correlations = {'critical_temperature': 'kesler_lee',
                                                         'critical_pressure' : 'rizari_daubert',
@@ -426,7 +427,7 @@ if __name__ == '__main__':
                                                         'k_watson': 'k_watson',
                                                         'shift_parameter': 'jhaveri_youngren'})
 
-    eos = PREOS(comp.composition,comp.composition_data, 0.1, 293)
+    eos = PREOS(comp._composition,comp._composition_data, 10, 393.14)
     eos.calc_eos()
     print(f' Z: {eos.z}')
     print(f'fug_by_roots: {eos.fugacities}')
