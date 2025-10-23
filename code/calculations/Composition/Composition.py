@@ -230,7 +230,7 @@ class Composition2:
         self.component_list = component_list
         self._component_names = None
         self._mole_fractions = None
-        self.properties = None
+        self._properties = None
         self.bips = None
 
         self._validate_composition_sum()
@@ -259,7 +259,7 @@ class Composition2:
 
     def _create_bips_df(self):
         bips_calculator = BIPSCalculator(composition_dataframe= self._properties)
-        self.composition_bips = bips_calculator.calculate()
+        self.bips = bips_calculator.calculate()
 
 
 
