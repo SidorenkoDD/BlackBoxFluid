@@ -648,6 +648,6 @@ if __name__ == '__main__':
     start_time = time.time()
     eos.calc_eos_vectorized()
     end_time = time.time()
+    print(f"Время выполнения: {end_time - start_time:.8f} секунд")
     print(eos.real_roots_eos)
     print(eos.fugacity_results)
-    print(f"Время выполнения: {end_time - start_time:.4f} секунд")
