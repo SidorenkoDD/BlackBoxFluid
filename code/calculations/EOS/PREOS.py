@@ -3,6 +3,7 @@ import sys
 import math as math
 import numpy as np
 import pandas as pd
+import time
 
 root_path = Path(__file__).parent.parent.parent
 sys.path.append(str(root_path))
@@ -632,6 +633,7 @@ class PREOS(EOS):
 
 
 if __name__ == '__main__':
+
     component_obj1 = Component('C1',0.9)
     component_obj6 = Component('C6',0.5)
     component_obj7 = Component('C7',0.5)
@@ -643,6 +645,9 @@ if __name__ == '__main__':
     
 
     eos = PREOS(composition_dataframe=composition_obj2._properties, bips = composition_obj2.bips, p = 10, t = 393.14)
+    start_time = time.time()
     eos.calc_eos_vectorized()
+    end_time = time.time()
     print(eos.real_roots_eos)
     print(eos.fugacity_results)
+    print(f"Время выполнения: {end_time - start_time:.4f} секунд")
