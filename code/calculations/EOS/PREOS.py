@@ -2,6 +2,7 @@ from pathlib import Path
 import sys
 import math as math
 import numpy as np
+import time
 
 root_path = Path(__file__).parent.parent.parent
 sys.path.append(str(root_path))
@@ -418,7 +419,7 @@ class PREOS(EOS):
 
 
 if __name__ == '__main__':
-    comp = Composition({'C1': 0.9, 'C6':0.1},
+    comp = Composition({'C6': 0.5, 'C7':0.5},
                        c6_plus_bips_correlation= None,
                        c6_plus_correlations = {'critical_temperature': 'kesler_lee',
                                                         'critical_pressure' : 'rizari_daubert',
@@ -428,7 +429,10 @@ if __name__ == '__main__':
                                                         'shift_parameter': 'jhaveri_youngren'})
 
     eos = PREOS(comp._composition,comp._composition_data, 10, 393.14)
+    start_time = time.time()
     eos.calc_eos()
+    end_time = time.time()
+    print(f"Время выполнения: {end_time - start_time:.4f} секунд")
     print(f' Z: {eos.z}')
     print(f'fug_by_roots: {eos.fugacities}')
     print(f' Е Гиббса: {eos.normalized_gibbs_energy}')
