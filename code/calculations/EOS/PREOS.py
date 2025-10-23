@@ -461,69 +461,13 @@ class PREOS(EOS):
             else:
                 return 0
 
-    def _ensure_fugacity_parameters_calculated(self):
-        """Убеждаемся, что все необходимые параметры для расчета летучести рассчитаны"""
-        required_attrs = ['mixed_A', 'mixed_B']
-        # for attr in required_attrs:
-        #     if not hasattr(self, attr):
-        #         self.calculate_mixed_parameters()
-        
-        required_cols = ['mole_fraction', 'A_parameter', 'b_parameter']
-        missing_cols = [col for col in required_cols if col not in self.composition_dataframe.columns]
-        if missing_cols:
-            self.calculate_eos_parameters(['a', 'b', 'A', 'B'])
 
-    def _calc_sum_zi_Ai_full_vectorized(self):
-        """Полностью векторизованный расчет sum_zi_Ai для всех компонентов"""
-        df = self.composition_dataframe
-        z = df['mole_fraction'].values
-        sqrt_A = np.sqrt(df['A_parameter'].values)
-        
-        # Матрица BIP
-        if hasattr(self, 'bips') and self.bips is not None:
-            # Убедимся, что BIPS матрица соответствует компонентам в датафрейме
-            bip_matrix = 1 - self.bips.reindex(index=df.index, columns=df.index).fillna(0).values
-        else:
-            bip_matrix = np.ones((len(df), len(df)))
-        
-        # Создаем матрицу sqrt_A_i * sqrt_A_j
-        sqrt_A_matrix = np.outer(sqrt_A, sqrt_A)
-        
-        # sum over j для каждого i: z_j * bip_ij * sqrt_A_i * sqrt_A_j
-        sum_zi_Ai = np.sum(z * bip_matrix * sqrt_A_matrix, axis=1)
-        
-        return pd.Series(sum_zi_Ai, index=df.index)
-
-    def _calc_pure_fugacity_optimized(self, df, eos_roots):
-        """Оптимизированный расчет летучести для чистого компонента"""
-        n_components = len(df)
-        n_roots = len(eos_roots)
-        
-        # Создаем матрицу для результатов [components × roots]
-        results = np.zeros((n_components, n_roots))
-        
-        for root_idx, root in enumerate(eos_roots):
-            # Векторизованный расчет для всех компонентов одновременно
-            term1 = root - 1
-            term2 = -np.log(np.abs(root - self._linear_mixed_B))  # abs для избежания проблем с отрицательными значениями
-            log_arg = (root + (np.sqrt(2) + 1) * self._linear_mixed_B) / (root - (np.sqrt(2) - 1) * self._linear_mixed_B)
-            term3 = - (self.mixed_A / (2 * np.sqrt(2) * self._linear_mixed_B)) * np.log(np.abs(log_arg))
-            
-            ln_fi = term1 + term2 + term3
-            # Заменяем недопустимые значения
-            ln_fi = np.where(np.isfinite(ln_fi), ln_fi, 0.0)
-            results[:, root_idx] = ln_fi
-        
-        return pd.DataFrame(results, 
-                        index=df.index, 
-                        columns=[f'root_{i}' for i in range(n_roots)])
-
-    def _calc_fugacity_PR_full_vectorized(self, eos_roots=None) -> pd.DataFrame:
-        '''Fully vectorized fugacity calculation for all components and roots
+    def _calc_fugacity_PR_vectorized(self, eos_roots=None) -> pd.DataFrame:
+        '''Vectorized fugacity calculation for all components and roots
         
         Parameters
         ---------
-            eos_roots - array of EOS roots for calculation (if None, uses self.real_roots_eos)
+            eos_roots - array of EOS roots for calculation
         
         Returns
         ------
@@ -534,87 +478,52 @@ class PREOS(EOS):
         
         df = self.composition_dataframe
         n_components = len(df)
+        n_roots = len(eos_roots)
         
-        # Проверяем и рассчитываем необходимые параметры
-        self._ensure_fugacity_parameters_calculated()
+        # Получаем необходимые параметры
+        z_i = df['mole_fraction'].values
+        A_i = df['A_parameter'].values
+        B_i = df['b_parameter'].values
         
         # Для чистого компонента
         if n_components == 1:
-            return self._calc_pure_fugacity_optimized(df, eos_roots)
-        
-        # Для смеси
-        # Предварительно вычисляем сумму zi_Ai для всех компонентов
-        sum_zi_Ai = self._calc_sum_zi_Ai_full_vectorized()
-        
-        # Создаем матрицу для результатов [components × roots]
-        n_roots = len(eos_roots)
-        results = np.zeros((n_components, n_roots))
-        
-        # Векторные вычисления для всех компонентов
-        B_i = df['b_parameter'].values
-        z_i = df['mole_fraction'].values
-        
-        for root_idx, root in enumerate(eos_roots):
-            # Проверяем допустимость корня
-            if not ((root - self._linear_mixed_B) > 0 and root > 0):
-                continue  # оставляем нули для недопустимых корней
+            results = np.zeros((1, n_roots))
+            for j, root in enumerate(eos_roots):
+                term1 = root - 1
+                term2 = -np.log(root - self.mixed_B)
+                term3 = - (self.mixed_A / (2 * np.sqrt(2) * self.mixed_B)) * \
+                        np.log((root + (1 + np.sqrt(2)) * self.mixed_B) / 
+                            (root + (1 - np.sqrt(2)) * self.mixed_B))
+                results[0, j] = term1 + term2 + term3
+        else:
+            # Для смеси - вычисляем sum_zi_Ai
+            sqrt_A = np.sqrt(A_i)
+            if hasattr(self, 'bips') and self.bips is not None:
+                bip_matrix = 1 - self.bips.reindex(index=df.index, columns=df.index).fillna(0).values
+            else:
+                bip_matrix = np.ones((n_components, n_components))
             
-            # Векторизованный расчет для всех компонентов
-            term1 = (B_i / self._linear_mixed_B) * (root - 1)
-            term2 = -np.log(root - self._linear_mixed_B)
+            sqrt_A_matrix = np.outer(sqrt_A, sqrt_A)
+            sum_zi_Ai = np.sum(z_i * bip_matrix * sqrt_A_matrix, axis=1)
             
-            log_arg_numerator = root + (1 + np.sqrt(2)) * self._linear_mixed_B
-            log_arg_denominator = root + (1 - np.sqrt(2)) * self._linear_mixed_B
-            log_ratio = log_arg_numerator / log_arg_denominator
-            
-            term3_coeff = (self.mixed_A / (2 * np.sqrt(2) * self._linear_mixed_B))
-            term3_inner = (B_i / self._linear_mixed_B) - (2 / self.mixed_A) * sum_zi_Ai.values
-            term3 = term3_coeff * term3_inner * np.log(log_ratio)
-            
-            ln_fi_i = term1 + term2 + term3
-            ln_f_i = ln_fi_i + np.log(self.p * z_i)
-            
-            # Заменяем недопустимые значения (NaN, inf) на 0
-            ln_f_i = np.where(np.isfinite(ln_f_i), ln_f_i, 0.0)
-            results[:, root_idx] = ln_f_i
+            # Расчет для смеси
+            results = np.zeros((n_components, n_roots))
+            for j, root in enumerate(eos_roots):
+                term1 = (B_i / self._linear_mixed_B) * (root - 1)
+                term2 = -np.log(root - self._linear_mixed_B)
+                
+                log_arg = (root + (1 + np.sqrt(2)) * self._linear_mixed_B) / (root + (1 - np.sqrt(2)) * self._linear_mixed_B)
+                term3 = (self.mixed_A / (2 * np.sqrt(2) * self._linear_mixed_B)) * \
+                        ((B_i / self._linear_mixed_B) - (2 / self.mixed_A) * sum_zi_Ai) * \
+                        np.log(log_arg)
+                
+                ln_fi_i = term1 + term2 + term3
+                ln_f_i = ln_fi_i + np.log(self.p * z_i)
+                results[:, j] = ln_f_i
         
         return pd.DataFrame(results, 
                         index=df.index, 
                         columns=[f'root_{i}' for i in range(n_roots)])
-
-    def _calc_fugacity_for_component_PR_vectorized(self, components=None, eos_roots=None) -> pd.DataFrame:
-        '''Vectorized calculation of fugacity for specific components
-        
-        Parameters
-        ---------
-            components - list of components (if None, all components in dataframe)
-            eos_roots - array of EOS roots for calculation
-        
-        Returns
-        ------
-            DataFrame with ln_fugacity for each specified component and each root
-        '''
-        if eos_roots is None:
-            eos_roots = self.real_roots_eos
-        
-        if components is not None:
-            df_subset = self.composition_dataframe.loc[components]
-            # Пересчитываем mixed parameters для подмножества компонентов если нужно
-            if len(components) == 1:
-                # Для одного компонента используем полный расчет
-                return self._calc_fugacity_PR_full_vectorized(eos_roots).loc[components]
-            else:
-                # Для подмножества компонентов пересчитываем sum_zi_Ai
-                temp_df = self.composition_dataframe.copy()
-                self.composition_dataframe = df_subset
-                try:
-                    result = self._calc_fugacity_PR_full_vectorized(eos_roots)
-                finally:
-                    self.composition_dataframe = temp_df
-                return result
-        else:
-            return self._calc_fugacity_PR_full_vectorized(eos_roots)
-
 
     def _calc_normalized_gibbs_energy(self) -> dict:
         '''Calculation of normalized Gibbs energy. 
@@ -697,7 +606,7 @@ class PREOS(EOS):
 
         self._solve_cubic_equation()
 
-        self.fugacities_by_roots = self._calc_fugacity_PR_full_vectorized()
+        self.fugacities_by_roots = self._calc_fugacity_PR_vectorized()
 
         print(self.composition_dataframe)
         print(self.fugacities_by_roots)
@@ -727,4 +636,4 @@ if __name__ == '__main__':
     eos = PREOS(composition_dataframe=composition_obj2._properties, bips = composition_obj2.bips, p = 10, t = 393.14)
     eos.calc_eos_vectorized()
     print(eos._solve_cubic_equation())
-    print(eos._calc_fugacity_for_component_PR_vectorized())
+    print(eos._calc_fugacity_PR_vectorized())
