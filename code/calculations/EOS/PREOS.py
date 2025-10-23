@@ -618,8 +618,6 @@ class PREOS(EOS):
 
         self.fugacities_by_roots = self._calc_fugacity_for_all_components_PR_new()
 
-        print(self.composition_dataframe)
-        print(self.fugacities_by_roots)
 
     @property
     def z(self):
@@ -646,7 +644,5 @@ if __name__ == '__main__':
 
     eos = PREOS(composition_dataframe=composition_obj2._properties, bips = composition_obj2.bips, p = 10, t = 393.14)
     eos.calc_eos_vectorized()
-    print(eos._solve_cubic_equation())
     print(eos.real_roots_eos)
-    print(eos._calc_fugacity_for_all_components_PR_new())
     print(eos.fugacity_results)
