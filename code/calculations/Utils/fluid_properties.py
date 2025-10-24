@@ -4,6 +4,7 @@
 
 from calculations.VLE.PhaseEquilibrium import PhaseEquilibrium
 from calculations.Utils.JsonDBReader import JsonDBReader
+from calculations.Utils.Constants import CONSTANT_R
 
 
 
@@ -45,7 +46,7 @@ class FluidProperties:
     def vapour_volume(self):
         '''property
         returns volume of vapour phase'''
-        return self.equil_obj.fv * ((8.314 * self.t * self.equil_obj.eos_vapour.z / (self.p)) -
+        return self.equil_obj.fv * ((CONSTANT_R * self.t * self.equil_obj.eos_vapour.z / (self.p)) -
                                     self.equil_obj.eos_vapour.shift_parametr)
 
     ## Расчет объема для жидкой фазы
@@ -53,7 +54,7 @@ class FluidProperties:
     def liquid_volume(self):
         '''property
         returns volume of liquid phase'''
-        return (1 - self.equil_obj.fv) * ((8.314 * self.t *self.equil_obj.eos_liquid.z / (self.p)) -
+        return (1 - self.equil_obj.fv) * ((CONSTANT_R * self.t *self.equil_obj.eos_liquid.z / (self.p)) -
                                           self.equil_obj.eos_liquid.shift_parametr)
 
 
