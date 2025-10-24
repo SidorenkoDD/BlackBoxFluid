@@ -9,7 +9,6 @@ import time
 root_path = Path(__file__).parent.parent.parent
 sys.path.append(str(root_path))
 
-from numba import jit
 from calculations.EOS.BaseEOS import EOS
 from calculations.Composition.component import Component
 from calculations.Composition.Composition import Composition2
@@ -633,25 +632,350 @@ class PREOS(EOS):
     def fugacities(self):
         return super().fugacities()
 
-    
+from pathlib import Path
+import sys
+import math as math
+import numpy as np
+import pandas as pd
+import time
+
+root_path = Path(__file__).parent.parent.parent
+sys.path.append(str(root_path))
+
+from calculations.EOS.BaseEOS import EOS
+from calculations.Composition.component import Component
+from calculations.Composition.Composition import Composition2
+from calculations.Utils.Constants import CONSTANT_R
+
+class PREOSOptimized(EOS):
+    def __init__(self, composition_dataframe: pd.DataFrame, bips, p, t):
+        super().__init__(composition_dataframe, bips, p, t)
+        self.composition_dataframe = composition_dataframe
+        self.bips = bips
+        self.p = p
+        self.t = t
+        
+        # Инициализация вычислительного ядра
+        self._init_computation_core()
+        
+        self.mixed_A = None
+        self._linear_mixed_B = None
+        self.real_roots_eos = None
+        self.choosen_eos_root = None
+        self.fugacities_by_roots = None
+
+    def _init_computation_core(self):
+        """Инициализация вычислительного ядра с numpy массивами"""
+        df = self.composition_dataframe
+        
+        # Основные свойства компонентов
+        self._zi = df['mole_fraction'].values
+        self._acentric = df['acentric_factor'].values
+        self._Tc = df['critical_temperature'].values
+        self._Pc = df['critical_pressure'].values
+        
+        # Дополнительные свойства (если есть)
+        if 'shift_parameter' in df.columns:
+            self._shift_params = df['shift_parameter'].values
+        else:
+            self._shift_params = np.zeros_like(self._zi)
+        
+        # BIPS матрица
+        if self.bips is not None:
+            components = df.index
+            self._bips_matrix = self.bips.reindex(
+                index=components, columns=components
+            ).fillna(0).values
+        else:
+            n = len(df)
+            self._bips_matrix = np.zeros((n, n))
+        
+        # Кэш для вычисленных параметров
+        self._a_params = None
+        self._b_params = None
+        self._A_params = None
+        self._B_params = None
+        
+        # Индексы компонентов для быстрого доступа
+        self._component_indices = {comp: idx for idx, comp in enumerate(df.index)}
+
+    def _calc_a_vectorized_fast(self, omega_a=0.45724):
+        """Оптимизированный расчет параметра a"""
+        if self._a_params is not None:
+            return self._a_params
+            
+        # Векторизованный расчет
+        mask = self._acentric > 0.49
+        m = np.empty_like(self._acentric)
+        
+        m[mask] = (0.3796 + 1.485 * self._acentric[mask] - 
+                   0.1644 * self._acentric[mask]**2 + 
+                   0.01667 * self._acentric[mask]**3)
+        m[~mask] = (0.37464 + 1.54226 * self._acentric[~mask] - 
+                    0.26992 * self._acentric[~mask]**2)
+        
+        alpha = (1 + m * (1 - np.sqrt(self.t / self._Tc))) ** 2
+        self._a_params = omega_a * self._Tc**2 * CONSTANT_R**2 * alpha / self._Pc
+        
+        # Обновляем датафрейм (опционально, только если нужно)
+        self.composition_dataframe = self.composition_dataframe.copy()
+        self.composition_dataframe['a_parameter'] = self._a_params
+        
+        return self._a_params
+
+    def _calc_b_vectorized_fast(self, omega_b=0.0778):
+        """Оптимизированный расчет параметра b"""
+        if self._b_params is not None:
+            return self._b_params
+            
+        self._b_params = omega_b * CONSTANT_R * self._Tc / self._Pc
+        
+        # Обновляем датафрейм
+        self.composition_dataframe = self.composition_dataframe.copy()
+        self.composition_dataframe['b_parameter'] = self._b_params
+        
+        return self._b_params
+
+    def _calc_A_vectorized_fast(self):
+        """Оптимизированный расчет параметра A"""
+        if self._A_params is not None:
+            return self._A_params
+            
+        if self._a_params is None:
+            self._calc_a_vectorized_fast()
+            
+        self._A_params = self._a_params * self.p / (CONSTANT_R * self.t) ** 2
+        
+        # Обновляем датафрейм
+        self.composition_dataframe = self.composition_dataframe.copy()
+        self.composition_dataframe['A_parameter'] = self._A_params
+        
+        return self._A_params
+
+    def _calc_B_vectorized_fast(self):
+        """Оптимизированный расчет параметра B"""
+        if self._B_params is not None:
+            return self._B_params
+            
+        if self._b_params is None:
+            self._calc_b_vectorized_fast()
+            
+        self._B_params = self._b_params * self.p / (CONSTANT_R * self.t)
+        
+        # Обновляем датафрейм
+        self.composition_dataframe = self.composition_dataframe.copy()
+        self.composition_dataframe['B_parameter'] = self._B_params
+        
+        return self._B_params
+
+    def _calc_mixed_A_fast(self):
+        """Оптимизированный расчет смешанного параметра A"""
+        if self._A_params is None:
+            self._calc_A_vectorized_fast()
+            
+        sqrt_A = np.sqrt(self._A_params)
+        zi_matrix = np.outer(self._zi, self._zi)
+        sqrt_A_matrix = np.outer(sqrt_A, sqrt_A)
+        bip_matrix = 1 - self._bips_matrix
+        
+        self.mixed_A = np.sum(zi_matrix * sqrt_A_matrix * bip_matrix)
+        return self.mixed_A
+
+    def _calc_linear_mixed_B_fast(self):
+        """Оптимизированный расчет смешанного параметра B"""
+        if self._B_params is None:
+            self._calc_B_vectorized_fast()
+            
+        self._linear_mixed_B = np.sum(self._zi * self._B_params)
+        return self._linear_mixed_B
+
+    def _calc_shift_parameter_fast(self):
+        """Оптимизированный расчет параметра сдвига"""
+        if self._b_params is None:
+            self._calc_b_vectorized_fast()
+            
+        return np.sum(self._zi * self._shift_params * self._b_params)
+
+    def _solve_cubic_equation_optimized(self):
+        """Оптимизированное решение кубического уравнения"""
+        B = self._linear_mixed_B
+        A = self.mixed_A
+        
+        bk = B - 1
+        ck = A - 3 * B**2 - 2 * B
+        dk = B**2 + B**3 - A * B
+        
+        pk = -(bk ** 2) / 3 + ck
+        qk = 2 * (bk ** 3) / 27 - (bk * ck / 3) + dk
+        s = (pk/3)**3 + (qk/2)**2
+        
+        if s > 0:
+            # Один вещественный корень
+            itt = -qk/2 + math.sqrt(s)
+            it = -abs(itt)**(1/3) if itt < 0 else itt**(1/3)
+            
+            vb = -qk/2 - math.sqrt(s)
+            if vb < 0:
+                zk0 = it - abs(vb)**(1/3) - bk/3
+            else:
+                zk0 = it + vb**(1/3) - bk/3
+                
+            zk1, zk2 = 0, 0
+            
+        elif s < 0:
+            # Три вещественных корня
+            if qk < 0:
+                f = math.atan(math.sqrt(-s) / (-qk/2))
+            elif qk > 0:
+                f = math.atan(math.sqrt(-s) / (-qk/2)) + math.pi
+            else:
+                f = math.pi / 2
+                
+            sqrt_neg_pk_3 = math.sqrt(-pk/3)
+            zk0 = 2 * sqrt_neg_pk_3 * math.cos(f/3) - bk/3
+            zk1 = 2 * sqrt_neg_pk_3 * math.cos(f/3 + 2 * math.pi / 3) - bk/3
+            zk2 = 2 * sqrt_neg_pk_3 * math.cos(f/3 + 4 * math.pi / 3) - bk/3
+            
+        else:  # s == 0
+            zk0 = 2 * math.sqrt(-qk / 2) - bk/3
+            zk1 = -math.pow(-qk/2, 1/3) - bk/3
+            zk2 = zk1
+
+        self.real_roots_eos = [zk0, zk1, zk2]
+        return self.real_roots_eos
+
+    def _calc_fugacities_fast(self):
+        """Оптимизированный расчет фугитивностей"""
+        n_components = len(self._zi)
+        roots = [r for r in self.real_roots_eos if r != 0]
+        n_roots = len(roots)
+        
+        # Предварительные вычисления
+        if self._A_params is None:
+            self._calc_A_vectorized_fast()
+        if self._B_params is None:
+            self._calc_B_vectorized_fast()
+            
+        sqrt_A = np.sqrt(self._A_params)
+        
+        # Вычисляем sum_zi_Ai для всех компонентов
+        sum_zi_Ai = np.zeros(n_components)
+        for i in range(n_components):
+            for j in range(n_components):
+                sum_zi_Ai[i] += (self._zi[j] * (1 - self._bips_matrix[i, j]) * 
+                               sqrt_A[i] * sqrt_A[j])
+        
+        # Расчет фугитивностей для всех корней и компонентов
+        fugacity_results = np.zeros((n_components, n_roots))
+        
+        for root_idx, root in enumerate(roots):
+            if root <= 0 or (root - self._linear_mixed_B) <= 0:
+                continue
+                
+            for i in range(n_components):
+                term1 = (self._B_params[i] / self._linear_mixed_B) * (root - 1)
+                term2 = -math.log(root - self._linear_mixed_B)
+                
+                log_arg = (root + (1 + math.sqrt(2)) * self._linear_mixed_B) / \
+                         (root + (1 - math.sqrt(2)) * self._linear_mixed_B)
+                
+                term3 = (self.mixed_A / (2 * math.sqrt(2) * self._linear_mixed_B)) * \
+                       ((self._B_params[i] / self._linear_mixed_B) - 
+                        (2/self.mixed_A) * sum_zi_Ai[i]) * math.log(log_arg)
+                
+                ln_fi_i = term1 + term2 + term3
+                
+                # Добавляем ln(p * zi)
+                try:
+                    fugacity_results[i, root_idx] = ln_fi_i + math.log(self.p * self._zi[i])
+                except ValueError:
+                    fugacity_results[i, root_idx] = 0
+        
+        # Сохраняем результаты в датафрейм
+        result_df = pd.DataFrame(
+            fugacity_results,
+            index=self.composition_dataframe.index,
+            columns=[f'root_{i}' for i in range(n_roots)]
+        )
+        
+        self.fugacity_results = result_df
+        return result_df
+
+    def calc_eos(self):
+        """Оптимизированный pipeline расчета EOS"""
+        start_time = time.time()
+        
+        # Вычисляем все параметры
+        self._calc_a_vectorized_fast()
+        self._calc_b_vectorized_fast()
+        self._calc_A_vectorized_fast()
+        self._calc_B_vectorized_fast()
+        
+        # Смешанные параметры
+        self._calc_mixed_A_fast()
+        self._calc_linear_mixed_B_fast()
+        self.shift_parametr = self._calc_shift_parameter_fast()
+        
+        # Решение уравнения и фугитивности
+        self._solve_cubic_equation_optimized()
+        self._calc_fugacities_fast()
+        
+        end_time = time.time()
+        print(f"Оптимизированное время выполнения: {end_time - start_time:.8f} секунд")
+
+    # Сохраняем совместимость со старыми методами
+    @property
+    def z(self):
+        return super().z()
+
+    @property
+    def fugacities(self):
+        return super().fugacities()
 
 
 if __name__ == '__main__':
-
-    component_obj1 = Component('C1',0.2)
-    component_obj6 = Component('C6',0.2)
-    component_obj7 = Component('C7',0.2)
+    # Тестирование
+    component_obj1 = Component('C1', 0.2)
+    component_obj6 = Component('C6', 0.2)
     component_obj2 = Component('C9', 0.2)
     component_obj3 = Component('C13', 0.2)
     component_obj4 = Component('C14', 0.2)
-    composition_obj = Composition2([component_obj1, component_obj2, component_obj3, component_obj4, component_obj6])
-    #composition_obj2 = Composition2([component_obj6, component_obj7])
     
-
-    eos = PREOS(composition_dataframe=composition_obj._properties, bips = composition_obj.bips, p = 10, t = 393.14)
+    composition_obj = Composition2([component_obj1, component_obj2, component_obj3, component_obj4, component_obj6])
+    
+    print("=== Оригинальная версия ===")
+    eos_orig = PREOS(composition_dataframe=composition_obj._properties, 
+                     bips=composition_obj.bips, p=10, t=393.14)
     start_time = time.time()
-    eos.calc_eos_vectorized()
+    eos_orig.calc_eos_vectorized()
     end_time = time.time()
     print(f"Время выполнения: {end_time - start_time:.8f} секунд")
-    print(eos.real_roots_eos)
-    print(eos.fugacity_results)
+    
+    print("\n=== Оптимизированная версия ===")
+    eos_opt = PREOSOptimized(composition_dataframe=composition_obj._properties, 
+                            bips=composition_obj.bips, p=10, t=393.14)
+    eos_opt.calc_eos()
+    
+    print("\nРезультаты совпадают:", 
+          np.allclose(eos_orig.real_roots_eos, eos_opt.real_roots_eos, rtol=1e-10))
+
+
+# if __name__ == '__main__':
+
+#     component_obj1 = Component('C1',0.2)
+#     component_obj6 = Component('C6',0.2)
+#     component_obj7 = Component('C7',0.2)
+#     component_obj2 = Component('C9', 0.2)
+#     component_obj3 = Component('C13', 0.2)
+#     component_obj4 = Component('C14', 0.2)
+#     composition_obj = Composition2([component_obj1, component_obj2, component_obj3, component_obj4, component_obj6])
+#     #composition_obj2 = Composition2([component_obj6, component_obj7])
+    
+
+#     eos = PREOS(composition_dataframe=composition_obj._properties, bips = composition_obj.bips, p = 10, t = 393.14)
+#     start_time = time.time()
+#     eos.calc_eos_vectorized()
+#     end_time = time.time()
+#     print(f"Время выполнения: {end_time - start_time:.8f} секунд")
+#     print(eos.real_roots_eos)
+#     print(eos.fugacity_results)
