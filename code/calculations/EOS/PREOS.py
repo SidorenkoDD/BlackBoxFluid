@@ -415,11 +415,15 @@ class PREOS(EOS):
     def fugacities(self):
         return super().fugacities()
 
-    
+
 
 
 if __name__ == '__main__':
-    comp = Composition({'C6': 0.5, 'C7':0.5},
+    comp = Composition({'C6': 0.05, 'C7':0.05, 'C8': 0.05, 'C9': 0.05,
+                        'C10': 0.05, 'C11': 0.05, 'C12': 0.05, 'C13': 0.05,
+                        'C14': 0.05, 'C15': 0.05, 'C16':0.05, 'C17':0.05,
+                        'C18':0.05, 'C19': 0.05, 'C20': 0.05, 'C21': 0.05,
+                        'C22':0.05, 'C23': 0.05, 'C24':0.05, 'C25':0.04, 'C26': 0.01},
                        c6_plus_bips_correlation= None,
                        c6_plus_correlations = {'critical_temperature': 'kesler_lee',
                                                         'critical_pressure' : 'rizari_daubert',
@@ -432,7 +436,7 @@ if __name__ == '__main__':
     start_time = time.time()
     eos.calc_eos()
     end_time = time.time()
-    print(f"Время выполнения: {end_time - start_time:.4f} секунд")
+    print(f"Время выполнения: {end_time - start_time:.8f} секунд")
     print(f' Z: {eos.z}')
     print(f'fug_by_roots: {eos.fugacities}')
     print(f' Е Гиббса: {eos.normalized_gibbs_energy}')
