@@ -968,22 +968,4 @@ if __name__ == '__main__':
     #       np.allclose(eos_orig.real_roots_eos, eos_opt.real_roots_eos, rtol=1e-10))
 
 
-# if __name__ == '__main__':
 
-#     component_obj1 = Component('C1',0.2)
-#     component_obj6 = Component('C6',0.2)
-#     component_obj7 = Component('C7',0.2)
-#     component_obj2 = Component('C9', 0.2)
-#     component_obj3 = Component('C13', 0.2)
-#     component_obj4 = Component('C14', 0.2)
-#     composition_obj = Composition2([component_obj1, component_obj2, component_obj3, component_obj4, component_obj6])
-#     #composition_obj2 = Composition2([component_obj6, component_obj7])
-    
-
-#     eos = PREOS(composition_dataframe=composition_obj._properties, bips = composition_obj.bips, p = 10, t = 393.14)
-#     start_time = time.time()
-#     eos.calc_eos_vectorized()
-#     end_time = time.time()
-#     print(f"Время выполнения: {end_time - start_time:.8f} секунд")
-#     print(eos.real_roots_eos)
-#     print(eos.fugacity_results)
