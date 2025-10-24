@@ -632,20 +632,6 @@ class PREOS(EOS):
     def fugacities(self):
         return super().fugacities()
 
-from pathlib import Path
-import sys
-import math as math
-import numpy as np
-import pandas as pd
-import time
-
-root_path = Path(__file__).parent.parent.parent
-sys.path.append(str(root_path))
-
-from calculations.EOS.BaseEOS import EOS
-from calculations.Composition.component import Component
-from calculations.Composition.Composition import Composition2
-from calculations.Utils.Constants import CONSTANT_R
 
 class PREOSOptimized(EOS):
     def __init__(self, composition_dataframe: pd.DataFrame, bips, p, t):
@@ -935,29 +921,51 @@ class PREOSOptimized(EOS):
 
 if __name__ == '__main__':
     # Тестирование
-    component_obj1 = Component('C1', 0.2)
-    component_obj6 = Component('C6', 0.2)
-    component_obj2 = Component('C9', 0.2)
-    component_obj3 = Component('C13', 0.2)
-    component_obj4 = Component('C14', 0.2)
+    component_obj1 = Component('C1', 0.05)
+    component_obj2 = Component('C6', 0.05)
+    component_obj3 = Component('C9', 0.05)
+    component_obj4 = Component('C13', 0.05)
+    component_obj5 = Component('C14', 0.05)
+    component_obj6 = Component('C15', 0.05)
+    component_obj7 = Component('C16', 0.05)
+    component_obj8 = Component('C17', 0.05)
+    component_obj9 = Component('C18', 0.05)
+    component_obj10 = Component('C19', 0.05)
+    component_obj11 = Component('C20', 0.05)
+    component_obj12 = Component('C21', 0.05)
+    component_obj13 = Component('C22', 0.05)
+    component_obj14 = Component('C24', 0.05)
+    component_obj15 = Component('C25', 0.05)
+    component_obj16 = Component('C26', 0.05)
+    component_obj17 = Component('C27', 0.05)
+    component_obj18 = Component('C28', 0.05)
+    component_obj19 = Component('C29', 0.05)
+    component_obj20 = Component('C30', 0.05)
     
-    composition_obj = Composition2([component_obj1, component_obj2, component_obj3, component_obj4, component_obj6])
+    composition_obj = Composition2([component_obj1, component_obj2, component_obj3, component_obj4, component_obj5,
+                                    component_obj6, component_obj7, component_obj8, component_obj9, component_obj10,
+                                    component_obj11, component_obj12, component_obj13, component_obj14,
+                                    component_obj15, component_obj16, component_obj17, component_obj18, component_obj19,
+                                    component_obj20])
     
-    print("=== Оригинальная версия ===")
-    eos_orig = PREOS(composition_dataframe=composition_obj._properties, 
-                     bips=composition_obj.bips, p=10, t=393.14)
-    start_time = time.time()
-    eos_orig.calc_eos_vectorized()
-    end_time = time.time()
-    print(f"Время выполнения: {end_time - start_time:.8f} секунд")
+    # print("=== Оригинальная версия ===")
+    # eos_orig = PREOS(composition_dataframe=composition_obj._properties, 
+    #                  bips=composition_obj.bips, p=10, t=393.14)
+    # start_time = time.time()
+    # eos_orig.calc_eos_vectorized()
+    # end_time = time.time()
+    # print(f"Время выполнения: {end_time - start_time:.8f} секунд")
     
     print("\n=== Оптимизированная версия ===")
     eos_opt = PREOSOptimized(composition_dataframe=composition_obj._properties, 
                             bips=composition_obj.bips, p=10, t=393.14)
+    start_time = time.time()
     eos_opt.calc_eos()
+    end_time = time.time()
+    print(f"Время выполнения: {end_time - start_time:.8f} секунд")
     
-    print("\nРезультаты совпадают:", 
-          np.allclose(eos_orig.real_roots_eos, eos_opt.real_roots_eos, rtol=1e-10))
+    # print("\nРезультаты совпадают:", 
+    #       np.allclose(eos_orig.real_roots_eos, eos_opt.real_roots_eos, rtol=1e-10))
 
 
 # if __name__ == '__main__':
