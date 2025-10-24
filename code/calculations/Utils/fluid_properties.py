@@ -45,11 +45,6 @@ class FluidProperties:
     def vapour_volume(self):
         '''property
         returns volume of vapour phase'''
-        print(self.equil_obj.fv)
-        print(self.t)
-        print(self.p)
-        print(self.equil_obj.eos_vapour.z)
-        print(self.equil_obj.eos_vapour.shift_parametr)
         return self.equil_obj.fv * ((8.314 * self.t * self.equil_obj.eos_vapour.z / (self.p)) -
                                     self.equil_obj.eos_vapour.shift_parametr)
 
