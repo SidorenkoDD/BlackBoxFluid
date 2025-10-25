@@ -1,4 +1,5 @@
 from calculations.Experiments.BaseExperiment import PVTExperiment
+from calculations.Composition.Composition import Composition
 from calculations.VLE.flash import FlashFactory
 from calculations.Utils.Conditions import Conditions
 from calculations.PhaseDiagram.SaturationPressure import SaturationPressureCalculation
@@ -9,7 +10,7 @@ class DLE(PVTExperiment):
     def __init__(self, composition, eos):
         self._composition = composition
         self._eos = eos
-        ...
+        self.result = {}
 
     def calculate(self, temperature : float, pressure_list : list | None = None,
                    n_steps : float = 10, flash_type = 'TwoPhaseFlash'):
@@ -18,15 +19,25 @@ class DLE(PVTExperiment):
 
         if pressure_list is None:
             pressure_array = np.linspace(pb, 0.1, n_steps)
-            for pressure in pressure_array:
-                self._flash_object = FlashFactory(self._composition, self._eos)
-                flash_calculator = self._flash_object.create_flash(flash_type= flash_type)
+            print(pressure_array)
+            print(pressure_array[1:])
+            flash_object = FlashFactory(self._composition, self._eos)
+            flash_calculator = flash_object.create_flash(flash_type= flash_type)
+            #расчет для первого значения давления
+            first_step_conditions = Conditions(pressure_array[0], temperature)
+            self.result[first_step_conditions.p] = flash_calculator.calculate(conditions=first_step_conditions)
+            # создаем объект состав, который далее будем менять
+            self.liquid_composition = self.result[first_step_conditions.p].liquid_composition
+
+            for pressure in pressure_array[1:]:
+                self.liquid_composition = Composition(self.liquid_composition)
+                self.liquid_composition._composition_data = self._composition._composition_data
+                self._flash_object = FlashFactory(self.liquid_composition, self._eos)
+                flash_calculator = self._flash_object.create_flash(flash_type = flash_type)
                 current_conditions = Conditions(pressure, temperature)
-                
-                self._standard_separation_result = flash_calculator.calculate(conditions=self._standard_conditions)
+                self.result[current_conditions.p]= flash_calculator.calculate(conditions = current_conditions)
+                self.liquid_composition = self.result[current_conditions.p].liquid_composition
+                print(self.liquid_composition)
+            print(self.result)
         else:
             ...
-        self._flash_object = FlashFactory(self._composition, self._eos)
-        self._standard_conditions = Conditions(0.1, 20)
-        flash_calculator = self._flash_object.create_flash(flash_type= flash_type)
-        self._standard_separation_result = flash_calculator.calculate(conditions=self._standard_conditions)
