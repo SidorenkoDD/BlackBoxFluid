@@ -12,3 +12,6 @@ class CompositionSumError(Exception):
 
 class InvalidMolarFractionError(Exception):
     pass
+
+class InvalidPressureSequence(Exception):
+    pass
