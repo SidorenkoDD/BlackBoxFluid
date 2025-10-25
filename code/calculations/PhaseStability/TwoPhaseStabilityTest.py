@@ -22,6 +22,9 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
 
         self.composition = composition._composition
         self.composition_data = composition._composition_data
+
+        self.liquid_z = None
+        self.vapour_z = None
     
     # Расчет начального УРС
     def calc_initial_eos(self):
@@ -96,6 +99,7 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
     def calc_eos_for_vapour(self, y_i_v):
         eos_for_vapour = self.eos(zi=  y_i_v, components_properties= self.composition_data, p = self.p, t = self.t)
         eos_for_vapour.calc_eos()
+        self.vapour_z = eos_for_vapour.z
         return eos_for_vapour
 
 
@@ -103,6 +107,7 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
     def calc_eos_for_liquid(self, x_i_l):
         eos_for_liquid = self.eos(zi=x_i_l, components_properties=self.composition_data, p = self.p, t = self.t)
         eos_for_liquid.calc_eos()
+        self.liquid_z = eos_for_liquid.z
         return eos_for_liquid
     
 
@@ -293,14 +298,14 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
 
         self.ri_v = self.calc_ri_vapour(self.vapour_eos)
         self.ri_l = self.calc_ri_liquid(self.liquid_eos)
-        
-        
+
+
         self.stability_loop()
         self.interpetate_stability_analysis()
 
 
         return None
-    
+
 
 if __name__ == '__main__':
 

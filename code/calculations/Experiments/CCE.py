@@ -13,9 +13,7 @@ class CCE(PVTExperiment):
         self._eos = eos
         self.result = {}
 
-    def _is_strictly_descending(arr) -> bool:
-        '''Method checks descending values for pressure_list'''
-        return all(arr[i] < arr[i-1] for i in range(1, len(arr)))
+
 
     def calculate(self, p_start : float, temperature : float, pressure_list : list | None = None,
                    n_steps : float = 10, flash_type = 'TwoPhaseFlash'):
@@ -30,6 +28,7 @@ class CCE(PVTExperiment):
         * pressure_list - optional to define pressure stages
         * n_steps - points for interpolation, by default 10
         '''
+    
         if pressure_list is None:
             pb_obj = SaturationPressureCalculation(self._composition,p_max=50, temp= temperature)
             pb = pb_obj.sp_convergence_loop(self._eos)
@@ -40,7 +39,11 @@ class CCE(PVTExperiment):
                 flash_calculator = flash_object.create_flash(flash_type= flash_type)
                 self.result[current_conditions.p] = flash_calculator.calculate(conditions=current_conditions)
         else:
-            if self._is_strictly_descending():
+            def _is_strictly_descending() -> bool:
+                '''Method checks descending values for pressure_list'''
+                return all(pressure_list[i] < pressure_list[i-1] for i in range(1, len(pressure_list)))
+            
+            if _is_strictly_descending():
                 for p in pressure_list:
                     current_conditions = Conditions(p, temperature)
                     flash_object = FlashFactory(self._composition, self._eos)

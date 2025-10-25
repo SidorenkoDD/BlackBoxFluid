@@ -1,6 +1,6 @@
 from calculations.PhaseStability.TwoPhaseStabilityTest import TwoPhaseStabilityTest
 from calculations.VLE.PhaseEquilibrium import PhaseEquilibrium
-from calculations.Utils.fluid_properties import FluidProperties
+from calculations.Utils.fluid_properties import FluidProperties, OnePhaseProperties
 from calculations.Utils.BaseClasses import Calculator
 from calculations.Utils.Results import TwoPhaseFlashResults
 
@@ -33,7 +33,7 @@ class TwoPhaseFlash(Calculator):
         # Развилка по условию стабильности/нестабильности системы
         if self.phase_stability.stable is True:
 
-
+            one_phase_props = OnePhaseProperties(self.phase_stability)
             results = TwoPhaseFlashResults(temperature=self._conditions.t,
                                            pressure= self._conditions.p,
                                            stable=self.phase_stability.stable,
@@ -43,14 +43,14 @@ class TwoPhaseFlash(Calculator):
                                            Ki= None,
                                            liquid_composition=None,
                                            vapour_composition= None,
-                                           liquid_z= None,
-                                           vapour_z= None,
-                                           vapour_molecular_mass= None,
-                                           liquid_molecular_mass= None,
-                                           vapour_volume= None,
-                                           liquid_volume= None,
-                                           vapour_density= None,
-                                           liquid_density= None)
+                                           liquid_z= self.phase_stability.vapour_z,
+                                           vapour_z= self.phase_stability.vapour_z,
+                                           vapour_molecular_mass= one_phase_props.molecular_mass_one_phase,
+                                           liquid_molecular_mass= one_phase_props.molecular_mass_one_phase,
+                                           vapour_volume= one_phase_props.volume_one_phase,
+                                           liquid_volume= one_phase_props.volume_one_phase,
+                                           vapour_density= one_phase_props.density,
+                                           liquid_density= one_phase_props.density)
 
 
 

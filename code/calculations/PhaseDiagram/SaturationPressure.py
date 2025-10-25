@@ -32,7 +32,7 @@ class SaturationPressureCalculation:
         phase_stability = TwoPhaseStabilityTest(self.zi, p, self.temp, eos)
         phase_stability.calculate_phase_stability()
 
-        if (phase_stability.S_l - 1) < (10 ** -5) and (phase_stability.S_v - 1) < (10 ** -5):
+        if (phase_stability.S_l - 1) < (10 ** -12) and (phase_stability.S_v - 1) < (10 ** -12):
             y_sp = {component: 0 for component in self.zi._composition.keys()}
             return {'s_sp': 0, 'y_sp': y_sp, 'k_sp': None, 'r_sp': None, 
                     'letuch_sp': None, 'letuch_z': None}
@@ -86,7 +86,7 @@ class SaturationPressureCalculation:
             self.p_i = (self.p_max_bub + self.p_min_bub) / 2
             
             # Проверка на отсутствие решения
-            if self.p_max_bub - self.p_min_bub < math.pow(10, -5):
+            if self.p_max_bub - self.p_min_bub < math.pow(10, -12):
                 return None
             
             cur_s_sp = self.define_s_sp(self.p_i, eos)
@@ -107,7 +107,7 @@ class SaturationPressureCalculation:
         
         self.Ykz = sum(y_sp[component] / self.zi._composition[component] for component in self.zi._composition.keys())
 
-        if (abs(1 - self.sum_y_sp) < math.pow(10, -3)) or (math.pow(self.Ykz, 2) < math.pow(10, -3)):
+        if (abs(1 - self.sum_y_sp) < math.pow(10, -4)) or (math.pow(self.Ykz, 2) < math.pow(10, -4)):
             #print(f'Pb найдено: {self.p_i}')
             pass
 
@@ -118,12 +118,12 @@ class SaturationPressureCalculation:
 
     def sp_convergence_loop(self, eos:EOS):
         self.sp_process(eos)
-        if self.p_max_bub - self.p_min_bub < math.pow(10, -5):
+        if self.p_max_bub - self.p_min_bub < math.pow(10, -12):
             return None
         
         while ((abs(1 - self.sum_y_sp) < math.pow(10, -3)) == False) and ((math.pow(self.Ykz, 2) < math.pow(10, -3)) == False):
             self.sp_process(eos)
-            if self.p_max_bub - self.p_min_bub < math.pow(10, -5):
+            if self.p_max_bub - self.p_min_bub < math.pow(10, -12):
                 return None
 
         self.p_b = self.p_i
