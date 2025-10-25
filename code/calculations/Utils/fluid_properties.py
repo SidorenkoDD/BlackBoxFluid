@@ -1,11 +1,7 @@
 '''Module doc
 '''
-
-
 from calculations.VLE.PhaseEquilibrium import PhaseEquilibrium
 from calculations.Utils.JsonDBReader import JsonDBReader
-
-
 
 class FluidProperties:
     '''Class for calculation fluid properties'''

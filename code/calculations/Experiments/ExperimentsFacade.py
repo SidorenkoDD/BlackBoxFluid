@@ -1,6 +1,6 @@
 from calculations.Experiments.StandardSeparation import StandardSeparation
 from calculations.Experiments.SeparatorTest import SeparatorTest
-from code.calculations.Experiments.DLE import DL
+from calculations.Experiments.DLE import DLE
 
 class ExperimentsFacade:
     def __init__(self, composition, eos):
@@ -9,6 +9,6 @@ class ExperimentsFacade:
 
         self.STANDARDSEPARATION = StandardSeparation(self._composition, self._eos)
         self.SEPARATORTEST = SeparatorTest(self._composition, self._eos)
-        self.DL = DL(self._composition, self._eos)
+        self.DLE = DLE(self._composition, self._eos)
     
         
