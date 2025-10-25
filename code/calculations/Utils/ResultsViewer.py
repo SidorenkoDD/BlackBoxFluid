@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import pandas as pd
+from calculations.Utils.Results import TwoPhaseFlashResults, SeparatorTestResults
 
 
 class ResultsViewer(ABC):
@@ -11,7 +12,7 @@ class ResultsViewer(ABC):
 
 class FlashResultsViewer(ResultsViewer):
 
-    def view(self, dataclass_obj):
+    def view(self, dataclass_obj:TwoPhaseFlashResults):
         util_data = [dataclass_obj.pressure, dataclass_obj.temperature, dataclass_obj.stable, dataclass_obj.EOS, dataclass_obj.Fv, dataclass_obj.Fl]
         util_df = pd.DataFrame(util_data, index = ['Pressure', 'Temperature', 'Stable', 'EOS', 'Fv', 'Fl'])
 
@@ -32,4 +33,99 @@ class FlashResultsViewer(ResultsViewer):
         print(composition_df)
         print('====')
         print(phase_props_df)
+
+
+class SeparatorTestResultsViewer(ResultsViewer):
+    '''Class to view separator test results in dataframes'''
+    def view(self, separator_test_results : SeparatorTestResults):
+
+        stages_pressure = [separator_test_results.first_stage_pressure,
+                           separator_test_results.second_stage_pressure,
+                           separator_test_results.third_stage_pressure]
+        stages_temperature = [separator_test_results.first_stage_temperature,
+                              separator_test_results.second_stage_temperature,
+                              separator_test_results.third_stage_temperature]
+        
+        stages_info_df = pd.DataFrame([stages_pressure, stages_temperature],
+                                   index= ['Pressure', 'Temperature'],
+                                   columns= ['I', 'II', 'III'])
+
+        gas_composition_df = pd.DataFrame({'I': list(separator_test_results.first_stage_vapour_composition.values()),
+                                           'II': list(separator_test_results.second_stage_vapour_composition.values()),
+                                           'III': list(separator_test_results.third_stage_vapour_composition.values())},
+                                           index= list(separator_test_results.first_stage_vapour_composition.keys()))
+        
+        liquid_composition_df = pd.DataFrame({'I': list(separator_test_results.first_stage_liquid_composition.values()),
+                                           'II': list(separator_test_results.second_stage_liquid_composition.values()),
+                                           'III': list(separator_test_results.third_stage_liquid_composition.values())},
+                                           index= list(separator_test_results.first_stage_liquid_composition.keys()))
+
+        fv = [separator_test_results.first_stage_fv,
+              separator_test_results.second_stage_fv,
+              separator_test_results.third_stage_fv]
+        
+        fl = [separator_test_results.first_stage_fl,
+              separator_test_results.second_stage_fl,
+              separator_test_results.third_stage_fl]
+
+        gas_z = [separator_test_results.first_stage_vapour_z,
+                 separator_test_results.second_stage_vapour_z,
+                 separator_test_results.third_stage_vapour_z]
+
+        liquid_z = [separator_test_results.first_stage_liquid_z,
+                    separator_test_results.second_stage_liquid_z,
+                    separator_test_results.third_stage_liquid_z]
+        
+        gas_mw = [separator_test_results.first_stage_vapour_mw,
+                  separator_test_results.second_stage_vapour_mw,
+                  separator_test_results.third_stage_vapour_mw]
+        
+        liquid_mw = [separator_test_results.first_stage_liquid_mw,
+                  separator_test_results.second_stage_liquid_mw,
+                  separator_test_results.third_stage_liquid_mw]
+        
+        gas_volume = [separator_test_results.first_stage_vapour_volume,
+                      separator_test_results.second_stage_vapour_volume,
+                      separator_test_results.third_stage_vapour_volume]
+        
+        liquid_volume = [separator_test_results.first_stage_liquid_volume,
+                         separator_test_results.second_stage_liquid_volume,
+                         separator_test_results.third_stage_liquid_volume]
+        
+        gas_density = [separator_test_results.first_stage_vapour_density,
+                       separator_test_results.second_stage_vapour_density,
+                       separator_test_results.third_stage_vapour_density]
+        
+        liquid_density = [separator_test_results.first_stage_liquid_density,
+                          separator_test_results.second_stage_liquid_density,
+                          separator_test_results.third_stage_liquid_density]
+        
+        fv_by_stages_df = pd.DataFrame([fv, fl],
+                                       index=['Fv', 'Fl'],
+                                       columns= ['I', 'II', 'III'])
+
+        phase_props_df = pd.DataFrame([gas_z, liquid_z,
+                                    gas_mw, liquid_mw,
+                                    gas_volume, liquid_volume,
+                                    gas_density, liquid_density],
+                                   index= ['Gas Z', 'Liquid Z',
+                                           'Gas MW', 'Liquid MW',
+                                           'Gas Volume', 'Liquid Volume',
+                                           'Gas Density', 'Liquid Density'],
+                                   columns= ['I', 'II', 'III'])
+        print('STAGES')
+        print(stages_info_df)
+        print('=====')
+        print('FV AND FL BY STAGES')
+        print(fv_by_stages_df)
+        print('=====')
+        print('PHASE PROPERTIES BY STAGES')
+        print(phase_props_df)
+        print('=====')
+        print('GAS COMPOSITION BY STAGES')
+        print(gas_composition_df)
+        print('=====')
+        print('LIQUID COMPOSITION BY STAGES')
+        print(liquid_composition_df)
+
 

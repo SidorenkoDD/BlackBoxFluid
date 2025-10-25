@@ -38,11 +38,6 @@ class TwoPhaseFlashResults:
     liquid_density: float | None
 
 
-    def show_compositions(self):
-        ...
-        
-    
-
 @dataclass
 class SeparatorTestResults:
 
@@ -55,6 +50,12 @@ class SeparatorTestResults:
     first_stage_vapour_z : float
     first_stage_liquid_z : float
     first_stage_k_values : dict
+    first_stage_vapour_mw : float
+    first_stage_liquid_mw : float
+    first_stage_vapour_volume : float
+    first_stage_liquid_volume : float
+    first_stage_vapour_density : float
+    first_stage_liquid_density : float
 
     second_stage_pressure : float
     second_stage_temperature : float
@@ -65,6 +66,12 @@ class SeparatorTestResults:
     second_stage_vapour_z : float
     second_stage_liquid_z : float
     second_stage_k_values : dict
+    second_stage_vapour_mw : float
+    second_stage_liquid_mw : float
+    second_stage_vapour_volume : float
+    second_stage_liquid_volume : float
+    second_stage_vapour_density : float
+    second_stage_liquid_density : float
 
     third_stage_pressure : float
     third_stage_temperature : float
@@ -75,3 +82,9 @@ class SeparatorTestResults:
     third_stage_vapour_z : float
     third_stage_liquid_z : float
     third_stage_k_values : dict
+    third_stage_vapour_mw : float
+    third_stage_liquid_mw : float
+    third_stage_vapour_volume : float
+    third_stage_liquid_volume : float
+    third_stage_vapour_density : float
+    third_stage_liquid_density : float

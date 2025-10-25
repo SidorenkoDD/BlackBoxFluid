@@ -68,6 +68,12 @@ class SeparatorTest(PVTExperiment):
                                       first_stage_liquid_z = self.first_stage_result.liquid_z,
                                       first_stage_vapour_z = self.first_stage_result.vapour_z,
                                       first_stage_k_values = self.first_stage_result.Ki,
+                                      first_stage_vapour_mw = self.first_stage_result.vapour_molecular_mass,
+                                      first_stage_liquid_mw = self.first_stage_result.liquid_molecular_mass,
+                                      first_stage_vapour_volume = self.first_stage_result.vapour_volume,
+                                      first_stage_liquid_volume = self.first_stage_result.liquid_volume,
+                                      first_stage_vapour_density = self.first_stage_result.vapour_density,
+                                      first_stage_liquid_density = self.first_stage_result.liquid_density,
                                     
                                       second_stage_pressure = self.second_stage_conditions.p,
                                       second_stage_temperature = self.second_stage_conditions.t,
@@ -78,6 +84,12 @@ class SeparatorTest(PVTExperiment):
                                       second_stage_liquid_z = self.second_stage_result.liquid_z,
                                       second_stage_vapour_z = self.second_stage_result.vapour_z,
                                       second_stage_k_values = self.second_stage_result.Ki,
+                                      second_stage_vapour_mw = self.second_stage_result.vapour_molecular_mass,
+                                      second_stage_liquid_mw = self.second_stage_result.liquid_molecular_mass,
+                                      second_stage_vapour_volume = self.second_stage_result.vapour_volume,
+                                      second_stage_liquid_volume = self.second_stage_result.liquid_volume,
+                                      second_stage_vapour_density = self.second_stage_result.vapour_density,
+                                      second_stage_liquid_density = self.second_stage_result.liquid_density,
 
                                       third_stage_pressure = self.third_stage_conditions.p,
                                       third_stage_temperature = self.third_stage_conditions.t,
@@ -87,7 +99,13 @@ class SeparatorTest(PVTExperiment):
                                       third_stage_liquid_composition = self.third_stage_result.liquid_composition,
                                       third_stage_liquid_z = self.third_stage_result.liquid_z,
                                       third_stage_vapour_z = self.third_stage_result.vapour_z,
-                                      third_stage_k_values = self.third_stage_result.Ki)
+                                      third_stage_k_values = self.third_stage_result.Ki,
+                                      third_stage_vapour_mw = self.third_stage_result.vapour_molecular_mass,
+                                      third_stage_liquid_mw = self.third_stage_result.liquid_molecular_mass,
+                                      third_stage_vapour_volume = self.third_stage_result.vapour_volume,
+                                      third_stage_liquid_volume = self.third_stage_result.liquid_volume,
+                                      third_stage_vapour_density = self.third_stage_result.vapour_density,
+                                      third_stage_liquid_density = self.third_stage_result.liquid_density)
 
         return self.result
 

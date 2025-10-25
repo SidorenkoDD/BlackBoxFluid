@@ -2,7 +2,7 @@ from calculations.Experiments.BaseExperiment import PVTExperiment
 from calculations.VLE.flash import FlashFactory
 from calculations.Utils.Conditions import Conditions
 
-class DL(PVTExperiment):
+class DLE(PVTExperiment):
     def __init__(self, composition, eos):
         self._composition = composition
         self._eos = eos
