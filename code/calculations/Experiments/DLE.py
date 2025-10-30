@@ -15,7 +15,7 @@ class DLE(PVTExperiment):
 
     def calculate(self, temperature : float, pressure_list : list | None = None,
                    n_steps : float = 10, flash_type = 'TwoPhaseFlash'):
-        pb_obj = SaturationPressureCalculation(self._composition,p_max=50, temp= temperature)
+        pb_obj = SaturationPressureCalculation(self._composition,p_max=40, temp= temperature)
         pb = pb_obj.sp_convergence_loop(self._eos)
 
         if pressure_list is None:
@@ -26,11 +26,11 @@ class DLE(PVTExperiment):
             flash_calculator = flash_object.create_flash(flash_type= flash_type)
             #расчет для первого значения давления
             first_step_conditions = Conditions(pressure_array[0], temperature)
-            self.result[first_step_conditions.p] = flash_calculator.calculate(conditions=first_step_conditions)
+            self.result[f'{first_step_conditions.p}_{first_step_conditions.t}'] = flash_calculator.calculate(conditions=first_step_conditions)
             # создаем атрибут состав, который далее будем менять
-            self.liquid_composition = self.result[first_step_conditions.p].liquid_composition
+            self.liquid_composition = self.result[f'{first_step_conditions.p}_{first_step_conditions.t}'].liquid_composition
             # создаем атрибут доля жидкости, который далее будет меняться по ступеням
-            self.fl.append(self.result[first_step_conditions.p].Fl)
+            self.fl.append(self.result[f'{first_step_conditions.p}_{first_step_conditions.t}'].Fl)
 
             for pressure in pressure_array[1:]:
                 self.liquid_composition = Composition(self.liquid_composition)
@@ -38,10 +38,15 @@ class DLE(PVTExperiment):
                 self._flash_object = FlashFactory(self.liquid_composition, self._eos)
                 flash_calculator = self._flash_object.create_flash(flash_type = flash_type)
                 current_conditions = Conditions(pressure, temperature)
-                self.result[current_conditions.p]= flash_calculator.calculate(conditions = current_conditions)
-                self.fl.append(self.result[current_conditions.p].Fl)
-                self.liquid_composition = self.result[current_conditions.p].liquid_composition
-                print(self.liquid_composition)
-            print(self.result)
+                self.result[f'{current_conditions.p}_{current_conditions.t}']= flash_calculator.calculate(conditions = current_conditions)
+                self.fl.append(self.result[f'{current_conditions.p}_{current_conditions.t}'].Fl)
+                self.liquid_composition = self.result[f'{current_conditions.p}_{current_conditions.t}'].liquid_composition
+                
+            flash_object = FlashFactory(self._composition, self._eos)
+            flash_calculator = flash_object.create_flash(flash_type= flash_type)
+            #расчет для первого значения давления
+            last_step_conditions = Conditions(0.1, 20)
+            self.result[f'{last_step_conditions.p}_{last_step_conditions.t}'] = flash_calculator.calculate(conditions=last_step_conditions)
+
         else:
             ...
