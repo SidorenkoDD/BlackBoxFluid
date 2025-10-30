@@ -11,6 +11,7 @@ class DLE(PVTExperiment):
         self._composition = composition
         self._eos = eos
         self.result = {}
+        self.fl = []
 
     def calculate(self, temperature : float, pressure_list : list | None = None,
                    n_steps : float = 10, flash_type = 'TwoPhaseFlash'):
@@ -26,8 +27,10 @@ class DLE(PVTExperiment):
             #расчет для первого значения давления
             first_step_conditions = Conditions(pressure_array[0], temperature)
             self.result[first_step_conditions.p] = flash_calculator.calculate(conditions=first_step_conditions)
-            # создаем объект состав, который далее будем менять
+            # создаем атрибут состав, который далее будем менять
             self.liquid_composition = self.result[first_step_conditions.p].liquid_composition
+            # создаем атрибут доля жидкости, который далее будет меняться по ступеням
+            self.fl.append(self.result[first_step_conditions.p].Fl)
 
             for pressure in pressure_array[1:]:
                 self.liquid_composition = Composition(self.liquid_composition)
@@ -36,6 +39,7 @@ class DLE(PVTExperiment):
                 flash_calculator = self._flash_object.create_flash(flash_type = flash_type)
                 current_conditions = Conditions(pressure, temperature)
                 self.result[current_conditions.p]= flash_calculator.calculate(conditions = current_conditions)
+                self.fl.append(self.result[current_conditions.p].Fl)
                 self.liquid_composition = self.result[current_conditions.p].liquid_composition
                 print(self.liquid_composition)
             print(self.result)
