@@ -88,3 +88,12 @@ class SeparatorTestResults:
     third_stage_liquid_volume : float
     third_stage_vapour_density : float
     third_stage_liquid_density : float
+
+@dataclass
+class CCEResults:
+    pressure : list
+    temperature : float
+    liquid_volume : list
+    liquid_density : list
+    # v_div_vres : list
+    # v_div_vsat : list
