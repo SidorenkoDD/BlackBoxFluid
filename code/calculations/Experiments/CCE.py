@@ -100,10 +100,10 @@ class CCE(PVTExperiment):
 
     def _calculate_compressibility(self):
         work_df = self.dataframe.copy()
-        work_df['diff_vol'] = work_df['Liquid volume'].diff()
-        work_df['sum_vol'] = work_df['Liquid volume'] + work_df['Liquid volume'].shift(1)
+        work_df['diff_vol'] = work_df['Liquid volume'].diff(-1)
+        work_df['sum_vol'] = work_df['Liquid volume'] + work_df['Liquid volume'].shift(-1)
         work_df['diff_p'] = work_df['Pressure'].diff()
-        work_df['Compressibility'] = - (work_df['diff_vol'] / ((work_df.at['Psat', 'Liquid volume']) * work_df['diff_p'])) # * 10 **4 #work_df['sum_vol']
+        work_df['Compressibility'] =  (work_df['diff_vol'] / ((work_df['Liquid volume']) * work_df['diff_p'])) # * 10 **4 #work_df['sum_vol']
 
         if 'Psat' in work_df.index:
             psat_position = work_df.index.get_loc('Psat')
