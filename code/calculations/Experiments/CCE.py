@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from calculations.Experiments.BaseExperiment import PVTExperiment
 from calculations.VLE.flash import FlashFactory
@@ -48,7 +49,7 @@ class CCE(PVTExperiment):
                 pressure_by_stages.append(pb)
                 pressure_by_stages.sort(reverse=True)
 
-        def _is_p_pres_in_pressure_by_stages_list() -> list:
+        def _is_p_res_in_pressure_by_stages_list() -> list:
             '''Method checks is p_res in list, in no, append p_res in list'''
             if p_resirvoir in pressure_by_stages:
                 pass
@@ -57,7 +58,7 @@ class CCE(PVTExperiment):
                 pressure_by_stages.sort(reverse=True)
 
         if _is_strictly_descending():
-            _is_p_pres_in_pressure_by_stages_list()
+            _is_p_res_in_pressure_by_stages_list()
             _is_p_sat_in_pressure_by_stages_list()
             for p in pressure_by_stages:
                 current_conditions = Conditions(p, temperature)
@@ -80,7 +81,8 @@ class CCE(PVTExperiment):
         self._calculate_v_d_vpres(p_reservoir=p_resirvoir)
         self._calculate_v_d_vpsat(p_sat= pb)
         self._calculate_compressibility()
-
+        #self.calculate_compressibility_central_vectorized(self.dataframe)
+        #self.calculate_compressibility_central_difference(self.dataframe)
         return self.result
 
     def _create_index_to_df(self, p_list, psat, pres):
@@ -101,7 +103,7 @@ class CCE(PVTExperiment):
         work_df['diff_vol'] = work_df['Liquid volume'].diff()
         work_df['sum_vol'] = work_df['Liquid volume'] + work_df['Liquid volume'].shift(1)
         work_df['diff_p'] = work_df['Pressure'].diff()
-        work_df['Compressibility'] = - (work_df['diff_vol'] / ((work_df['Liquid volume'])* work_df['diff_p'])) # * 10 **4 #work_df['sum_vol']
+        work_df['Compressibility'] = - (work_df['diff_vol'] / ((work_df.at['Psat', 'Liquid volume']) * work_df['diff_p'])) # * 10 **4 #work_df['sum_vol']
 
         if 'Psat' in work_df.index:
             psat_position = work_df.index.get_loc('Psat')
@@ -113,6 +115,85 @@ class CCE(PVTExperiment):
         self.dataframe['Compressibility'] = work_df['Compressibility']
         return work_df
 
+
+    def calculate_compressibility_central_vectorized(self, df):
+        """
+        Векторизованный расчет сжимаемости методом центральных разностей
+        """
+        result_df = df.copy()
+        
+        pressures = result_df['Pressure'].astype(float).values
+        volumes = result_df['Liquid volume'].astype(float).values
+        
+        # Инициализируем массив с NaN
+        compressibility = np.full_like(pressures, np.nan, dtype=float)
+        
+        # Центральные разности для внутренних точек
+        if len(pressures) >= 3:
+            dV_central = volumes[2:] - volumes[:-2]
+            dP_central = pressures[2:] - pressures[:-2]
+            valid_central = dP_central != 0
+            compressibility[1:-1][valid_central] = - (1 / volumes[1:-1][valid_central]) * (dV_central[valid_central] / dP_central[valid_central])
+        
+        # Разность вперед для первой точки
+        if len(pressures) >= 2:
+            dV_forward = volumes[1] - volumes[0]
+            dP_forward = pressures[1] - pressures[0]
+            if dP_forward != 0:
+                compressibility[0] = - (1 / volumes[0]) * (dV_forward / dP_forward)
+        
+        # Разность назад для последней точки
+        if len(pressures) >= 2:
+            dV_backward = volumes[-1] - volumes[-2]
+            dP_backward = pressures[-1] - pressures[-2]
+            if dP_backward != 0:
+                compressibility[-1] = - (1 / volumes[-1]) * (dV_backward / dP_backward)
+        
+        # Берем абсолютное значение (сжимаемость обычно положительная)
+        result_df['Compressibility_central'] = np.abs(compressibility)
+        self.dataframe['Compressibility'] = result_df['Compressibility_central']
+        return result_df
+
+    def calculate_compressibility_central_difference(self, df):
+        """
+        Расчет сжимаемости методом центральных разностей
+        """
+        # Создаем копию DataFrame чтобы не изменять оригинал
+        result_df = df.copy()
+        
+        # Добавляем столбец для сжимаемости
+        result_df['Compressibility_central'] = np.nan
+        
+        # Преобразуем давление в float на случай, если оно в строковом формате
+        pressures = result_df['Pressure'].astype(float).values
+        liquid_volumes = result_df['Liquid volume'].astype(float).values
+        
+        # Метод центральных разностей для внутренних точек
+        for i in range(1, len(pressures) - 1):
+            dV = liquid_volumes[i + 1] - liquid_volumes[i - 1]
+            dP = pressures[i + 1] - pressures[i - 1]
+            
+            if dP != 0:  # Избегаем деления на ноль
+                compressibility = - (1 / liquid_volumes[i]) * (dV / dP)
+                result_df.loc[result_df.index[i], 'Compressibility_central'] = abs(compressibility)
+        
+        # Для первой точки используем разность вперед
+        if len(pressures) >= 2:
+            dV = liquid_volumes[1] - liquid_volumes[0]
+            dP = pressures[1] - pressures[0]
+            if dP != 0:
+                compressibility = - (1 / liquid_volumes[0]) * (dV / dP)
+                result_df.loc[result_df.index[0], 'Compressibility_central'] = abs(compressibility)
+        
+        # Для последней точки используем разность назад
+        if len(pressures) >= 2:
+            dV = liquid_volumes[-1] - liquid_volumes[-2]
+            dP = pressures[-1] - pressures[-2]
+            if dP != 0:
+                compressibility = - (1 / liquid_volumes[-1]) * (dV / dP)
+                result_df.loc[result_df.index[-1], 'Compressibility_central'] = abs(compressibility)
+        self.dataframe['Compressibility'] = result_df['Compressibility_central']
+        return result_df
 
     def _calculate_v_d_vpres(self, p_reservoir):
         self.dataframe['V/Vres'] = self.dataframe['Liquid volume'] / self.dataframe[self.dataframe['Pressure'] == p_reservoir]['Liquid volume'].iloc[0]
