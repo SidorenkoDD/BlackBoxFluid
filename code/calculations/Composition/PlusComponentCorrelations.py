@@ -246,14 +246,15 @@ class CriticalVolumeCorrelation:
         params_map = {
             'rizari_daubert': ['Tb','gamma'],
             'hall_yarborough': ['M', 'gamma'],
-            'crit_vol_from_eos' : ['acentric_factor', 'Pc', 'Tc']
+            'crit_vol_from_eos' : ['acentric_factor', 'Pc', 'Tc'],
+            'pedersen_supposed' : ['M', 'gamma']
         }
         return params_map.get(method, [])
     
 
     @staticmethod
     def rizari_daubert(Tb, gamma):
-        return (7.0434 * math.pow(10, -7)) * math.pow(Tb, 2.3829) * math.pow(gamma, -1.683) / 16.018
+        return (7.0434 * math.pow(10, -7)) * math.pow(Tb, 2.3829) * math.pow(gamma, -1.683)
 
 
     @staticmethod
@@ -265,6 +266,9 @@ class CriticalVolumeCorrelation:
     def crit_vol_from_eos(acentric_factor, Pc, Tc):
         return (0.2918 - 0.0928 * acentric_factor) * CONSTANT_R * Tc / Pc
 
+    @staticmethod
+    def pedersen_supposed(M, gamma):
+        return 21.573 + 0.015122 *  M - 27.656 * gamma + 0.070615 * M * gamma
 
 
 class KWatson:
