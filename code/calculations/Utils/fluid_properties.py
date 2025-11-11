@@ -3,6 +3,7 @@
 from calculations.VLE.PhaseEquilibrium import PhaseEquilibrium
 from calculations.Utils.JsonDBReader import JsonDBReader
 from calculations.PhaseStability.TwoPhaseStabilityTest import TwoPhaseStabilityTest
+from calculations.Utils.Constants import CONSTANT_R
 
 class FluidProperties:
     '''Class for calculation fluid properties'''
