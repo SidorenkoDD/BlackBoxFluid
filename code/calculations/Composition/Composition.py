@@ -57,7 +57,7 @@ class Composition:
     def _validate_composition_sum(self):
         '''Method checks sum of components, range 0.999 to 1.001
         '''
-        sum_of_components = sum(self._composition.values())
+        sum_of_components = round(sum(self._composition.values()), 3)
         if not 0.999 <= sum_of_components <=1.001:
             raise CompositionSumError(f'Sum of components {sum_of_components}\n not equal to 1!')
 
@@ -253,7 +253,7 @@ class Composition2:
         '''Method checks sum of components, range 0.999 to 1.001
         '''
         sum_of_components = sum([component._get_component_mole_fraction for component in self.component_list])
-        if not 0.999 <= sum_of_components <=1.001:
+        if not 0.999 <= round(sum_of_components,3) <=1.001:
             raise CompositionSumError(f'Sum of components {sum_of_components}\n not equal to 1!')
 
 
