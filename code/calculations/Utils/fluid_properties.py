@@ -104,7 +104,7 @@ class OnePhaseProperties:
     def volume_one_phase(self):
         '''property
         returns volume of vapour phase'''
-        return ((CONSTANT_R * self.t * self.phase_stability_obj.vapour_z / (self.p)))
+        return ((CONSTANT_R * self.t * self.phase_stability_obj.liquid_eos.z / (self.p)))
     
     @property
     def density(self):

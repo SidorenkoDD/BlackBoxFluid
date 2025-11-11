@@ -43,11 +43,11 @@ class DLE(PVTExperiment):
                 self.result[f'{current_conditions.p}_{current_conditions.t}']= flash_calculator.calculate(conditions = current_conditions)
                 self.fl.append(self.result[f'{current_conditions.p}_{current_conditions.t}'].Fl)
                 self.liquid_composition_dict = self.result[f'{current_conditions.p}_{current_conditions.t}'].liquid_composition
-            
-            
-            self.liquid_composition = Composition(self.liquid_composition_dict)
-            self.liquid_composition._composition_data = self._composition._composition_data
-            flash_object = FlashFactory(self.liquid_composition, self._eos)
+
+            self.liquid_composition_last_stage = Composition(self.liquid_composition_dict)
+            self.liquid_composition_last_stage._composition_data = self._composition._composition_data
+            print(self.liquid_composition_last_stage._composition)
+            flash_object = FlashFactory(self.liquid_composition_last_stage, self._eos)
             flash_calculator = flash_object.create_flash(flash_type= flash_type)
             #расчет для стандартных условий (последняя ступень)
             last_step_conditions = Conditions(0.1, 20)
