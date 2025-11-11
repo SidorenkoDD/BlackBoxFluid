@@ -101,9 +101,11 @@ class CCE(PVTExperiment):
     def _calculate_compressibility(self):
         work_df = self.dataframe.copy()
         work_df['diff_vol'] = work_df['Liquid volume'].diff(-1)
+        # здесь сумма предыдущего значения объема с текущим
         work_df['sum_vol'] = work_df['Liquid volume'] + work_df['Liquid volume'].shift(-1)
-        work_df['diff_p'] = work_df['Pressure'].diff()
-        work_df['Compressibility'] =  (work_df['diff_vol'] / ((work_df.at['Psat', 'Liquid volume']) * work_df['diff_p'])) # * 10 **4 #work_df['sum_vol']
+        work_df['diff_p'] = work_df['Pressure'].diff(-1)
+        work_df['Liquid volume shift-1'] = work_df['Liquid volume'].shift(-1)
+        work_df['Compressibility'] = abs((1/work_df['Liquid volume'].shift(-1)) * work_df['diff_vol'] / work_df['diff_p'])
 
         if 'Psat' in work_df.index:
             psat_position = work_df.index.get_loc('Psat')
@@ -121,27 +123,27 @@ class CCE(PVTExperiment):
         Векторизованный расчет сжимаемости методом центральных разностей
         """
         result_df = df.copy()
-        
+
         pressures = result_df['Pressure'].astype(float).values
         volumes = result_df['Liquid volume'].astype(float).values
         
         # Инициализируем массив с NaN
         compressibility = np.full_like(pressures, np.nan, dtype=float)
-        
+
         # Центральные разности для внутренних точек
         if len(pressures) >= 3:
             dV_central = volumes[2:] - volumes[:-2]
             dP_central = pressures[2:] - pressures[:-2]
             valid_central = dP_central != 0
             compressibility[1:-1][valid_central] = - (1 / volumes[1:-1][valid_central]) * (dV_central[valid_central] / dP_central[valid_central])
-        
+
         # Разность вперед для первой точки
         if len(pressures) >= 2:
             dV_forward = volumes[1] - volumes[0]
             dP_forward = pressures[1] - pressures[0]
             if dP_forward != 0:
                 compressibility[0] = - (1 / volumes[0]) * (dV_forward / dP_forward)
-        
+
         # Разность назад для последней точки
         if len(pressures) >= 2:
             dV_backward = volumes[-1] - volumes[-2]
@@ -167,7 +169,7 @@ class CCE(PVTExperiment):
         # Преобразуем давление в float на случай, если оно в строковом формате
         pressures = result_df['Pressure'].astype(float).values
         liquid_volumes = result_df['Liquid volume'].astype(float).values
-        
+
         # Метод центральных разностей для внутренних точек
         for i in range(1, len(pressures) - 1):
             dV = liquid_volumes[i + 1] - liquid_volumes[i - 1]
@@ -176,7 +178,7 @@ class CCE(PVTExperiment):
             if dP != 0:  # Избегаем деления на ноль
                 compressibility = - (1 / liquid_volumes[i]) * (dV / dP)
                 result_df.loc[result_df.index[i], 'Compressibility_central'] = abs(compressibility)
-        
+
         # Для первой точки используем разность вперед
         if len(pressures) >= 2:
             dV = liquid_volumes[1] - liquid_volumes[0]
