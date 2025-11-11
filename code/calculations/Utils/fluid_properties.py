@@ -2,6 +2,7 @@
 '''
 from calculations.VLE.PhaseEquilibrium import PhaseEquilibrium
 from calculations.Utils.JsonDBReader import JsonDBReader
+from calculations.PhaseStability.TwoPhaseStabilityTest import TwoPhaseStabilityTest
 
 class FluidProperties:
     '''Class for calculation fluid properties'''
