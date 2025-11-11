@@ -79,3 +79,31 @@ class FluidProperties:
                        'V_vapour': self.vapour_volume, 'V_liquid': self.liquid_volume,
                        'Den_vapour': self.vapour_density, 'Den_liquid': self.liquid_density}
         return result_dict
+
+class OnePhaseProperties:
+    def __init__(self, phase_stability_obj: TwoPhaseStabilityTest,):
+        self.phase_stability_obj = phase_stability_obj
+        jsondbreader = JsonDBReader()
+        self.db = jsondbreader.load_database()
+        self.p = self.phase_stability_obj.p
+        self.t = self.phase_stability_obj.t
+
+
+    @property
+    def molecular_mass_one_phase(self):
+        '''property
+        returns MW of one phase'''
+        m_to_sum = []
+        for component in self.phase_stability_obj.composition.keys():
+            m_to_sum.append(self.phase_stability_obj.composition[component] * self.db['molar_mass'][component])
+        return sum(m_to_sum)
+    
+    @property
+    def volume_one_phase(self):
+        '''property
+        returns volume of vapour phase'''
+        return ((CONSTANT_R * self.t * self.phase_stability_obj.vapour_z / (self.p)))
+    
+    @property
+    def density(self):
+        return self.molecular_mass_one_phase/self.volume_one_phase
