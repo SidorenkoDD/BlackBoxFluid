@@ -56,3 +56,18 @@ class DLE(PVTExperiment):
         else:
             ...
 
+class DLE_2(PVTExperiment):
+    def __init__(self, composition, eos):
+        self._composition = composition
+        self._eos = eos
+
+        self.result = {}
+
+    def calculate(self, reservoir_temperature : float,
+                  pressure_array : list,
+                  flash_type = 'TwoPhaseFlash'):
+        
+        pb_obj = SaturationPressureCalculation(self._composition,p_max=40, temp= temperature)
+        pb = pb_obj.sp_convergence_loop(self._eos)
+
+        
