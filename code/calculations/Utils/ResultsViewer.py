@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import pandas as pd
-from calculations.Utils.Results import TwoPhaseFlashResults, SeparatorTestResults
+from calculations.Utils.Results import TwoPhaseFlashResults, SeparatorTestResults, StandardSeparationResults
 
 
 class ResultsViewer(ABC):
@@ -129,3 +129,28 @@ class SeparatorTestResultsViewer(ResultsViewer):
         print(liquid_composition_df)
 
 
+class StandardSeparationResultsViewer(ResultsViewer):
+    def view(self, standard_separation_results: StandardSeparationResults):
+        presure_arr = [standard_separation_results.p_res,
+                       standard_separation_results.p_sat,
+                       standard_separation_results.p_stc]
+        temperature_arr = [standard_separation_results.t_res,
+                           standard_separation_results.t_res,
+                           20]
+        liquid_density_arr = [standard_separation_results.liquid_density_p_res,
+                              standard_separation_results.liquid_density_p_sat,
+                              standard_separation_results.liquid_density_separated]
+        bo_arr = [standard_separation_results.bo_p_res,
+                  standard_separation_results.bo_p_sat,
+                  None]
+        rs_arr = [standard_separation_results.rs,
+                  standard_separation_results.rs,
+                  0]
+
+        primary_output_df = pd.DataFrame({'Pressure' : presure_arr,
+                                          'Temperature' : temperature_arr,
+                                          'Liquid density' : liquid_density_arr,
+                                          'Bo' : bo_arr,
+                                          'Rs' : rs_arr})
+        primary_output_df.index = ['Pres', 'Psat', 'STC']
+        return primary_output_df
