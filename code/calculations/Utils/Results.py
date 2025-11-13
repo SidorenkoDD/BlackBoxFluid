@@ -88,3 +88,23 @@ class SeparatorTestResults:
     third_stage_liquid_volume : float
     third_stage_vapour_density : float
     third_stage_liquid_density : float
+
+
+@dataclass
+class StandardSeparationResults:
+    p_res : float
+    p_sat : float
+    p_stc : float
+
+    t_res : float
+
+    liquid_density_p_res : float
+    liquid_density_p_sat : float
+    liquid_density_separated : float
+
+    bo_p_res : float
+    bo_p_sat : float
+
+    separated_gas_dens : float
+
+    rs : float
