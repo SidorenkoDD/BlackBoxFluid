@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import pandas as pd
-from calculations.Utils.Results import TwoPhaseFlashResults, SeparatorTestResults, StandardSeparationResults
+from calculations.Utils.Results import TwoPhaseFlashResults, SeparatorTestResults, StandardSeparationResults, DLEResults
 
 
 class ResultsViewer(ABC):
@@ -154,3 +154,32 @@ class StandardSeparationResultsViewer(ResultsViewer):
                                           'Rs' : rs_arr})
         primary_output_df.index = ['Pres', 'Psat', 'STC']
         return primary_output_df
+
+class DLEResultsViewer(ResultsViewer):
+    def view(self, dle_results: DLEResults):
+        primary_output_df = pd.DataFrame({'Index' : dle_results.index,
+                                          'Pressure': dle_results.pressure_arr,
+                                          'Temperature' : dle_results.temperature_arr,
+                                          'Fl' : dle_results.fl_arr,
+                                          'Fv' : dle_results.fv_arr,
+                                          'Liquid Z' : dle_results.liquid_z,
+                                          'Gas Z' : dle_results.gas_z,
+                                          'Liquid volume' : dle_results.liquid_volume_arr,
+                                          'Gas volume' : dle_results.gas_volume_arr,
+                                          'Liquid density' : dle_results.liquid_density_arr,
+                                          'Gas density' : dle_results.gas_density_arr,})
+                                           #'Bo' : dle_results.bo})
+    
+        return primary_output_df
+    
+    def view_liquid_compositions(self, dle_results : DLEResults):
+        liquid_compositions_df = pd.DataFrame.from_dict(data = dle_results.liquid_compositions).T
+        liquid_compositions_df.columns = dle_results.index
+        liquid_compositions_df = liquid_compositions_df * 100
+        return liquid_compositions_df
+
+    def view_gas_compositions(self, dle_results : DLEResults):
+        gas_compositions_df = pd.DataFrame.from_dict(data = dle_results.gas_compositions).T
+        gas_compositions_df.columns = dle_results.index
+        gas_compositions_df = gas_compositions_df * 100
+        return gas_compositions_df

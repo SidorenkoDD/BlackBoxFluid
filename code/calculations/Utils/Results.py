@@ -108,3 +108,28 @@ class StandardSeparationResults:
     separated_gas_dens : float
 
     rs : float
+
+
+@dataclass
+class DLEResults:
+    index : float
+    pressure_arr : list
+    temperature_arr : list
+
+    liquid_volume_arr : list
+    gas_volume_arr : list
+
+    liquid_density_arr : list
+    gas_density_arr : list
+
+    fl_arr : list
+    fv_arr : list
+
+    liquid_z : list
+    gas_z : list
+
+    liquid_compositions : list
+    gas_compositions : list
+
+    #bo : list
+
