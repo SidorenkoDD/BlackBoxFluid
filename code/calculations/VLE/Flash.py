@@ -47,11 +47,6 @@ class TwoPhaseFlash(Calculator):
                                            liquid_z= self.phase_stability.liquid_eos.z,
                                            vapour_z= self.phase_stability.vapour_eos.z,
 
-                                           liquid_composition=None,
-                                           vapour_composition= None,
-                                           liquid_z= self.phase_stability.vapour_z,
-                                           vapour_z= self.phase_stability.vapour_z,
-
                                            vapour_molecular_mass= one_phase_props.molecular_mass_one_phase,
                                            liquid_molecular_mass= one_phase_props.molecular_mass_one_phase,
                                            vapour_volume= one_phase_props.volume_one_phase,
