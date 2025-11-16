@@ -170,7 +170,7 @@ class DLEResultsViewer(ResultsViewer):
                                           'Gas density' : dle_results.gas_density_arr,
                                            'Bo' : dle_results.bo,
                                            'Rs' : dle_results.rs})
-        primary_output_df['Rs'] = primary_output_df['Rs'][::-1].values
+        #primary_output_df['Rs'] = primary_output_df['Rs'][::-1].values
         return primary_output_df
     
     def view_liquid_compositions(self, dle_results : DLEResults):

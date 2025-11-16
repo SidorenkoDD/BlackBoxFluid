@@ -106,8 +106,11 @@ class DLE_2(PVTExperiment):
         cumulative_sum = list(accumulate(gas_vol_stc_arr))
         print(f'GVOL BY STAGES ACC STC: {cumulative_sum}')
         # 5. revert gvol
-        g_vol_reverted = ...
-        return cumulative_sum / self.oil_residual_volume
+        gas_stc_acc_reverted = []
+        for i in range(len(cumulative_sum)):
+            gas_stc_acc_reverted.append(cumulative_sum[-1] - cumulative_sum[i])
+        
+        return gas_stc_acc_reverted / self.oil_residual_volume
 
 
     # NOT USED
