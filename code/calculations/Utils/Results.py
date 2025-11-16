@@ -131,5 +131,6 @@ class DLEResults:
     liquid_compositions : list
     gas_compositions : list
 
-    #bo : list
+    bo : list
+    rs : list
 
