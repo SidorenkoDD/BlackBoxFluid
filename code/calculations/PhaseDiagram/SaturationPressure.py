@@ -122,7 +122,7 @@ class SaturationPressureCalculation:
         if self.p_max_bub - self.p_min_bub < TOL_SAT_PRESSURE:
             return None
         
-        while ((abs(1 - self.sum_y_sp) < math.pow(10, -6)) == False) and ((math.pow(self.Ykz, 2) < math.pow(10, -6)) == False):
+        while ((abs(1 - self.sum_y_sp) < math.pow(10, -10)) == False) and ((math.pow(self.Ykz, 2) < math.pow(10, -10)) == False):
             self.sp_process(eos)
             if self.p_max_bub - self.p_min_bub < TOL_SAT_PRESSURE:
                 return None
