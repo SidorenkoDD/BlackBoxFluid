@@ -10,7 +10,7 @@ class Viscosity(ABC):
         pass
 
 
-class LBC(Viscosity):
+class LBC_from_paper(Viscosity):
     '''Class with LBC-method'''
     def __init__(self,
                  mole_fractions: dict,
@@ -34,7 +34,10 @@ class LBC(Viscosity):
         self.alpha4 = alpha4
 
     def calculate_rho_reduced(self):
-        v_crit = sum([self.mole_fractions[key] * self.composition_data['critical_volume'][key] for key in list(self.mole_fractions.keys())])
+        ##TODO: в чем здесь приходит критический объем ? Он рассчитывается по корреляции и скорее всего приходит в
+        # буржуйских ед. изм. 
+        ## 
+        v_crit = sum([self.mole_fractions[key] * 16018.463 /self.composition_data['critical_volume'][key] for key in list(self.mole_fractions.keys())])
         pho_crit = 1 / v_crit
         return self.phase_density / pho_crit
 
@@ -53,11 +56,11 @@ class LBC(Viscosity):
             if self.temperature / self.composition_data['critical_temperature'][component] <= 1.5:
                 mu0_i_dict[component] = (math.pow(self.composition_data['molar_mass'][component], 0.5) *
                                         math.pow(self.composition_data['critical_pressure'][component] * 10, 2/3) /
-                                        (math.pow(10,-5) * math.pow(self.composition_data['critical_temperature'][component], 1/6))) * 34 * math.pow(self.temperature /self.composition_data['critical_temperature'][component], 0.94)
+                                        (math.pow(10, 5) * math.pow(self.composition_data['critical_temperature'][component], 1/6))) * 34 * math.pow(self.temperature /self.composition_data['critical_temperature'][component], 0.94)
             else:
                 mu0_i_dict[component] = (math.pow(self.composition_data['molar_mass'][component], 0.5) *
                                         math.pow(self.composition_data['critical_pressure'][component] * 10, 2/3) /
-                                        (math.pow(10,-5) * math.pow(self.composition_data['critical_temperature'][component], 1/6))) * 17.78 * math.pow(4.58 * self.composition_data['critical_temperature'][component] - 1.67, 0.625)
+                                        (math.pow(10, 5) * math.pow(self.composition_data['critical_temperature'][component], 1/6))) * 17.78 * math.pow(4.58 * self.composition_data['critical_temperature'][component] - 1.67, 0.625)
 
 
         xi_mui_mi = sum([ self.mole_fractions[key] * mu0_i_dict[key] * math.sqrt(self.composition_data['molar_mass'][key]) for key in list(self.mole_fractions.keys())])
