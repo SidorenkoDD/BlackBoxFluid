@@ -90,6 +90,7 @@ class SeparatorTestResults:
     third_stage_liquid_density : float
 
 
+
 @dataclass
 class StandardSeparationResults:
     p_res : float
@@ -133,4 +134,14 @@ class DLEResults:
 
     bo : list
     rs : list
+
+
+@dataclass
+class CCEResults:
+    pressure : list
+    temperature : float
+    liquid_volume : list
+    liquid_density : list
+    # v_div_vres : list
+    # v_div_vsat : list
 

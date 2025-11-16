@@ -1,5 +1,6 @@
 '''Module doc
 '''
+from calculations.PhaseStability.TwoPhaseStabilityTest import TwoPhaseStabilityTest
 from calculations.VLE.PhaseEquilibrium import PhaseEquilibrium
 from calculations.Utils.JsonDBReader import JsonDBReader
 from calculations.PhaseStability.TwoPhaseStabilityTest import TwoPhaseStabilityTest
@@ -37,13 +38,14 @@ class FluidProperties:
             m_to_sum.append(self.equil_obj.xi_l[component] * self.db['molar_mass'][component])
         return sum(m_to_sum)
 
+
     # Методы расчета объема
     ## Расчет объема для газовой фазы
     @property
     def vapour_volume(self):
         '''property
         returns volume of vapour phase'''
-        return self.equil_obj.fv * ((8.314 * self.t * self.equil_obj.eos_vapour.z / (self.p)) -
+        return self.equil_obj.fv * ((CONSTANT_R * self.t * self.equil_obj.eos_vapour.z / (self.p)) -
                                     self.equil_obj.eos_vapour.shift_parametr)
 
     ## Расчет объема для жидкой фазы
@@ -51,9 +53,15 @@ class FluidProperties:
     def liquid_volume(self):
         '''property
         returns volume of liquid phase'''
-        return (1 - self.equil_obj.fv) * ((8.314 * self.t *self.equil_obj.eos_liquid.z / (self.p)) -
+        return (1 - self.equil_obj.fv) * ((CONSTANT_R * self.t *self.equil_obj.eos_liquid.z / (self.p)) -
                                           self.equil_obj.eos_liquid.shift_parametr)
 
+    @property
+    def liquid_volume(self):
+        '''property
+        returns volume of liquid phase'''
+        return (1 - self.equil_obj.fv) * ((CONSTANT_R * self.t *self.equil_obj.eos_liquid.z / (self.p)) -
+                                          self.equil_obj.eos_liquid.shift_parametr)
 
     # Методы расчета плотности
     ## Расчет плотности для газовой фазы
@@ -82,6 +90,7 @@ class FluidProperties:
                        'Den_vapour': self.vapour_density, 'Den_liquid': self.liquid_density}
         return result_dict
 
+
 class OnePhaseProperties:
     def __init__(self, phase_stability_obj: TwoPhaseStabilityTest,):
         self.phase_stability_obj = phase_stability_obj
@@ -104,8 +113,10 @@ class OnePhaseProperties:
     def volume_one_phase(self):
         '''property
         returns volume of vapour phase'''
+
         return ((CONSTANT_R * self.t * self.phase_stability_obj.liquid_eos.z / (self.p)))
     
     @property
     def density(self):
         return self.molecular_mass_one_phase/self.volume_one_phase
+

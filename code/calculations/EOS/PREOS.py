@@ -135,6 +135,7 @@ class PREOS(EOS):
             linear_mixed_B.append(b * list(self.zi.values())[i])
         return sum(linear_mixed_B)
 
+
     def _calc_shift_parametr(self) -> float:
         '''Calculation of shift parameter  for EOS
         
@@ -373,7 +374,7 @@ class PREOS(EOS):
         '''Pipeline to calculate EOS
 
         '''
-        
+
         self.all_params_a = {}
         self.all_params_b = {}
         for key in self.zi.keys():
