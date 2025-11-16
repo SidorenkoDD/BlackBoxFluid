@@ -101,10 +101,12 @@ class DLE_2(PVTExperiment):
         # 3. third step : make gas vol 0 for p >= p_sat and for last stage
         gas_vol_stc_arr = [0 if p_arr[i] >= p_sat else gas_vol_stc_arr[i] for i in range(len(p_arr))]
         gas_vol_stc_arr[-1] = 0
-
+        print(f'GVOL BY STAGES STC: {gas_vol_stc_arr}')
         # 4. fourth step : calc acc sum of gas volume by stages
         cumulative_sum = list(accumulate(gas_vol_stc_arr))
-
+        print(f'GVOL BY STAGES ACC STC: {cumulative_sum}')
+        # 5. revert gvol
+        g_vol_reverted = ...
         return cumulative_sum / self.oil_residual_volume
 
 
