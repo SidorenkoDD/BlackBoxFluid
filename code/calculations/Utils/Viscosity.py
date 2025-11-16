@@ -146,7 +146,7 @@ class LBCfromPVTSIM(Viscosity):
 
         def calculate_rho_reduced(self):
             ##TODO: CRIT VOLUME
-            v_crit = sum([self.mole_fractions[key] * self.composition_data['critical_volume'][key] for key in list(self.mole_fractions.keys())])
+            v_crit = sum([self.mole_fractions[key] * 16018.463 / self.composition_data['critical_volume'][key] for key in list(self.mole_fractions.keys())])
             pho_crit = 1 / v_crit
 
             return self.phase_density / pho_crit
