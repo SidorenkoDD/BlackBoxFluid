@@ -9,6 +9,23 @@ class Viscosity(ABC):
         
         pass
 
+class ViscosityFactory:
+
+    @staticmethod
+    def create_viscosity_object(viscosity_method):
+        eos_mapping = {
+            "LBC": LBC,
+            "PEDERSEN": LBC,
+        }
+        if viscosity_method not in eos_mapping:
+            raise ValueError(f"Unknown viscosity method: {viscosity_method}")
+        return eos_mapping[viscosity_method]
+
+class ViscosityFacade:
+    def __init__(self):
+        pass
+
+
 
 class LBC(Viscosity):
     '''
@@ -21,7 +38,6 @@ class LBC(Viscosity):
     * phase_density : float, density for phase to calculate viscosity (from flash results)
     * mw : float, molecular weight for phase to calculate viscosity (from flash results)
     * temperature : float, temperature in K
-
 
     Methods
     ------

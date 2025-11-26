@@ -14,10 +14,10 @@ class Results(ABC):
 class TwoPhaseFlashResults:
     temperature : float
     pressure : float
-    
+
     stable : bool
     EOS: str
-    
+
     Fv : float | None
     Fl : float | None
     Ki: float | None
@@ -27,7 +27,7 @@ class TwoPhaseFlashResults:
     
     liquid_z : float | None
     vapour_z : float | None
-    
+
     vapour_molecular_mass: float | None
     liquid_molecular_mass: float | None
 
@@ -36,6 +36,10 @@ class TwoPhaseFlashResults:
 
     vapour_density: float | None
     liquid_density: float | None
+
+    vapour_viscosity : float | None
+    liquid_viscosity : float | None
+
 
 
 @dataclass

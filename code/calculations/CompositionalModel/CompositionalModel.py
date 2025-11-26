@@ -15,16 +15,19 @@ sys.path.append(str(root_path))
 
 
 class CompositionalModel:
-    def __init__(self,zi: Composition, eos: str = 'PREOS'):
+    def __init__(self,zi: Composition,
+                 eos: str = 'PREOS',
+                 viscosity_method = 'LBC'):
         self._composition = zi
         self._eos = eos
+        self._viscosity_method = viscosity_method
         self._flash_results = {}
         self.experiments = ExperimentsFacade(self._composition, self._eos)
         self.PHASE_ENVELOPE = PhaseEnvelope(self._composition, 50, 250)
         
 
     def flash(self, conditions, flash_type = 'TwoPhaseFlash'):
-        self._flash_object = FlashFactory(self._composition, self._eos)
+        self._flash_object = FlashFactory(self._composition, self._eos, viscosity_method= self._viscosity_method)
         flash_calculator = self._flash_object.create_flash(flash_type=flash_type)
         result = flash_calculator.calculate(conditions=conditions)
 
