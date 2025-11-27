@@ -69,6 +69,7 @@ class LBC(Viscosity):
         self._alpha3 = alpha3
         self._alpha4 = alpha4
 
+
     def _calculate_epsilon_parameter(self):
         '''
         pressure in atma
