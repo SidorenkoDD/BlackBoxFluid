@@ -3,23 +3,27 @@ from calculations.VLE.PhaseEquilibrium import PhaseEquilibrium
 from calculations.Utils.fluid_properties import FluidProperties, OnePhaseProperties
 from calculations.Utils.BaseClasses import Calculator
 from calculations.Utils.Results import TwoPhaseFlashResults
+from calculations.Utils.Viscosity import LBC
 
 class FlashFactory:
 
-    def __init__(self, composition, eos):
+    def __init__(self, composition, eos, viscosity_method = 'LBC'):
         self.composition = composition
         self.eos = eos
+        self.viscosity_method = viscosity_method
 
     def create_flash(self, flash_type):
         if flash_type == 'TwoPhaseFlash':
-            return TwoPhaseFlash(composition=self.composition, eos = self.eos)
+            return TwoPhaseFlash(composition=self.composition,
+                                 eos = self.eos)
         raise ValueError(f'Unknown flash: {flash_type}')
 
 
 class TwoPhaseFlash(Calculator):
-    def __init__(self, composition, eos):
+    def __init__(self, composition, eos, viscosity_method = 'LBC'):
         self.composition = composition
         self.eos = eos
+        self.viscosity_method = viscosity_method
         self._conditions = None
         self.phase_stability = None
         self.phase_equilibrium = None
@@ -89,6 +93,18 @@ class TwoPhaseFlash(Calculator):
             self.fluid_properties = FluidProperties(self._conditions.p, self._conditions.t,
                                                     equil_obj= self.phase_equilibrium)
 
+            self.viscosity_liquid = LBC(mole_fractions = self.phase_equilibrium.xi_l,
+                                        composition_data = self.composition._composition_data,
+                                        phase_density = self.fluid_properties.liquid_density,
+                                        mw = self.fluid_properties.molecular_mass_liquid,
+                                        temperature = self._conditions.t).calculate()
+            
+            self.viscosity_gas = LBC(mole_fractions = self.phase_equilibrium.yi_v,
+                                        composition_data = self.composition._composition_data,
+                                        phase_density = self.fluid_properties.vapour_density,
+                                        mw = self.fluid_properties.molecular_mass_vapour,
+                                        temperature = self._conditions.t).calculate()
+
             results = TwoPhaseFlashResults(temperature = self._conditions.t,
                                 pressure = self._conditions.p,
                                 EOS = str(self.eos),
@@ -105,5 +121,8 @@ class TwoPhaseFlash(Calculator):
                                 vapour_volume = self.fluid_properties.vapour_volume,
                                 liquid_volume = self.fluid_properties.liquid_volume,
                                 vapour_density = self.fluid_properties.vapour_density,
-                                liquid_density = self.fluid_properties.liquid_density)
+                                liquid_density = self.fluid_properties.liquid_density,
+                                liquid_viscosity = self.viscosity_liquid,
+                                vapour_viscosity = self.viscosity_gas)
+
         return results

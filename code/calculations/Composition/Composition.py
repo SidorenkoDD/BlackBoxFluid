@@ -272,12 +272,13 @@ if __name__ == '__main__':
                         'critical_volume': 'hall_yarborough',
                         'k_watson': 'k_watson',
                         'shift_parameter': 'jhaveri_youngren'})
+    print(comp._composition)
+    print(comp._composition_data)    
+    # comp.show_composition_dataframes()
     
-    comp.show_composition_dataframes()
-    
-    comp.edit_component_properties('C1', {'molar_mass': 0.95, 'critical_pressure': 500})
+    # comp.edit_component_properties('C1', {'molar_mass': 0.95, 'critical_pressure': 500})
 
     
 
-    comp.show_composition_dataframes()
+    # comp.show_composition_dataframes()
 

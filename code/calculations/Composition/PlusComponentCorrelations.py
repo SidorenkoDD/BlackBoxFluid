@@ -245,7 +245,9 @@ class CriticalVolumeCorrelation:
         """Возвращает список требуемых параметров для корреляции"""
         params_map = {
             'rizari_daubert': ['Tb','gamma'],
-            'hall_yarborough': ['M', 'gamma']
+            'hall_yarborough': ['M', 'gamma'],
+            'crit_vol_from_eos' : ['acentric_factor', 'Pc', 'Tc'],
+            'pedersen_supposed' : ['M', 'gamma']
         }
         return params_map.get(method, [])
     
@@ -258,6 +260,16 @@ class CriticalVolumeCorrelation:
     @staticmethod
     def hall_yarborough(M, gamma):
         return 0.025 * math.pow(M, 1.15) * math.pow(gamma, -0.7935)
+
+
+    @staticmethod
+    def crit_vol_from_eos(acentric_factor, Pc, Tc):
+        return (0.2918 - 0.0928 * acentric_factor) * CONSTANT_R * Tc / Pc
+
+    @staticmethod
+    def pedersen_supposed(M, gamma):
+        return 21.573 + 0.015122 *  M - 27.656 * gamma + 0.070615 * M * gamma
+
 
 class KWatson:
 
@@ -286,6 +298,8 @@ class KWatson:
     @staticmethod
     def k_watson_approx(M, gamma):
         return 4.5579 * math.pow(M, 0.15178) * math.pow(gamma, -0.84573)
+    
+
 
 class ShiftParameterCorrelation:
     @classmethod
