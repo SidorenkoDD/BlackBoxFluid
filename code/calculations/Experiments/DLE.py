@@ -64,6 +64,9 @@ class DLE_2(PVTExperiment):
         self._eos = eos
         self.fl = []
         self._result_dict = {}
+        self.oil_residual_volume = None
+        self.pb = None
+
 
     def _calculate_bo(self, liq_vol, fl_arr):
 
@@ -101,10 +104,9 @@ class DLE_2(PVTExperiment):
         # 3. third step : make gas vol 0 for p >= p_sat and for last stage
         gas_vol_stc_arr = [0 if p_arr[i] >= p_sat else gas_vol_stc_arr[i] for i in range(len(p_arr))]
         gas_vol_stc_arr[-1] = 0
-        print(f'GVOL BY STAGES STC: {gas_vol_stc_arr}')
         # 4. fourth step : calc acc sum of gas volume by stages
         cumulative_sum = list(accumulate(gas_vol_stc_arr))
-        print(f'GVOL BY STAGES ACC STC: {cumulative_sum}')
+        
         # 5. revert gvol
         gas_stc_acc_reverted = []
         for i in range(len(cumulative_sum)):
@@ -212,7 +214,9 @@ class DLE_2(PVTExperiment):
                                  liquid_compositions = [self._result_dict[stage].liquid_composition for stage in list(self._result_dict.keys())],
                                  gas_compositions = [self._result_dict[stage].vapour_composition for stage in list(self._result_dict.keys())],
                                  bo = self.bo,
-                                 rs = self.rs)
+                                 rs = self.rs,
+                                 gas_viscosity = [self._result_dict[stage].vapour_viscosity for stage in list(self._result_dict.keys())],
+                                 liquid_viscosity = [self._result_dict[stage].liquid_viscosity for stage in list(self._result_dict.keys())])
         
 
         return self.result

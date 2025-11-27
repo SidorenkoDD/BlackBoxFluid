@@ -14,8 +14,8 @@ class CriticalTemperatureCorrelation:
     @staticmethod
     def roess(gamma: float, Tb: float) -> float:
         t_bf_fahrenheit = Tb * 9/5 + 32
-        t_c_renkin = 645.83 + 1.6667 * (gamma * (t_bf_fahrenheit + 100)) - \
-                     (0.727e-3) * (gamma * (t_bf_fahrenheit + 100))**2
+        t_c_renkin = (645.83 + 1.6667 * (gamma * (t_bf_fahrenheit + 100)) -
+                     (0.727e-3) * (gamma * (t_bf_fahrenheit + 100))**2)
         return t_c_renkin * 5/9
 
 
@@ -48,6 +48,10 @@ class CriticalTemperatureCorrelation:
     def standing(gamma, M):
         return 338 + 202 * math.log10(M - 71.2) + (1361 * math.log10(M) - 2111) * math.log10(gamma)
 
+    @staticmethod
+    def sim_daubert(gamma, Tb):
+        return math.exp(3.9934718 * math.pow(Tb, 0.08615) * math.pow(gamma, 0.04614))
+
     @classmethod
     def get_correlation(cls, method: str) -> Callable:
         """Возвращает функцию корреляции по имени"""
@@ -65,7 +69,8 @@ class CriticalTemperatureCorrelation:
             'cavett': ['Tb', 'gamma_api'],
             'kesler_lee': ['gamma', 'Tb'],
             'pedersen' : ['gamma', 'M'],
-            'standing' : ['gamma', 'M']
+            'standing' : ['gamma', 'M'],
+            'sim_daubert': ['gamma', 'Tb'],
         }
         return params_map.get(method, [])
 
@@ -74,24 +79,30 @@ class CriticalPressureCorrelation:
     
     @staticmethod
     def kesler_lee(gamma: float, Tb: float) -> float:
-        return 3.12281e9 / (Tb**2.3125 * gamma**2.3201)  * 0.00689476
+        first = 8.3634 - (0.0566 / gamma)
+        second = - ((0.24244 + (2.2898 / gamma) + (0.11857 / math.pow(gamma, 2))) * math.pow(10, -3) * Tb)
+        third = ((1.4685 + (3.648 / gamma) + (0.47227 / math.pow(gamma, 2))) * math.pow(10, -7) * math.pow(Tb, 2))
+        fourth = - ((0.42019 + (1.6977/math.pow(gamma, 2))) * math.pow(10, -10)* math.pow(Tb, 3))
+        return math.pow(math.e, sum([first, second, third, fourth])) * 0.00689476
+
 
 
     @staticmethod
     def rizari_daubert(Tb, gamma):
         return (3.12281e9 * (Tb** -2.3125 * gamma**2.3201)) * 0.00689476
 
-
     @staticmethod
     def pedersen(gamma, M):
         return (math.exp(-0.13408 + 2.5019 * gamma + (208.46/M) - (3987.2/ math.pow(M,2)))) / 10
-
 
     @staticmethod
     def standing(gamma, M):
         return (8.191 - 2.97 * math.log10(M - 61.1) + (15.99 - 5.87 *
                                                         math.log10(M - 53.7)) * (gamma - 0.8))
 
+    @staticmethod
+    def sim_daubert(gamma, Tb):
+        return 3.48242 * math.pow(10, 9) * math.pow(Tb, -2.3177) * math.pow(gamma, 2.4853) * 0.00689476
 
     @staticmethod
     def pc_from_eos(gamma, M, Tc):
@@ -179,6 +190,9 @@ class CriticalPressureCorrelation:
 
         return [zk0, zk1, zk2]
 
+    @staticmethod
+    def mogoulas_tassios(gamma, M):
+        return math.pow(math.e,(0.01901 - 0.0048442 * M + 0.13239 * gamma + (227/M) - (1.1663/gamma) + 1.2702 * math.log(M))) * 0.00689476
 
     @classmethod
     def get_correlation(cls, method: str) -> Callable:
@@ -195,7 +209,9 @@ class CriticalPressureCorrelation:
             'rizari_daubert' : ['gamma', 'Tb'],
             'pedersen' : ['gamma', 'M'], 
             'standing' : ['gamma', 'M'],
-            'pc_from_eos' : ['gamma', 'M', 'Tc']
+            'pc_from_eos' : ['gamma', 'M', 'Tc'],
+            'sim_daubert' : ['gamma', 'Tb'],
+            'mogoulas_tassios' : ['gamma', 'M']
         }
         return params_map.get(method, [])
 

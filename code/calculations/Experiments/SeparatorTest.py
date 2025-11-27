@@ -233,7 +233,7 @@ class SeparatorTestModifiedDLE(PVTExperiment):
         self.liquid_composition_dict = self._result_dict[f'{first_step_conditions.p}_{first_step_conditions.t}'].liquid_composition
         self.fl.append(self._result_dict[f'{first_step_conditions.p}_{first_step_conditions.t}'].Fl)
         # calculate from p sat to p = 1 atm, Tres
-        for pressu-re in pressure_by_stages[1:]:
+        for pressure in pressure_by_stages[1:]:
             self.liquid_composition = Composition(self.liquid_composition_dict)
             self.liquid_composition._composition_data = self._composition._composition_data
             self._flash_object = FlashFactory(self.liquid_composition, self._eos)

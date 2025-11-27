@@ -136,6 +136,9 @@ class DLEResults:
     liquid_compositions : list
     gas_compositions : list
 
+    liquid_viscosity : list
+    gas_viscosity : list
+
     bo : list
     rs : list
 

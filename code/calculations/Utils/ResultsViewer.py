@@ -189,7 +189,9 @@ class DLEResultsViewer(ResultsViewer):
                                           'Liquid density' : dle_results.liquid_density_arr,
                                           'Gas density' : dle_results.gas_density_arr,
                                            'Bo' : dle_results.bo,
-                                           'Rs' : dle_results.rs})
+                                           'Rs' : dle_results.rs,
+                                           'Liquid viscosity' : dle_results.liquid_viscosity,
+                                           'Gas viscosity' : dle_results.gas_viscosity})
         #primary_output_df['Rs'] = primary_output_df['Rs'][::-1].values
         return primary_output_df
     

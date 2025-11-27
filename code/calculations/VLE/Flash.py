@@ -38,6 +38,7 @@ class TwoPhaseFlash(Calculator):
         if self.phase_stability.stable is True:
 
             one_phase_props = OnePhaseProperties(self.phase_stability)
+
             results = TwoPhaseFlashResults(temperature=self._conditions.t,
                                            pressure= self._conditions.p,
                                            stable=self.phase_stability.stable,
@@ -56,7 +57,9 @@ class TwoPhaseFlash(Calculator):
                                            vapour_volume= one_phase_props.volume_one_phase,
                                            liquid_volume= one_phase_props.volume_one_phase,
                                            vapour_density= one_phase_props.density,
-                                           liquid_density= one_phase_props.density)
+                                           liquid_density= one_phase_props.density,
+                                           liquid_viscosity = None,
+                                           vapour_viscosity = None)
 
 
 
