@@ -1,0 +1,23 @@
+[
+  {
+    "name": "North Sea Oil",
+    "type": "Black Oil",
+    "components": 8,
+    "mw": 125.4,
+    "date": "2024-01-15"
+  },
+  {
+    "name": "Gas Condensate",
+    "type": "Gas Condensate",
+    "components": 12,
+    "mw": 89.2,
+    "date": "2024-01-10"
+  },
+  {
+    "name": "Dry Gas Field",
+    "type": "Dry Gas",
+    "components": 6,
+    "mw": 19.8,
+    "date": "2024-01-05"
+  }
+]
