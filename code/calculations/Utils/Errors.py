@@ -15,3 +15,9 @@ class InvalidMolarFractionError(Exception):
 
 class InvalidPressureSequence(Exception):
     pass
+
+class InvalidExcelComponentType(Exception):
+    pass
+
+class InvalidExcelValueType(Exception):
+    pass
