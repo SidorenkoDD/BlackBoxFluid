@@ -407,6 +407,48 @@ class PREOS(EOS):
 
         return None
 
+    def calc_eos_with_peneloux_correction(self):
+        '''Pipeline to calculate EOS
+        '''
+
+        self.all_params_a = {}
+        self.all_params_b = {}
+        for key in self.zi.keys():
+            self.all_params_a[key] = self._calc_a(component=key)
+            self.all_params_b[key] = self._calc_b(component=key)
+        
+        self.shift_parametr = self._calc_shift_parametr()
+
+        for key in self.zi.keys():
+            self.all_params_b[key] = self.all_params_b[key] - self.components_properties['shift_parameter'][key]
+
+        self.all_params_A = {}
+        self.all_params_B = {}
+
+        for key in self.zi.keys():
+            self.all_params_A[key] = self._calc_A(component=key)
+            self.all_params_B[key] = self._calc_B(component=key)
+
+        self.mixed_A = self._calc_mixed_A()
+        self.B_linear_mixed = self._calc_linear_mixed_B()
+        self.shift_parametr = self._calc_shift_parametr()
+
+        self.real_roots_eos = self._solve_cubic_equation()
+
+        self.fugacity_by_roots = {}
+        for root in [x for x in self.real_roots_eos if x != 0]:
+            fugacity_by_components = {}
+            for component in self.zi.keys():
+                fugacity_by_components[component] = self._calc_fugacity_for_component_PR(component, root)
+            self.fugacity_by_roots[root] = fugacity_by_components
+
+        self.normalized_gibbs_energy = self._calc_normalized_gibbs_energy()
+        self._z = self._choose_eos_root_by_gibbs_energy()
+        self._fugacities = self.fugacity_by_roots[self._z]
+
+        return None
+
+
     @property
     def z(self):
         return super().z()
