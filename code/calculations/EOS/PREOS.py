@@ -380,6 +380,7 @@ class PREOS(EOS):
         for key in self.zi.keys():
             self.all_params_a[key] = self._calc_a(component=key)
             self.all_params_b[key] = self._calc_b(component=key)
+        
 
         self.all_params_A = {}
         self.all_params_B = {}
@@ -416,12 +417,14 @@ class PREOS(EOS):
         for key in self.zi.keys():
             self.all_params_a[key] = self._calc_a(component=key)
             self.all_params_b[key] = self._calc_b(component=key)
+
+        print(f'before_pen: {self.all_params_b}')
         
         self.shift_parametr = self._calc_shift_parametr()
 
         for key in self.zi.keys():
             self.all_params_b[key] = self.all_params_b[key] - self.components_properties['shift_parameter'][key]
-
+        print(f'after_pen: {self.all_params_b}')
         self.all_params_A = {}
         self.all_params_B = {}
 
