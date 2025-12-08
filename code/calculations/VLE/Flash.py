@@ -93,8 +93,8 @@ class TwoPhaseFlash(Calculator):
                 self.phase_equilibrium.find_solve_loop()
             self.phase_equilibrium.find_solve_loop()
             
-#            self.phase_equilibrium.eos_vapour.calc_eos_with_peneloux_correction()
-#            self.phase_equilibrium.eos_liquid.calc_eos_with_peneloux_correction()
+            self.phase_equilibrium.eos_vapour.calc_eos_with_peneloux_correction()
+            self.phase_equilibrium.eos_liquid.calc_eos_with_peneloux_correction()
 
             self.fluid_properties = FluidProperties(self._conditions.p, self._conditions.t,
                                                     equil_obj= self.phase_equilibrium)
