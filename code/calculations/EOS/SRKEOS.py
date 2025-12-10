@@ -136,57 +136,25 @@ class SRKEOS(EOS):
         return [zk0, zk1, zk2]
 
 
-    # Метод расчета летучести (используемый)
-    def _calc_fugacity_for_component_PR(self, component, eos_root):
-        '''
-        Метод возвращает значение ln_f_i (формула 1.39)
-        Введено доп уравнение для расчета летучести одной компоненты
-        '''
-        if len(list(self.zi.keys())) == 1:
-            eos_roots = self.real_roots_eos
-            for root in eos_roots:
-                ln_fi_i = root - 1 - math.log(root - self.B_linear_mixed) - self.mixed_A / (2* math.sqrt(2) * self.B_linear_mixed) *  math.log((root + (math.sqrt(2) + 1) * self.B_linear_mixed)/(root - (math.sqrt(2) - 1) * self.B_linear_mixed))
-                fi = math.exp(ln_fi_i)
 
-                return ln_fi_i
+    def _calc_fugacity_for_component_RK(self, component, eos_root):
+        zi_Ai = []
+        #for comp in [x for x in self.zi.keys() if x != component]:
+        for comp in list(self.zi.keys()):
+            zi_Ai.append(self.zi[comp] * 
+                             (1 - self.components_properties['bip'][component][comp]) * 
+                             math.sqrt(self.all_params_A[component] * self.all_params_A[comp]))
+        sum_zi_Ai = sum(zi_Ai)
+        if (eos_root - self.B_linear_mixed) > 0:
+            ln_fi_i = ((self.all_params_B[component] / self.B_linear_mixed) * (eos_root - 1) -
+                        (math.log(eos_root - self.B_linear_mixed)) + 
+                        (self.mixed_A / (self.B_linear_mixed)) * 
+                        ((self.all_params_B[component] / self.B_linear_mixed) - (2/self.mixed_A) * sum_zi_Ai) * 
+                        math.log(1 + (self.B_linear_mixed/eos_root)))
 
+            return ln_fi_i + math.log(self.p * self.zi[component])
         else:
-            zi_Ai = []
-            # for comp in [x for x in self.zi.keys() if x != component]:
-            for comp in list(self.zi.keys()):
-                zi_Ai.append(self.zi[comp] * 
-                                (1 - self.components_properties['bip'][component][comp]) * 
-                                math.sqrt(self.all_params_A[component] * self.all_params_A[comp]))
-            sum_zi_Ai = sum(zi_Ai)
-
-
-            if (eos_root - self.B_linear_mixed) > 0:
-
-                ln_fi_i = ((self.all_params_B[component] / self.B_linear_mixed) * (eos_root - 1) -
-                            (math.log(eos_root - self.B_linear_mixed)) + 
-                            (self.mixed_A / (2 * math.sqrt(2) * self.B_linear_mixed)) * 
-                            ((self.all_params_B[component] / self.B_linear_mixed) - (2/self.mixed_A) *  sum_zi_Ai) * 
-                            math.log((eos_root + ((1 + math.sqrt(2))* self.B_linear_mixed))/(eos_root + ((1 - math.sqrt(2))* self.B_linear_mixed))))
-
-
-
-                ln_f_i = ln_fi_i + math.log(self.p * self.zi[component]) 
-
-
-
-                return ln_f_i
-        
-            else:
-                return 0
-
-    # Метод расчета летучести для однокомпонентной смеси
-    def _calc_fugacity_one_component_PR(self):
-        eos_roots = self.real_roots_eos
-        for root in eos_roots:
-            ln_fi_i = root - 1 - math.log(root - self.B_linear_mixed) - self.mixed_A / (2* math.sqrt(2) * self.B_linear_mixed) *  math.log((root + (math.sqrt(2) + 1) * self.B_linear_mixed)/(root - (math.sqrt(2) - 1) * self.B_linear_mixed))
-            fi = math.exp(ln_fi_i)
-            f = fi * self.p
-            #print(f)
+            return 0
 
 
     #Метод расчета приведенной энергии Гиббса
@@ -243,7 +211,7 @@ class SRKEOS(EOS):
         for root in self.real_roots_eos:
             fugacity_by_components = {}
             for component in self.zi.keys():
-                fugacity_by_components[component] = self._calc_fugacity_for_component_PR(component, root)
+                fugacity_by_components[component] = self._calc_fugacity_for_component_RK(component, root)
             self.fugacity_by_roots[root] = fugacity_by_components
 
         self.normalized_gibbs_energy = self._calc_normalized_gibbs_energy()
@@ -284,7 +252,7 @@ class SRKEOS(EOS):
         for root in [x for x in self.real_roots_eos if x != 0]:
             fugacity_by_components = {}
             for component in self.zi.keys():
-                fugacity_by_components[component] = self._calc_fugacity_for_component_PR(component, root)
+                fugacity_by_components[component] = self.calc_fugacity_for_component_RK(component, root)
             self.fugacity_by_roots[root] = fugacity_by_components
 
         self.normalized_gibbs_energy = self._calc_normalized_gibbs_energy()

@@ -66,7 +66,9 @@ class TwoPhaseFlash(Calculator):
 
         # Если система нестабильна, то передаем К из анализа стабильности и запускаем расчет flash
         else:
-
+            print(f'Sl : {self.phase_stability.S_l}')
+            print(f'Sv : {self.phase_stability.S_v}')
+            
             if (self.phase_stability.S_l > 1) and (self.phase_stability.S_v > 1):
                 if self.phase_stability.S_l > self.phase_stability.S_v:
                     self.phase_equilibrium = PhaseEquilibrium(self.composition, self._conditions.p,
@@ -92,7 +94,7 @@ class TwoPhaseFlash(Calculator):
                                                                self.phase_stability.k_values_liquid,
                                                                self.eos)
                 self.phase_equilibrium.find_solve_loop()
-            self.phase_equilibrium.find_solve_loop()
+            #self.phase_equilibrium.find_solve_loop()
             
             # self.phase_equilibrium.eos_vapour.calc_eos_with_peneloux_correction()
             # self.phase_equilibrium.eos_liquid.calc_eos_with_peneloux_correction()
