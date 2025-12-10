@@ -76,7 +76,7 @@ class CriticalTemperatureCorrelation:
 
 class CriticalPressureCorrelation:
     """Класс для расчета критического давления"""
-    
+
     @staticmethod
     def kesler_lee(gamma: float, Tb: float) -> float:
         first = 8.3634 - (0.0566 / gamma)
@@ -84,8 +84,6 @@ class CriticalPressureCorrelation:
         third = ((1.4685 + (3.648 / gamma) + (0.47227 / math.pow(gamma, 2))) * math.pow(10, -7) * math.pow(Tb, 2))
         fourth = - ((0.42019 + (1.6977/math.pow(gamma, 2))) * math.pow(10, -10)* math.pow(Tb, 3))
         return math.pow(math.e, sum([first, second, third, fourth])) * 0.00689476
-
-
 
     @staticmethod
     def rizari_daubert(Tb, gamma):
@@ -330,7 +328,8 @@ class ShiftParameterCorrelation:
     def get_required_params(cls, method: str) -> list:
         """Возвращает список требуемых параметров для корреляции"""
         params_map = {
-            'jhaveri_youngren': ['M', 'Kw']
+            'jhaveri_youngren': ['M', 'Kw'],
+            'pedersen' : ['acentric_factor', 'p_c', 't_c']
         }
         return params_map.get(method, [])
     
@@ -354,9 +353,12 @@ class ShiftParameterCorrelation:
             a0 = 2.258
             a1 = 0.1823
 
-
-
         return 1 - (a0 / (math.pow(M, a1)))
+
+    @staticmethod
+    def pedersen(acentric_factor, p_c, t_c):
+        z_ra = 0.29056 - 0.08775 * acentric_factor
+        return 0.40768 * (CONSTANT_R * t_c / (p_c)) * (0.29441 - z_ra)
 
 class PlusComponentProperties:
     '''Main class to calculate all properties.

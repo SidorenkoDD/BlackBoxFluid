@@ -86,7 +86,7 @@ class PREOS(EOS):
         return self._calc_b(component) * self.p/ (8.31 * self.t)
 
     def _calc_B_with_shift(self, component) -> float:
-        return (self._calc_b(component) - self._calc_c_for_shift(component)) * self.p/ (8.31 * self.t)
+        return (self._calc_b(component) - self.components_properties['shift_parameter'][component]) * self.p/ (8.314 * self.t)
 
     def _calc_mixed_A_old(self) -> float:
         '''Calculation of mixed **A** parameter  for EOS
@@ -138,9 +138,7 @@ class PREOS(EOS):
             linear_mixed_B.append(b * list(self.zi.values())[i])
         return sum(linear_mixed_B)
 
-    def _calc_c_for_shift(self, component) -> dict:
-        return self.components_properties['shift_parameter'][component] * self.all_params_b[component]
-
+    #NOT USED
     def _calc_shift_parametr(self) -> float:
         '''Calculation of shift parameter  for EOS
         
@@ -424,13 +422,8 @@ class PREOS(EOS):
             self.all_params_a[key] = self._calc_a(component=key)
             self.all_params_b[key] = self._calc_b(component=key)
 
-        print(f'before_pen: {self.all_params_b}')
-        
-        self.shift_parametr = self._calc_shift_parametr()
-
         for key in self.zi.keys():
             self.all_params_b[key] = self.all_params_b[key]
-        print(f'after_pen: {self.all_params_b}')
         self.all_params_A = {}
         self.all_params_B = {}
 
@@ -440,9 +433,7 @@ class PREOS(EOS):
 
         self.mixed_A = self._calc_mixed_A()
         self.B_linear_mixed = self._calc_linear_mixed_B()
-        self.shift_parametr = self._calc_shift_parametr()
-        print(f'A_after_pen :{self.mixed_A}')
-        print(f'B_after_pen :{self.B_linear_mixed}')
+
         self.real_roots_eos = self._solve_cubic_equation()
         print(f'roots after_pen: {self.real_roots_eos}')
 

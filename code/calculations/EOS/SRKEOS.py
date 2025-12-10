@@ -15,7 +15,7 @@ class SRKEOS(EOS):
 
     
     # Метод  расчета параметра а для компоненты
-    def calc_a(self, component, omega_a = 0.42748):
+    def _calc_a(self, component, omega_a = 0.42748):
         '''
         param: component - компонент, для которого проводится расчет
         param: omega_a - константа
@@ -27,7 +27,7 @@ class SRKEOS(EOS):
         return omega_a * math.pow(self.components_properties['critical_temperature'][component],2) * math.pow(8.31, 2) * alpha / self.components_properties['critical_pressure'][component]
 
     # Метод расчета параметра b для компоненты
-    def calc_b(self, component, omega_b = 0.08664):
+    def _calc_b(self, component, omega_b = 0.08664):
         '''
         param: component - компонент, для которого проводится расчет
         param: omega_b - константа
@@ -36,22 +36,25 @@ class SRKEOS(EOS):
     
 
     # Метод расчета параметра А для компоненты
-    def calc_A(self, component):
+    def _calc_A(self, component):
         '''
         param: component - компонент, для которого проводится расчет
         '''
-        return self.calc_a(component) * self.p/math.pow((8.31 * self.t), 2)
+        return self._calc_a(component) * self.p/math.pow((8.31 * self.t), 2)
     
     
     # Метод расчета параметра А для компоненты
-    def calc_B(self, component):
+    def _calc_B(self, component):
         '''
         param: component - компонент, для которого проводится расчет
         '''
-        return self.calc_b(component) * self.p/ (8.31 * self.t)
-    
+        return self._calc_b(component) * self.p/ (8.31 * self.t)
+
+    def _calc_B_with_shift(self, component) -> float:
+        return (self._calc_b(component) - self.components_properties['shift_parameter'][component]) * self.p/ (8.314 * self.t)
+
     # Метод расчета параметра А для УРС
-    def calc_mixed_A(self):
+    def _calc_mixed_A(self):
         # if len(list(self.zi.keys())) == 1 or ((len(list(self.zi.keys())) == 2) and (0 in list(self.zi.values()))):
         #     return list(self.all_params_A.values())[0]
         
@@ -64,18 +67,15 @@ class SRKEOS(EOS):
 
             return sum(a_mixed)
 
-
     # Метод расчета взвешенного параметра В для УРС
-    def calc_linear_mixed_B(self):
+    def _calc_linear_mixed_B(self):
         linear_mixed_B = []
         for i, b in enumerate(list(self.all_params_B.values())):
             linear_mixed_B.append(b * list(self.zi.values())[i])
         return sum(linear_mixed_B)
-        
-    
-    
+
     # Метод расчета шифт-параметра
-    def calc_shift_parametr(self):
+    def _calc_shift_parametr(self):
         c_to_sum = []
         for component in self.zi.keys():
             c_to_sum.append(self.zi[component] * self.components_properties['shift_parameter'][component] * self.all_params_b[component])
@@ -84,7 +84,7 @@ class SRKEOS(EOS):
 
 
     # Метод для решения кубического уравнения
-    def solve_cubic_equation(self):
+    def _solve_cubic_equation(self):
         bk =  - 1
         ck = self.mixed_A -  self.B_linear_mixed - self.B_linear_mixed ** 2
         dk = - self.mixed_A * self.B_linear_mixed
@@ -137,7 +137,7 @@ class SRKEOS(EOS):
 
 
     # Метод расчета летучести (используемый)
-    def calc_fugacity_for_component_PR(self, component, eos_root):
+    def _calc_fugacity_for_component_PR(self, component, eos_root):
         '''
         Метод возвращает значение ln_f_i (формула 1.39)
         Введено доп уравнение для расчета летучести одной компоненты
@@ -180,7 +180,7 @@ class SRKEOS(EOS):
                 return 0
 
     # Метод расчета летучести для однокомпонентной смеси
-    def calc_fugacity_one_component_PR(self):
+    def _calc_fugacity_one_component_PR(self):
         eos_roots = self.real_roots_eos
         for root in eos_roots:
             ln_fi_i = root - 1 - math.log(root - self.B_linear_mixed) - self.mixed_A / (2* math.sqrt(2) * self.B_linear_mixed) *  math.log((root + (math.sqrt(2) + 1) * self.B_linear_mixed)/(root - (math.sqrt(2) - 1) * self.B_linear_mixed))
@@ -190,7 +190,7 @@ class SRKEOS(EOS):
 
 
     #Метод расчета приведенной энергии Гиббса
-    def calc_normalized_gibbs_energy(self) -> dict:
+    def _calc_normalized_gibbs_energy(self) -> dict:
         
         '''
         Метод возвращает словарь {корень УРС: значение приведенной энергии Гиббса}
@@ -211,7 +211,7 @@ class SRKEOS(EOS):
     
 
     # Метод для определения корня (Z) по минимальной энергии Гиббса
-    def choose_eos_root_by_gibbs_energy(self):
+    def _choose_eos_root_by_gibbs_energy(self):
         '''
         return: Значение корня Z, при котором энергия Гиббса минимальна
         '''
@@ -223,31 +223,31 @@ class SRKEOS(EOS):
         self.all_params_a = {}
         self.all_params_b = {}
         for key in self.zi.keys():
-            self.all_params_a[key] = self.calc_a(component=key)
-            self.all_params_b[key] = self.calc_b(component=key)
+            self.all_params_a[key] = self._calc_a(component=key)
+            self.all_params_b[key] = self._calc_b(component=key)
 
         self.all_params_A = {}
         self.all_params_B = {}
 
         for key in self.zi.keys():
-            self.all_params_A[key] = self.calc_A(component=key)
-            self.all_params_B[key] = self.calc_B(component=key)
+            self.all_params_A[key] = self._calc_A(component=key)
+            self.all_params_B[key] = self._calc_B(component=key)
 
-        self.mixed_A = self.calc_mixed_A()
-        self.B_linear_mixed = self.calc_linear_mixed_B()
-        self.shift_parametr = self.calc_shift_parametr()
+        self.mixed_A = self._calc_mixed_A()
+        self.B_linear_mixed = self._calc_linear_mixed_B()
+        self.shift_parametr = self._calc_shift_parametr()
 
-        self.real_roots_eos = self.solve_cubic_equation()
+        self.real_roots_eos = self._solve_cubic_equation()
 
         self.fugacity_by_roots = {}
         for root in self.real_roots_eos:
             fugacity_by_components = {}
             for component in self.zi.keys():
-                fugacity_by_components[component] = self.calc_fugacity_for_component_PR(component, root)
+                fugacity_by_components[component] = self._calc_fugacity_for_component_PR(component, root)
             self.fugacity_by_roots[root] = fugacity_by_components
 
-        self.normalized_gibbs_energy = self.calc_normalized_gibbs_energy()
-        self.choosen_eos_root = self.choose_eos_root_by_gibbs_energy()
+        self.normalized_gibbs_energy = self._calc_normalized_gibbs_energy()
+        self.choosen_eos_root = self._choose_eos_root_by_gibbs_energy()
         self.choosen_fugacities = self.fugacity_by_roots[self.choosen_eos_root]
 
         self._z = self.choosen_eos_root
@@ -255,8 +255,43 @@ class SRKEOS(EOS):
 
         return self.choosen_eos_root, self.choosen_fugacities
     
-    # def return_eos_root_and_fugacities(self):
-    #     return super().return_eos_root_and_fugacities()
+    def calc_eos_with_peneloux_correction(self):
+        '''Pipeline to calculate EOS
+        '''
+
+        self.all_params_a = {}
+        self.all_params_b = {}
+        for key in self.zi.keys():
+            self.all_params_a[key] = self._calc_a(component=key)
+            self.all_params_b[key] = self._calc_b(component=key)
+
+        for key in self.zi.keys():
+            self.all_params_b[key] = self.all_params_b[key]
+        self.all_params_A = {}
+        self.all_params_B = {}
+
+        for key in self.zi.keys():
+            self.all_params_A[key] = self._calc_A(component=key)
+            self.all_params_B[key] = self._calc_B_with_shift(component=key)
+
+        self.mixed_A = self._calc_mixed_A()
+        self.B_linear_mixed = self._calc_linear_mixed_B()
+
+        self.real_roots_eos = self._solve_cubic_equation()
+        print(f'roots after_pen: {self.real_roots_eos}')
+
+        self.fugacity_by_roots = {}
+        for root in [x for x in self.real_roots_eos if x != 0]:
+            fugacity_by_components = {}
+            for component in self.zi.keys():
+                fugacity_by_components[component] = self._calc_fugacity_for_component_PR(component, root)
+            self.fugacity_by_roots[root] = fugacity_by_components
+
+        self.normalized_gibbs_energy = self._calc_normalized_gibbs_energy()
+        self._z = self._choose_eos_root_by_gibbs_energy()
+        self._fugacities = self.fugacity_by_roots[self._z]
+
+        return None
     
     @property
     def z(self):
