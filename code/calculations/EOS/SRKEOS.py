@@ -63,7 +63,8 @@ class SRKEOS(EOS):
             second_components = list(self.zi.keys())
             for i_component in self.zi.keys():
                 for j_component in second_components:
-                    a_mixed.append(self.zi[i_component] * self.zi[j_component] * math.sqrt(self.all_params_A[i_component] * self.all_params_A[j_component]) * (1 - self.components_properties['bip'][i_component][j_component]))
+                    a_mixed.append((self.zi[i_component] * self.zi[j_component] * math.sqrt(self.all_params_A[i_component]
+                                    * self.all_params_A[j_component]) * (1 - self.components_properties['bip'][i_component][j_component])))
 
             return sum(a_mixed)
 
@@ -252,7 +253,7 @@ class SRKEOS(EOS):
         for root in [x for x in self.real_roots_eos if x != 0]:
             fugacity_by_components = {}
             for component in self.zi.keys():
-                fugacity_by_components[component] = self.calc_fugacity_for_component_RK(component, root)
+                fugacity_by_components[component] = self._calc_fugacity_for_component_RK(component, root)
             self.fugacity_by_roots[root] = fugacity_by_components
 
         self.normalized_gibbs_energy = self._calc_normalized_gibbs_energy()
