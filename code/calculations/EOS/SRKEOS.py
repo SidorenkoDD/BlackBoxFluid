@@ -49,7 +49,7 @@ class SRKEOS(EOS):
         return self._calc_b(component) * self.p/ (8.31 * self.t)
 
     def _calc_B_with_shift(self, component) -> float:
-        return (self._calc_b(component) - self.components_properties['shift_parameter'][component]) * self.p/ (CONSTANT_R * self.t)
+        return (self._calc_b(component) - self.components_properties['shift_parameter'][component]) * self.p / (CONSTANT_R * self.t)
 
     # Метод расчета параметра А для УРС
     def _calc_mixed_A(self):
@@ -80,7 +80,6 @@ class SRKEOS(EOS):
             c_to_sum.append(self.zi[component] * self.components_properties['shift_parameter'][component] * self.all_params_b[component])
 
         return sum(c_to_sum)
-
 
     # Метод для решения кубического уравнения
     def _solve_cubic_equation(self):

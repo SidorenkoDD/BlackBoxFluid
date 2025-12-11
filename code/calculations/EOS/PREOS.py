@@ -20,7 +20,7 @@ class PREOS(EOS):
         self.p = p
         self.t = t
 
-    
+
     def _calc_a(self, component, omega_a = 0.45724) -> float:
         '''Caclulation of **a** parameter for EOS
 
@@ -84,12 +84,11 @@ class PREOS(EOS):
             ---------
                 parameter **B** for component
         '''
-        #print(f'{component} : {self._calc_b(component) * self.p/ (8.31 * self.t)}')
+        
         return self._calc_b(component) * self.p/ (CONSTANT_R * self.t)
 
     def _calc_B_with_shift(self, component) -> float:
-        print(f'{component} : {self.components_properties['shift_parameter'][component]}')
-        return (self._calc_b(component) - self.components_properties['shift_parameter'][component]) * self.p/ (CONSTANT_R * self.t)
+            return (self._calc_b(component) - self.components_properties['shift_parameter'][component]) * self.p/ (CONSTANT_R * self.t)
 
     def _calc_mixed_A_old(self) -> float:
         '''Calculation of mixed **A** parameter  for EOS
