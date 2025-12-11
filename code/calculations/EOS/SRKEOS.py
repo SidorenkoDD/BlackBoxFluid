@@ -1,9 +1,7 @@
 from calculations.EOS.BaseEOS import EOS
 import math as math
-
-
 from calculations.Composition.Composition import Composition
-
+from calculations.Utils.Constants import CONSTANT_R
 class SRKEOS(EOS):
     def __init__(self, zi, components_properties, p, t):
         super().__init__(zi, components_properties, p, t)
@@ -24,7 +22,7 @@ class SRKEOS(EOS):
         m = 0.480 + 1.574 * self.components_properties['acentric_factor'][component] - 0.176 * math.pow(self.components_properties['acentric_factor'][component], 2)
 
         alpha = math.pow(1 + m * (1 - math.sqrt(self.t/self.components_properties['critical_temperature'][component])), 2)
-        return omega_a * math.pow(self.components_properties['critical_temperature'][component],2) * math.pow(8.31, 2) * alpha / self.components_properties['critical_pressure'][component]
+        return omega_a * math.pow(self.components_properties['critical_temperature'][component],2) * math.pow(CONSTANT_R, 2) * alpha / self.components_properties['critical_pressure'][component]
 
     # Метод расчета параметра b для компоненты
     def _calc_b(self, component, omega_b = 0.08664):
@@ -32,7 +30,7 @@ class SRKEOS(EOS):
         param: component - компонент, для которого проводится расчет
         param: omega_b - константа
         '''
-        return omega_b * 8.31 * self.components_properties['critical_temperature'][component] / self.components_properties['critical_pressure'][component]
+        return omega_b * CONSTANT_R * self.components_properties['critical_temperature'][component] / self.components_properties['critical_pressure'][component]
     
 
     # Метод расчета параметра А для компоненты
@@ -40,7 +38,7 @@ class SRKEOS(EOS):
         '''
         param: component - компонент, для которого проводится расчет
         '''
-        return self._calc_a(component) * self.p/math.pow((8.31 * self.t), 2)
+        return self._calc_a(component) * self.p/math.pow((CONSTANT_R * self.t), 2)
     
     
     # Метод расчета параметра А для компоненты
@@ -51,7 +49,7 @@ class SRKEOS(EOS):
         return self._calc_b(component) * self.p/ (8.31 * self.t)
 
     def _calc_B_with_shift(self, component) -> float:
-        return (self._calc_b(component) - self.components_properties['shift_parameter'][component]) * self.p/ (8.314 * self.t)
+        return (self._calc_b(component) - self.components_properties['shift_parameter'][component]) * self.p/ (CONSTANT_R * self.t)
 
     # Метод расчета параметра А для УРС
     def _calc_mixed_A(self):
@@ -177,7 +175,7 @@ class SRKEOS(EOS):
                     normalized_gibbs_energy[root] = sum(gibbs_energy_by_roots)
 
         return normalized_gibbs_energy 
-    
+
 
     # Метод для определения корня (Z) по минимальной энергии Гиббса
     def _choose_eos_root_by_gibbs_energy(self):
@@ -186,7 +184,7 @@ class SRKEOS(EOS):
         '''
         min_gibbs_energy = min(self.normalized_gibbs_energy.values())
         return [k for k, v in self.normalized_gibbs_energy.items() if v == min_gibbs_energy][0]
-    
+
 
     def calc_eos(self):
         self.all_params_a = {}
@@ -223,22 +221,13 @@ class SRKEOS(EOS):
         self._fugacities = self.choosen_fugacities
 
         return self.choosen_eos_root, self.choosen_fugacities
-    
+
     def calc_eos_with_peneloux_correction(self):
         '''Pipeline to calculate EOS
         '''
 
-        self.all_params_a = {}
-        self.all_params_b = {}
-        for key in self.zi.keys():
-            self.all_params_a[key] = self._calc_a(component=key)
-            self.all_params_b[key] = self._calc_b(component=key)
-
-        for key in self.zi.keys():
-            self.all_params_b[key] = self.all_params_b[key]
         self.all_params_A = {}
         self.all_params_B = {}
-
         for key in self.zi.keys():
             self.all_params_A[key] = self._calc_A(component=key)
             self.all_params_B[key] = self._calc_B_with_shift(component=key)
@@ -261,11 +250,11 @@ class SRKEOS(EOS):
         self._fugacities = self.fugacity_by_roots[self._z]
 
         return None
-    
+
     @property
     def z(self):
         return super().z()
-    
+
     @property
     def fugacities(self):
         return super().fugacities()

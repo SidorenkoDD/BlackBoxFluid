@@ -8,6 +8,7 @@ root_path = Path(__file__).parent.parent.parent
 sys.path.append(str(root_path))
 from calculations.EOS.BaseEOS import EOS
 from calculations.Composition.Composition import Composition
+from calculations.Utils.Constants import CONSTANT_R
 
 
 class PREOS(EOS):
@@ -43,7 +44,7 @@ class PREOS(EOS):
         alpha = math.pow(1 + m * (1 - math.sqrt(self.t/self.components_properties['critical_temperature'][component])), 2)
         
         return (omega_a * math.pow(self.components_properties['critical_temperature'][component],2) * 
-                math.pow(8.31, 2) * alpha / self.components_properties['critical_pressure'][component])
+                math.pow(CONSTANT_R, 2) * alpha / self.components_properties['critical_pressure'][component])
 
     def _calc_b(self, component, omega_b = 0.0778) -> float:
         '''Calculation of **b** parameter for EOS
@@ -56,7 +57,7 @@ class PREOS(EOS):
             --------
                 parameter **b** for component
         '''
-        return (omega_b * 8.31 * self.components_properties['critical_temperature'][component] /
+        return (omega_b * CONSTANT_R * self.components_properties['critical_temperature'][component] /
                  self.components_properties['critical_pressure'][component])
 
     def _calc_A(self, component) -> float:
@@ -70,7 +71,7 @@ class PREOS(EOS):
             ---------
                 parameter **A** for component
         '''
-        return self._calc_a(component) * self.p/math.pow((8.31 * self.t), 2)
+        return self._calc_a(component) * self.p/math.pow((CONSTANT_R * self.t), 2)
 
     def _calc_B(self, component) -> float:
         '''Calculation of **B** parameter for EOS
@@ -83,10 +84,12 @@ class PREOS(EOS):
             ---------
                 parameter **B** for component
         '''
-        return self._calc_b(component) * self.p/ (8.31 * self.t)
+        #print(f'{component} : {self._calc_b(component) * self.p/ (8.31 * self.t)}')
+        return self._calc_b(component) * self.p/ (CONSTANT_R * self.t)
 
     def _calc_B_with_shift(self, component) -> float:
-        return (self._calc_b(component) - self.components_properties['shift_parameter'][component]) * self.p/ (8.314 * self.t)
+        print(f'{component} : {self.components_properties['shift_parameter'][component]}')
+        return (self._calc_b(component) - self.components_properties['shift_parameter'][component]) * self.p/ (CONSTANT_R * self.t)
 
     def _calc_mixed_A_old(self) -> float:
         '''Calculation of mixed **A** parameter  for EOS
@@ -395,10 +398,7 @@ class PREOS(EOS):
         self.mixed_A = self._calc_mixed_A()
         self.B_linear_mixed = self._calc_linear_mixed_B()
         self.shift_parametr = self._calc_shift_parametr()
-        print(f'A_before_pen :{self.mixed_A}')
-        print(f'B_before_pen :{self.B_linear_mixed}')
         self.real_roots_eos = self._solve_cubic_equation()
-        print(f'roots_before_pen: {self.real_roots_eos}')
         self.fugacity_by_roots = {}
         for root in [x for x in self.real_roots_eos if x != 0]:
             fugacity_by_components = {}
@@ -415,18 +415,14 @@ class PREOS(EOS):
     def calc_eos_with_peneloux_correction(self):
         '''Pipeline to calculate EOS
         '''
-
         self.all_params_a = {}
         self.all_params_b = {}
         for key in self.zi.keys():
             self.all_params_a[key] = self._calc_a(component=key)
             self.all_params_b[key] = self._calc_b(component=key)
 
-        for key in self.zi.keys():
-            self.all_params_b[key] = self.all_params_b[key]
         self.all_params_A = {}
         self.all_params_B = {}
-
         for key in self.zi.keys():
             self.all_params_A[key] = self._calc_A(component=key)
             self.all_params_B[key] = self._calc_B_with_shift(component=key)
@@ -435,7 +431,7 @@ class PREOS(EOS):
         self.B_linear_mixed = self._calc_linear_mixed_B()
 
         self.real_roots_eos = self._solve_cubic_equation()
-        print(f'roots after_pen: {self.real_roots_eos}')
+
 
         self.fugacity_by_roots = {}
         for root in [x for x in self.real_roots_eos if x != 0]:
