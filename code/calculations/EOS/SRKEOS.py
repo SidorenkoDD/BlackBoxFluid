@@ -31,7 +31,7 @@ class SRKEOS(EOS):
         param: omega_b - константа
         '''
         return omega_b * CONSTANT_R * self.components_properties['critical_temperature'][component] / self.components_properties['critical_pressure'][component]
-    
+
 
     # Метод расчета параметра А для компоненты
     def _calc_A(self, component):
@@ -39,14 +39,14 @@ class SRKEOS(EOS):
         param: component - компонент, для которого проводится расчет
         '''
         return self._calc_a(component) * self.p/math.pow((CONSTANT_R * self.t), 2)
-    
-    
+
+
     # Метод расчета параметра А для компоненты
     def _calc_B(self, component):
         '''
         param: component - компонент, для которого проводится расчет
         '''
-        return self._calc_b(component) * self.p/ (8.31 * self.t)
+        return self._calc_b(component) * self.p/ (CONSTANT_R * self.t)
 
     def _calc_B_with_shift(self, component) -> float:
         return (self._calc_b(component) - self.components_properties['shift_parameter'][component]) * self.p / (CONSTANT_R * self.t)
@@ -132,7 +132,6 @@ class SRKEOS(EOS):
 
 
         return [zk0, zk1, zk2]
-
 
 
     def _calc_fugacity_for_component_RK(self, component, eos_root):
