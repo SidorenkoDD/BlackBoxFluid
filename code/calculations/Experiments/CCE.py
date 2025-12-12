@@ -104,8 +104,10 @@ class CCE(PVTExperiment):
         # здесь сумма предыдущего значения объема с текущим
         work_df['sum_vol'] = work_df['Liquid volume'] + work_df['Liquid volume'].shift(-1)
         work_df['diff_p'] = work_df['Pressure'].diff(-1)
-        work_df['Liquid volume shift-1'] = work_df['Liquid volume'].shift(-1)
+        # Зачем этот столбец? :/
+        #work_df['Liquid volume shift-1'] = work_df['Liquid volume'].shift(-1)
         work_df['Compressibility'] = abs((1/work_df['Liquid volume'].shift(-1)) * work_df['diff_vol'] / work_df['diff_p'])
+        #work_df['Compressibility'] = abs((1/(work_df['sum_vol']/2)) * work_df['diff_vol'] / work_df['diff_p'])
 
         if 'Psat' in work_df.index:
             psat_position = work_df.index.get_loc('Psat')
