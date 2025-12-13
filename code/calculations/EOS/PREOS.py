@@ -151,7 +151,7 @@ class PREOS(EOS):
         c_to_sum = []
         for component in self.zi.keys():
             # self.zi[component] * 
-            c_to_sum.append(self.zi[component] * self.components_properties['shift_parameter'][component] * self.all_params_b[component])
+            c_to_sum.append(self.zi[component] * self.components_properties['shift_parameter'][component])
 
         return sum(c_to_sum)
 
