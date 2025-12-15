@@ -95,8 +95,8 @@ class TwoPhaseFlash(Calculator):
             self.phase_equilibrium.find_solve_loop()
 
             print(self.phase_equilibrium.eos_liquid.z)
-            self.phase_equilibrium.eos_vapour.calc_eos_with_peneloux_correction()
-            self.phase_equilibrium.eos_liquid.calc_eos_with_peneloux_correction()
+            # self.phase_equilibrium.eos_vapour.calc_eos_with_peneloux_correction()
+            # self.phase_equilibrium.eos_liquid.calc_eos_with_peneloux_correction()
             print(self.phase_equilibrium.eos_liquid.z)
             # pen_vol_corr = PenelouxVolumeCorrection(self.phase_equilibrium.xi_l, 
             #                                         self.composition._composition_data, 
