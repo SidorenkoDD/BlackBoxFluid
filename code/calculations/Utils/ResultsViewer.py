@@ -37,16 +37,18 @@ class FlashResultsViewer(ResultsViewer):
         phase_props_df = pd.DataFrame({'Vapour': [dataclass_obj.vapour_z,
                                                   dataclass_obj.vapour_molecular_mass,
                                                   dataclass_obj.vapour_volume,
+                                                  dataclass_obj.vapour_molar_volume,
                                                   dataclass_obj.vapour_density,
                                                   dataclass_obj.vapour_viscosity],
 
                                        'Liquid':[dataclass_obj.liquid_z,
                                                  dataclass_obj.liquid_molecular_mass,
                                                  dataclass_obj.liquid_volume,
+                                                 dataclass_obj.liquid_molar_volume,
                                                  dataclass_obj.liquid_density,
                                                  dataclass_obj.liquid_viscosity]},
 
-                                       index= ['Z', 'MW', 'Vol', 'Dens', 'Visc'])
+                                       index= ['Z', 'MW', 'Volume, cm3', 'Molar volume cm3/mol', 'Dens, g/cm3', 'Visc, cP'])
         
         print(util_df)
         print('====')

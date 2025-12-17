@@ -34,6 +34,9 @@ class TwoPhaseFlashResults:
     vapour_volume : float | None
     liquid_volume : float | None
 
+    vapour_molar_volume : float | None
+    liquid_molar_volume : float | None
+
     vapour_density: float | None
     liquid_density: float | None
 

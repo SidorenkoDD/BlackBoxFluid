@@ -1,5 +1,6 @@
 '''class to calculate EOS with correction'''
 from calculations.EOS.EOSFactory import EOSFactory
+from calculations.Utils.Constants import CONSTANT_R
 class PenelouxVolumeCorrection:
     def __init__(self, composition,
                  composition_data,
@@ -7,13 +8,28 @@ class PenelouxVolumeCorrection:
                  t,
                  eos : str = 'PREOS'):
 
-        self.eos_factory = EOSFactory.create_eos(eos)
-        self.composition = composition
-        self.composition_data = composition_data
-        self.p = p
-        self.t = t
+        self._eos_factory = EOSFactory.create_eos(eos)
+        self._composition = composition
+        self._composition_data = composition_data
+        self._p = p
+        self._t = t
 
-    def calculate(self):
-        eos = self.eos_factory(zi = self.composition, components_properties= self.composition_data, p = self.p, t = self.t)
+    def calculate_eos_with_peneloux(self):
+        ''''''
+        eos = self._eos_factory(zi = self._composition, components_properties= self._composition_data, p = self._p, t = self._t)
         eos.calc_eos_with_peneloux_correction()
         return eos.z
+    
+    def update_z(self,
+                 volume : float,
+                 F : float):
+        ''''''
+        print(f'upd_z1: {(self._p * volume) / (F * CONSTANT_R * self._t)}')
+        return (self._p * volume) / (F * CONSTANT_R * self._t)
+
+
+    def upd_z_new(self,
+                  z : float,
+                  c : float):
+        print(f'upd_z2: {z - (self._p * c) / (CONSTANT_R * self._t)}')
+        return z - (self._p * c) / (CONSTANT_R * self._t)

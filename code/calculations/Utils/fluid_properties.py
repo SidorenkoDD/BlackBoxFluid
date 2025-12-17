@@ -56,12 +56,16 @@ class FluidProperties:
         return (1 - self.equil_obj.fv) * ((CONSTANT_R * self.t *self.equil_obj.eos_liquid.z / (self.p)) -
                                           self.equil_obj.eos_liquid.shift_parametr)
 
+    ## Расчет мольного объема для газовой фазы
     @property
-    def liquid_volume(self):
-        '''property
-        returns volume of liquid phase'''
-        return (1 - self.equil_obj.fv) * ((CONSTANT_R * self.t *self.equil_obj.eos_liquid.z / (self.p)) -
-                                          self.equil_obj.eos_liquid.shift_parametr)
+    def vapour_molar_volume(self):
+        return self.vapour_volume / self.equil_obj.fv
+
+    ## Расчет мольного объема для газовой фазы
+    @property
+    def liquid_molar_volume(self):
+        return self.liquid_volume / (1 - self.equil_obj.fv)
+
 
     # Методы расчета плотности
     ## Расчет плотности для газовой фазы
@@ -79,6 +83,9 @@ class FluidProperties:
         returns density of liquid phase'''
         return self.molecular_mass_liquid * (1 - self.equil_obj.fv) / self.liquid_volume
 
+    @property
+    def calc_z_peneloux(self):
+        ...
 
     def calc_all_properties(self):
         '''method calculates all properties
