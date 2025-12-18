@@ -9,6 +9,7 @@ from calculations.Experiments.ExperimentsFacade import ExperimentsFacade
 from calculations.PhaseDiagram.SaturationPressure import SaturationPressureCalculation
 from calculations.PhaseDiagram.PhaseEnvelope import PhaseEnvelope
 
+
 root_path = Path(__file__).parent.parent.parent
 sys.path.append(str(root_path))
 
@@ -24,7 +25,9 @@ class CompositionalModel:
         self._flash_results = {}
         self.experiments = ExperimentsFacade(self._composition, self._eos)
         self.PHASE_ENVELOPE = PhaseEnvelope(self._composition, 50, 250)
-        
+        from calculations.Utils.Export import E300
+        self.EXPORT = E300(self)
+
 
     def flash(self, conditions, flash_type = 'TwoPhaseFlash'):
         self._flash_object = FlashFactory(self._composition, self._eos, viscosity_method= self._viscosity_method)
