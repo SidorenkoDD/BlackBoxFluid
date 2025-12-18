@@ -4,7 +4,7 @@ EOS
 --
 --Equation of state
 --
-PREOS
+PR
 /
 NCOMPS
 --

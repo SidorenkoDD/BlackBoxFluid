@@ -47,13 +47,22 @@ class E300(Export):
             fname.write(f'{component}\n')
         fname.write('/\n')
 
+    def _write_zi(self, fname):
+        fname.write('ZI\n')
+        fname.write('--\n')
+        fname.write('--Overall Composition\n')
+        fname.write('--\n')
+        for component in list(self._model._composition._composition.keys()):
+            fname.write(f'{self._model._composition._composition[component]}\n')
+        fname.write('/\n')
+
     def _write_mw(self, fname):
         fname.write('MW\n')
         fname.write('--\n')
         fname.write('--Molecular Weight\n')
         fname.write('--\n')
         for component in list(self._model._composition._composition.keys()):
-            fname.write(f'{self._model._composition._composition_data['molar_mass'][component]}\n')
+            fname.write(f'{self._model._composition._composition_data['molar_mass'][component] / 1000}\n')
         fname.write('/\n')
 
     def _write_tc(self, fname):
@@ -71,7 +80,7 @@ class E300(Export):
         fname.write('--Critical Pressure\n')
         fname.write('--\n')
         for component in list(self._model._composition._composition.keys()):
-            fname.write(f'{self._model._composition._composition_data['critical_pressure'][component]}\n')
+            fname.write(f'{self._model._composition._composition_data['critical_pressure'][component] * 10}\n')
         fname.write('/\n')
 
     def _write_vc(self, fname):
@@ -119,6 +128,7 @@ class E300(Export):
             self._write_vc(result_file)
             self._write_acf(result_file)
             self._write_shift(result_file)
+            self._write_zi(result_file)
 
 
 
