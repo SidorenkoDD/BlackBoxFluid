@@ -96,7 +96,6 @@ class TwoPhaseFlash(Calculator):
                 self.phase_equilibrium.find_solve_loop()
             self.phase_equilibrium.find_solve_loop()
 
-            print(f'После флеша: {self.phase_equilibrium.eos_liquid.z}')
             ## Далее алгоритм с учетом поправки Peneloux. Алгоритм встроен здесь, чтобы не нарушить формирование результатов
             ### 1. Пересчет УРС -> получаем новый z (до 113 строки)
             ### 2. Расчет V сразу с учетом поправки для V и с обновленным z (до)

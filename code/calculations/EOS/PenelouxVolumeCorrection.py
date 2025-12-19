@@ -24,12 +24,10 @@ class PenelouxVolumeCorrection:
                  volume : float,
                  F : float):
         ''''''
-        print(f'upd_z1: {(self._p * volume) / (F * CONSTANT_R * self._t)}')
         return (self._p * volume) / (F * CONSTANT_R * self._t)
 
 
     def upd_z_new(self,
                   z : float,
                   c : float):
-        print(f'upd_z2: {z - (self._p * c) / (CONSTANT_R * self._t)}')
         return z - (self._p * c) / (CONSTANT_R * self._t)
