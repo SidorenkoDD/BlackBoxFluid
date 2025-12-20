@@ -101,6 +101,14 @@ class E300(Export):
             fname.write(f'{self._model._composition._composition_data['acentric_factor'][component]}\n')
         fname.write('/\n')
 
+    def _write_bic(self, fname):
+        fname.write('BIC\n')
+        fname.write('--\n')
+        fname.write('--Binary interaction coefficients\n')
+        fname.write('--\n')
+        for component in self._model._composition._composition_data['bip']:
+            ...
+
 
     def _write_shift(self, fname):
         fname.write('SSHIFT\n')
