@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import sys
+import numpy as np
 from pathlib import Path
 root_path = Path(__file__).parent.parent.parent
 sys.path.append(str(root_path))
@@ -26,7 +27,10 @@ class E300(Export):
         fname.write('--\n')
         fname.write('--Equation of state\n')
         fname.write('--\n')
-        fname.write(f'{self._model._eos}\n')
+        if self._model._eos == 'PREOS':
+            fname.write('PRCORR\n')
+        elif self._model._eos == 'SRKEOS':
+            fname.write('SRK\n')
         fname.write('/\n')
 
 
@@ -102,12 +106,20 @@ class E300(Export):
         fname.write('/\n')
 
     def _write_bic(self, fname):
+        bic_df = self._model._composition.BIPS
+        mask = np.tril(np.ones_like(bic_df))
+        bic_df_diag = bic_df.where(mask.astype(bool))
         fname.write('BIC\n')
         fname.write('--\n')
         fname.write('--Binary interaction coefficients\n')
         fname.write('--\n')
-        for component in self._model._composition._composition_data['bip']:
-            ...
+        for row in bic_df_diag.index:
+            arr = bic_df_diag.loc[row].to_numpy()
+            cleared_arr = arr[~np.isnan(arr)]
+            result_string = ' '.join(map(str, cleared_arr))
+            fname.write(f'{result_string}\n')
+
+
 
 
     def _write_shift(self, fname):
@@ -137,6 +149,7 @@ class E300(Export):
             self._write_acf(result_file)
             self._write_shift(result_file)
             self._write_zi(result_file)
+            self._write_bic(result_file)
 
 
 
