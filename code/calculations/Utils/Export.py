@@ -106,19 +106,21 @@ class E300(Export):
         fname.write('/\n')
 
     def _write_bic(self, fname):
-        bic_df = self._model._composition.BIPS.index[1:]
+        bic_df = self._model._composition.BIPS.iloc[1:]
         mask = np.tril(np.ones_like(bic_df))
         bic_df_diag = bic_df.where(mask.astype(bool))
         fname.write('BIC\n')
         fname.write('--\n')
         fname.write('--Binary interaction coefficients\n')
         fname.write('--\n')
-        for row in bic_df_diag:
+        for row in bic_df_diag.index:
+            
             arr = bic_df_diag.loc[row].to_numpy()
             cleared_arr = arr[~np.isnan(arr)]
             result_string = '  '.join(map(str, cleared_arr))
-            fname.write(f'{result_string}\n')
 
+            fname.write(f'{result_string}\n')
+        fname.write('/\n')
 
 
 
