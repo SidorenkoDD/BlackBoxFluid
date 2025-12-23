@@ -1,0 +1,18 @@
+---
+title: "Часть про критические свойства"
+author: "SidorenkoDD"
+format:
+  html:
+    toc: true           # Включено оглавление
+    toc-float: false     # Огланение всплывающее (floating)
+    toc-depth: 3        # Глубина вложенности оглавления (до h3 включительно)
+    number-sections: false  # Нумерация разделов
+
+  pdf:
+    toc: true           # Включено оглавление
+    toc-float: false     # Огланение всплывающее (floating)
+    toc-depth: 3        # Глубина вложенности оглавления (до h3 включительно)
+    number-sections: true   # Нумерация разделов
+---
+
+# Литературный обзор

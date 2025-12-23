@@ -1,0 +1,6 @@
+project-type: book
+book:
+  chapters:
+    - index.qmd
+    - introduction.qmd
+    - critical_properties.qmd
