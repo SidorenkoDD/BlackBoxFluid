@@ -1,6 +1,16 @@
-project-type: book
+project:
+  type: book  # Важно: используем структуру project -> type
+
 book:
+  title: "Моя Большая Работа"  # Можно добавить название здесь
+  author: "Ваше имя"
   chapters:
     - index.qmd
-    - introduction.qmd
-    - critical_properties.qmd
+    - 1_introduction.qmd
+    - 2_critical_properties.qmd
+
+format:
+  html:
+    toc: true           # Включаем оглавление
+    number-sections: true  # Включаем нумерацию глав
+    theme: cosmo   
