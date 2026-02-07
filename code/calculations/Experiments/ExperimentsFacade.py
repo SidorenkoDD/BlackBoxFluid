@@ -1,5 +1,5 @@
 from calculations.Experiments.StandardSeparation import StandardSeparation
-from calculations.Experiments.SeparatorTest import SeparatorTest
+from calculations.Experiments.SeparatorTest import SeparatorTest, SeparatorTestModifiedDLE
 from calculations.Experiments.DLE import DLE, DLE_2
 from calculations.Experiments.CCE import CCE
 
@@ -11,6 +11,7 @@ class ExperimentsFacade:
 
         self.STANDARDSEPARATION = StandardSeparation(self._composition, self._eos)
         self.SEPARATORTEST = SeparatorTest(self._composition, self._eos)
+        self.SEPARATORTEST_MOD = SeparatorTestModifiedDLE(self._composition, self._eos)
 
         self.DLE = DLE_2(self._composition, self._eos)
 

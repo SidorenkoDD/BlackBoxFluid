@@ -5,7 +5,7 @@ from calculations.Utils.Conditions import Conditions, StandardConditions
 from calculations.Utils.Results import SeparatorTestResults, DLEResults
 from calculations.VLE.flash import FlashFactory
 from calculations.PhaseDiagram.SaturationPressure import SaturationPressureCalculation
-
+from itertools import accumulate
 import pandas as pd
 
 
@@ -219,9 +219,18 @@ class SeparatorTestModifiedDLE(PVTExperiment):
                 pressure_by_stages.append(reservoir_pressure)
                 pressure_by_stages.sort(reverse=True)
 
+        def _is_t_res_in_temperature_by_stages_list() -> list:
+            '''Method checks is p_res in list, in no, append p_res in list'''
+            if reservoir_temperature in temperature_by_stages:
+                pass
+            else:
+                temperature_by_stages.append(reservoir_temperature)
+                temperature_by_stages.sort(reverse=True)
+
         _is_strictly_descending()
         _is_p_res_in_pressure_by_stages_list()
         _is_p_sat_in_pressure_by_stages_list()
+        _is_t_res_in_temperature_by_stages_list()
 
 
         # calculate first step (p res)
@@ -229,16 +238,16 @@ class SeparatorTestModifiedDLE(PVTExperiment):
         flash_calculator = flash_object.create_flash(flash_type= flash_type)
         first_step_conditions = Conditions(pressure_by_stages[0], reservoir_temperature)
         self._result_dict[f'{first_step_conditions.p}_{first_step_conditions.t}'] = flash_calculator.calculate(conditions=first_step_conditions)
-
         self.liquid_composition_dict = self._result_dict[f'{first_step_conditions.p}_{first_step_conditions.t}'].liquid_composition
         self.fl.append(self._result_dict[f'{first_step_conditions.p}_{first_step_conditions.t}'].Fl)
+
         # calculate from p sat to p = 1 atm, Tres
-        for pressure in pressure_by_stages[1:]:
+        for i, pressure in enumerate(pressure_by_stages[1:]):
             self.liquid_composition = Composition(self.liquid_composition_dict)
             self.liquid_composition._composition_data = self._composition._composition_data
             self._flash_object = FlashFactory(self.liquid_composition, self._eos)
             flash_calculator = self._flash_object.create_flash(flash_type = flash_type)
-            current_conditions = Conditions(pressure, reservoir_temperature)
+            current_conditions = Conditions(pressure, temperature_by_stages[i])
             self._result_dict[f'{current_conditions.p}_{current_conditions.t}']= flash_calculator.calculate(conditions = current_conditions)
             self.fl.append(self._result_dict[f'{current_conditions.p}_{current_conditions.t}'].Fl)
             self.liquid_composition_dict = self._result_dict[f'{current_conditions.p}_{current_conditions.t}'].liquid_composition
@@ -274,6 +283,8 @@ class SeparatorTestModifiedDLE(PVTExperiment):
                                  gas_z = [self._result_dict[stage].vapour_z for stage in list(self._result_dict.keys())],
                                  liquid_compositions = [self._result_dict[stage].liquid_composition for stage in list(self._result_dict.keys())],
                                  gas_compositions = [self._result_dict[stage].vapour_composition for stage in list(self._result_dict.keys())],
+                                 liquid_viscosity= None,
+                                 gas_viscosity = None,
                                  bo = self.bo,
                                  rs = self.rs)
         
