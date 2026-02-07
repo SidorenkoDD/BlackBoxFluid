@@ -166,7 +166,7 @@ class PREOS(EOS):
         bk = self.B_linear_mixed - 1
         ck = self.mixed_A - 3 * (self.B_linear_mixed ** 2) - 2 * self.B_linear_mixed
         dk = (self.B_linear_mixed ** 2) + (self.B_linear_mixed ** 3) - self.mixed_A * self.B_linear_mixed
-        pk = pk = -(bk ** 2) / 3 + ck
+        pk = -(bk ** 2) / 3 + ck
         qk = 2 * (bk ** 3) / 27 - (bk * ck/ 3 ) + dk
         s = ((pk/3) ** 3) + ((qk/2) ** 2) 
 
@@ -227,7 +227,7 @@ class PREOS(EOS):
         if len(list(self.zi.keys())) == 1:
             eos_roots = self.real_roots_eos
             for root in eos_roots:
-                ln_fi_i = (root - 1 - math.log(root - self.B_linear_mixed) - self.mixed_A / 
+                ln_fi_i = (math.log(self.p) + root - 1 - math.log(root - self.B_linear_mixed) - self.mixed_A /
                            (2* math.sqrt(2) * self.B_linear_mixed) *  math.log((root + (math.sqrt(2) + 1) * 
                             self.B_linear_mixed)/(root - (math.sqrt(2) - 1) * self.B_linear_mixed)))
                 return ln_fi_i
@@ -352,16 +352,19 @@ class PREOS(EOS):
         ------
             normalized Gibbs energy for each root -> dict
         '''
-
+        B_m = self.B_linear_mixed
         normalized_gibbs_energy = {}
         for root in self.fugacity_by_roots:
             gibbs_energy_by_roots = []
             if root <= 0:
-                normalized_gibbs_energy[root] = math.pow(10,6)
+                normalized_gibbs_energy[root] = math.inf
+
+            if root <= B_m:
+                normalized_gibbs_energy[root] = math.inf
             else:
                 for component in self.fugacity_by_roots[root].keys():
                     gibbs_energy_by_roots.append(math.exp(self.fugacity_by_roots[root][component]) * self.zi[component])
-                    normalized_gibbs_energy[root] = sum(gibbs_energy_by_roots)
+                normalized_gibbs_energy[root] = sum(gibbs_energy_by_roots)
 
         return normalized_gibbs_energy 
 

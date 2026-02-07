@@ -160,17 +160,20 @@ class SRKEOS(EOS):
         '''
         Метод возвращает словарь {корень УРС: значение приведенной энергии Гиббса}
         '''
-
+        B_m = self.B_linear_mixed
         normalized_gibbs_energy = {}
         for root in self.fugacity_by_roots:
             gibbs_energy_by_roots = []
-            if root == 0:
-                normalized_gibbs_energy[root] = math.pow(10,6)
+            if root <= 0:
+                normalized_gibbs_energy[root] = math.inf
+
+            if root <= B_m:
+                normalized_gibbs_energy[root] = math.inf
 
             else:
                 for component in self.fugacity_by_roots[root].keys():
                     gibbs_energy_by_roots.append(math.exp(self.fugacity_by_roots[root][component]) * self.zi[component])
-                    normalized_gibbs_energy[root] = sum(gibbs_energy_by_roots)
+                normalized_gibbs_energy[root] = sum(gibbs_energy_by_roots)
 
         return normalized_gibbs_energy 
 
