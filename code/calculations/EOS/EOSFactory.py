@@ -1,9 +1,9 @@
 from functools import partial
 
-from code.calculations.EOS.BaseEOS import EOS
-from code.calculations.EOS.PREOS import PREOS
-from code.calculations.EOS.SRKEOS import SRKEOS
-from code.calculations.EOS.BrusilovskiyEOS import BrusilovskiyEOS
+from calculations.EOS.BaseEOS import EOS
+from calculations.EOS.PREOS import PREOS
+from calculations.EOS.SRKEOS import SRKEOS
+from calculations.EOS.BrusilovskiyEOS import BrusilovskiyEOS
 # from code.calculations.EOS.BRSEOS_vector import BrusilovskiyEOSVectorTest
 
 class EOSFactory:

@@ -1,9 +1,9 @@
 import math
-from code.calculations.EOS.BaseEOS import EOS
-from code.calculations.EOS.BRS_EOS_DB import (evaluate_BRS_EOS_component_params, evaluate_BRS_EOS_bip_for_c5_plus,
-                                              evaluate_BRS_EOS_bip_below_c5_plus)
-from code.calculations.Utils.Constants import CONSTANT_R
-from code.calculations.Utils.Cardano import cubic_roots_cardano
+from calculations.EOS.BaseEOS import EOS
+from calculations.EOS.BRS_EOS_DB import (evaluate_BRS_EOS_component_params, evaluate_BRS_EOS_bip_for_c5_plus,
+                                         evaluate_BRS_EOS_bip_below_c5_plus)
+from calculations.Utils.Constants import CONSTANT_R
+from calculations.Utils.Cardano import cubic_roots_cardano
 
 
 class BrusilovskiyEOS(EOS):
