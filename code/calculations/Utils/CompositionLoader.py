@@ -17,9 +17,9 @@ class CompositionExcelLoader(CompositionLoader):
     def __init__(self, filepath):
         super().__init__(filepath)
 
-    def load(self, header: bool):
+    def load(self, header: bool, sheet : str):
         if header:
-            df = pd.read_excel(io = self._filepath)
+            df = pd.read_excel(io = self._filepath, sheet_name= sheet)
             df.columns = ["key", "value"]
             if not pd.api.types.is_numeric_dtype(df['value']):
                 raise InvalidExcelValueType('Value not numeric in Excel!')
