@@ -266,8 +266,8 @@ class Composition2:
 if __name__ == '__main__':
     comp = Composition({'C1': 0.15, 'C2':0.15, 'C3': 0.1, 'C6': 0.1, 'C8':0.1, 'C9':0.1, 'C10': 0.1, 'C11': 0.1, 'C16':0.1}, 
                        c6_plus_bips_correlation=None,
-                       c6_plus_correlations={'critical_temperature': 'pedersen',
-                        'critical_pressure' : 'rizari_daubert',
+                       c6_plus_correlations={'critical_temperature': 'kesler_lee',
+                        'critical_pressure' : 'pedersen',
                         'acentric_factor': 'Edmister',
                         'critical_volume': 'hall_yarborough',
                         'k_watson': 'k_watson',
