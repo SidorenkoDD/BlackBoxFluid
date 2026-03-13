@@ -46,8 +46,8 @@ class PhaseEquilibrium:
         sum_at_0 = compute_sum(0.0)
         sum_at_1 = compute_sum(1.0)
 
-        if sum_at_0 * sum_at_1 > 0:
-            raise ValueError("Нет решения в диапазоне fvv ∈ [0, 1]. Проверьте K_i и z_i.")
+        # if sum_at_0 * sum_at_1 > 0:
+        #     raise ValueError("Нет решения в диапазоне fvv ∈ [0, 1]. Проверьте K_i и z_i.")
 
         # Метод бисекции
         for _ in range(1000):

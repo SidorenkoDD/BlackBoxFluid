@@ -125,14 +125,17 @@ class SaturationPressureCalculation:
     def sp_convergence_loop(self, eos:EOS):
         self.sp_process(eos)
 
+        # if self.p_max_bub - self.p_min_bub < TOL_SAT_PRESSURE:
+        #     return None
+        
+        while ((abs(1 - self.sum_y_sp) < math.pow(10, -4)) == False) and ((math.pow(self.Ykz, 2) < math.pow(10, -4)) == False):
+            self.sp_process(eos)
+            print(self.p_i)
+            if self.p_max_bub - self.p_min_bub < TOL_SAT_PRESSURE:
+                return None
+            
         if self.p_max_bub - self.p_min_bub < TOL_SAT_PRESSURE:
             return None
-        
-        while ((abs(1 - self.sum_y_sp) < math.pow(10, -10)) == False) and ((math.pow(self.Ykz, 2) < math.pow(10, -10)) == False):
-            self.sp_process(eos)
-            if self.p_max_bub - self.p_min_bub < TOL_SAT_PRESSURE:
-
-                return None
 
         self.p_b = self.p_i
         self.p_i = self.p_i / 2

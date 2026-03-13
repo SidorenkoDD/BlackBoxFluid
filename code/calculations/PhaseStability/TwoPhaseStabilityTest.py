@@ -169,7 +169,6 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
         sum_ri_v = sum(ri_v_to_sum)
         sum_ri_l = sum(ri_l_to_sum)
 
-        
 
         if (sum_ri_v < e) or (sum_ri_l < e):
             self.convergence = True
@@ -247,7 +246,7 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
         if (((self.trivial_solution_vapour) and (self.trivial_solution_liquid)) or 
             ((self.S_v <= 1) and (self.trivial_solution_liquid)) or 
             ((self.trivial_solution_vapour) and (self.S_l <= 1)) or 
-            ((self.S_v <= 1) and (self.S_l<= 1))):
+            ((self.S_v <= 1) and (self.S_l <= 1))):
 
             # logger.log.info('===============')
             # logger.log.info('Результат интерпритации анализа стабильности:')
@@ -260,7 +259,7 @@ class TwoPhaseStabilityTest(PhaseStabilityTest):
         elif (((self.S_v > 1) and self.trivial_solution_liquid) or 
               ((self.trivial_solution_vapour) and (self.S_l> 1)) or 
                 ((self.S_v > 1) and (self.S_l > 1)) or 
-                ((self.S_v> 1) and (self.S_l <= 1)) or 
+                ((self.S_v > 1) and (self.S_l <= 1)) or 
                 ((self.S_v <= 1) and (self.S_l > 1))):
             
             # logger.log.info('===============')
