@@ -24,7 +24,8 @@ class CompositionalModel:
         self._viscosity_method = viscosity_method
         self._flash_results = {}
         self.experiments = ExperimentsFacade(self._composition, self._eos)
-        self.PHASE_ENVELOPE = PhaseEnvelope(self._composition, 50, 250)
+        #self.PHASE_ENVELOPE = PhaseEnvelope(self._composition, 50, 250)
+        #self.phase_envelope = PhaseDiagram()
         from calculations.Utils.Export import E300
         self.EXPORT = E300(self)
 
@@ -40,7 +41,8 @@ class CompositionalModel:
     def plot_phase_diagram(self, p_max = 40, t_min = 0, t_max = 200, t_step = 10):
         self._phase_diagram_obj = PhaseDiagram(self._composition, p_max= p_max, t_min= t_min, t_max= t_max, t_step= t_step)
         self._phase_diagram_obj.calc_phase_diagram(eos = self._eos)
-        self._phase_diagram_obj.plot_phase_diagram()
+        #self._phase_diagram_obj.plot_phase_diagram()
+        print(self._phase_diagram_obj.get_phase_diagram_data())
 
 
     def saturation_pressure(self,t, p_max= 40):

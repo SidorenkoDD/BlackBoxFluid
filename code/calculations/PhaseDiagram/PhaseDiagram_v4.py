@@ -1,5 +1,6 @@
 from pathlib import Path
 import sys
+import pandas as pd
 
 # Добавляем корневую директорию в PYTHONPATH
 root_path = Path(__file__).parent.parent.parent
@@ -282,6 +283,23 @@ class PhaseDiagram:
         plt.xlim(min(temps) - 20, max(temps) + 20)
         plt.ylim(0, self.p_max)
         plt.show()
+
+    def get_phase_diagram_data(self):
+        bubble_points = []
+        dew_points = []
+        temps = []
+        
+        for temp, (pb, pdew) in self.results.items():
+            temps.append(temp - 273.14)  # Конвертируем обратно в °C
+            bubble_points.append(pb if pb is not None else np.nan)
+            dew_points.append(pdew if pdew is not None else np.nan)
+
+        bubble_points = np.array(bubble_points)
+        dew_points = np.array(dew_points)
+        
+        return pd.DataFrame({'Temp': temps, 'Up': bubble_points, 'Low': dew_points})
+
+
 
 
 if __name__ == '__main__':
