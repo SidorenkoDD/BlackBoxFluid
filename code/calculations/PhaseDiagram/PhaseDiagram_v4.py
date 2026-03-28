@@ -106,7 +106,7 @@ class SaturationPressure:
         
         self.Ykz = sum(y_sp[component] / self.zi._composition[component] for component in self.zi._composition.keys())
 
-        if (abs(1 - self.sum_y_sp) < math.pow(10, -3)) or (math.pow(self.Ykz, 2) < math.pow(10, -3)):
+        if (abs(1 - self.sum_y_sp) < math.pow(10, -4)) or (math.pow(self.Ykz, 2) < math.pow(10, -4)):
             print(f'Pb найдено: {self.p_i}')
         else:
             self.p_min_bub = self.p_i
@@ -117,7 +117,7 @@ class SaturationPressure:
         if self.p_max_bub - self.p_min_bub < math.pow(10, -5):
             return None
         
-        while not (abs(1 - self.sum_y_sp) < math.pow(10, -3) or math.pow(self.Ykz, 2) < math.pow(10, -3)):
+        while not (abs(1 - self.sum_y_sp) < math.pow(10, -4) or math.pow(self.Ykz, 2) < math.pow(10, -4)):
             self.sp_process(eos)
             if self.p_max_bub - self.p_min_bub < math.pow(10, -5):
                 return None

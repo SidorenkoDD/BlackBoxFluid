@@ -185,7 +185,7 @@ class CriticalPressureCorrelation:
             zk1 = -math.pow((-qk/2), (1/3)) - bk/3
             zk2 = -math.pow((-qk/2), (1/3)) - bk/3
 
-
+        print(zk0,zk1,zk2)
         return [zk0, zk1, zk2]
 
     @staticmethod
@@ -432,6 +432,7 @@ class PlusComponentProperties:
 
         self.data['acentric_factor'] = self.calculate_property('acentric_factor')
 
+        
         self.data['crit_vol'] = self.calculate_property('critical_volume')
 
         self.data['Kw'] = self.calculate_property('k_watson')

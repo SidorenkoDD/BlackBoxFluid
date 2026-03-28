@@ -16,6 +16,7 @@ class BrusilovskiyEOS(EOS):
         self.fugacity_by_roots = None
         self.fugacity_coef_by_roots = None
         self.real_roots_eos = None
+        self.shift_parametr = 0
 
         self.zi = zi
         self.components_properties = components_properties
