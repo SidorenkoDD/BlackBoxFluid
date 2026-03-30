@@ -1,12 +1,14 @@
-import math
-from typing import Dict, Callable
-from calculations.Utils.JsonDBReader import JsonDBReader
-from calculations.Utils.Constants import CONSTANT_R
 import sys
 from pathlib import Path
 # Добавляем корневую директорию в PYTHONPATH 
 root_path = Path(__file__).parent.parent.parent
 sys.path.append(str(root_path))
+
+import math
+from typing import Dict, Callable
+from calculations.Utils.JsonDBReader import JsonDBReader
+from calculations.Utils.Constants import CONSTANT_R
+
 
 class CriticalTemperatureCorrelation:
     """Класс для расчета критической температуры, содержащий все корреляции"""
@@ -103,7 +105,7 @@ class CriticalPressureCorrelation:
         return 3.48242 * math.pow(10, 9) * math.pow(Tb, -2.3177) * math.pow(gamma, 2.4853) * 0.00689476
 
     @staticmethod
-    def pc_from_eos(gamma, M, Tc):
+    def pc_from_eos(gamma, M, t_c):
 
         def calc_a(omega_a = 0.45724) -> float:
             '''Caclulation of **a** parameter for EOS
@@ -127,17 +129,17 @@ class CriticalPressureCorrelation:
                 m = (0.37464 + 1.54226 * acentric_factor - 
                     0.26992 * math.pow(acentric_factor, 2))
 
-            alpha = math.pow(1 + m * (1 - math.sqrt(293.14/Tc)), 2)
+            alpha = math.pow(1 + m * (1 - math.sqrt(293.14/t_c)), 2)
             
-            return (omega_a * math.pow(Tc,2) * 
+            return (omega_a * math.pow(t_c,2) * 
                     math.pow(8.31, 2) * alpha)
 
         p_std = 101325 # Pa
         t_std = 293.14 # K
         molar_mass_kg_mole = M / 1000
         molar_volume = (molar_mass_kg_mole) / (gamma * math.pow(10,3))
-        a = calc_a(Tc)
-        b = 0.0778 * CONSTANT_R * Tc
+        a = calc_a(t_c)
+        b = 0.0778 * CONSTANT_R * t_c
 
         bk = ((p_std * b * molar_volume - (2 * CONSTANT_R * t_std * b) + a) /
                (p_std * math.pow(molar_volume, 2) - (CONSTANT_R * t_std * molar_volume)))
@@ -189,6 +191,14 @@ class CriticalPressureCorrelation:
         return [zk0, zk1, zk2]
 
     @staticmethod
+    def twu(Tb, t_c):
+        ksi = 1 - Tb/(t_c * 1.8)
+        print(Tb, t_c)
+        print(ksi)
+        return math.pow(3.83354 + 1.19629 * ksi ** 0.5 + 34.8888 * ksi + 36.1952 * math.pow(ksi,2) + 104.193 * math.pow(ksi,4), 2) * 0.00689476
+
+
+    @staticmethod
     def mogoulas_tassios(gamma, M):
         return math.pow(math.e,(0.01901 - 0.0048442 * M + 0.13239 * gamma + (227/M) - (1.1663/gamma) + 1.2702 * math.log(M))) * 0.00689476
 
@@ -207,11 +217,14 @@ class CriticalPressureCorrelation:
             'rizari_daubert' : ['gamma', 'Tb'],
             'pedersen' : ['gamma', 'M'], 
             'standing' : ['gamma', 'M'],
-            'pc_from_eos' : ['gamma', 'M', 'Tc'],
+            'pc_from_eos' : ['gamma', 'M', 't_c'],
             'sim_daubert' : ['gamma', 'Tb'],
-            'mogoulas_tassios' : ['gamma', 'M']
+            'mogoulas_tassios' : ['gamma', 'M'],
+            'twu' : ['Tb', 't_c']
         }
         return params_map.get(method, [])
+
+
 
 class AcentricFactorCorrelation:
 
@@ -244,6 +257,7 @@ class AcentricFactorCorrelation:
     @staticmethod
     def rizari_al_sahhaf(M):
         return - (0.3 - math.exp(-6.252 + 3.64457 * math.pow(M, 0.1)))
+
 
 class CriticalVolumeCorrelation:
     @classmethod
@@ -312,7 +326,6 @@ class KWatson:
     @staticmethod
     def k_watson_approx(M, gamma):
         return 4.5579 * math.pow(M, 0.15178) * math.pow(gamma, -0.84573)
-    
 
 
 class ShiftParameterCorrelation:
@@ -425,10 +438,11 @@ class PlusComponentProperties:
 
     def calculate_all_props_v2(self):
 
+        self.data['t_c'] = self.calculate_property('critical_temperature')
 
         self.data['p_c'] = self.calculate_property('critical_pressure')
 
-        self.data['t_c'] = self.calculate_property('critical_temperature')
+        #self.data['t_c'] = self.calculate_property('critical_temperature')
 
         self.data['acentric_factor'] = self.calculate_property('acentric_factor')
 
@@ -444,7 +458,12 @@ class PlusComponentProperties:
 # Пример использования
 if __name__ == '__main__':
 
-    calculator = PlusComponentProperties('C7')
+    calculator = PlusComponentProperties('C7', {'critical_temperature': 'pedersen',
+                                                    'critical_pressure': 'twu',
+                                                    'acentric_factor': 'rizari_al_sahhaf',
+                                                    'critical_volume': 'hall_yarborough',
+                                                    'k_watson': 'k_watson',
+                                                    'shift_parameter': 'jhaveri_youngren'})
     
     calculator.calculate_all_props_v2()
 
