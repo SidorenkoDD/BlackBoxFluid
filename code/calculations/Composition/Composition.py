@@ -46,7 +46,7 @@ class Composition:
         self._composition = zi
         self._c6_plus_correlations = c6_plus_correlations
         self._c6_plus_bips_correlation = c6_plus_bips_correlation
-
+        self._composition_data = {}
         self._validate_composition_sum()
         self._validate_c6_plus_components()
         self._create_composition_db()
@@ -72,6 +72,7 @@ class Composition:
             if match:
                 return int(match.group(1))
             return 0
+
         _c6_plus_components = [item for item in self._composition.keys() if extract_number_from_end(item) > 6]
         self._c6_plus_components = _c6_plus_components
         
@@ -90,7 +91,7 @@ class Composition:
 
             for component in self._c6_plus_components:
                 try:
-                    cur_comp_properties = PlusComponentProperties(component, correlations_config= self._c6_plus_correlations)
+                    cur_comp_properties = PlusComponentProperties(component, self._composition_data, correlations_config= self._c6_plus_correlations)
                     cur_comp_properties.calculate_all_props_v2()
                     self._composition_data['molar_mass'][component] = cur_comp_properties.data['M']
                     self._composition_data['critical_pressure'][component] = cur_comp_properties.data['p_c']
@@ -101,6 +102,7 @@ class Composition:
                 except Exception as e:
                     raise ValueError(f"Can't create composition: no component {component} in DB!")
 
+
     def _chueh_prausnitz_bip(self, component_i, component_j, A = 0.18, B = 6):
         '''Chew-Parusnitz correlation for BIPS
         '''
@@ -109,7 +111,6 @@ class Composition:
         v_cj = self._composition_data['critical_volume'][component_j]
 
         return A * (1 - math.pow(((2 * math.pow(v_ci, 1/6) * math.pow(v_cj, 1/6))/(math.pow(v_ci, 1/3) + math.pow(v_cj, 1/3))), B))
-
 
     def _make_all_bips_zero_for_C6_plus(self):
         '''returns 0 for bips'''
@@ -190,6 +191,17 @@ class Composition:
                 raise KeyError(f'Property {property} not in db!')
             else:
                 self._composition_data[property][component] = properties[property]
+                try:
+                    cur_comp_properties = PlusComponentProperties(component, self._composition_data, correlations_config= self._c6_plus_correlations)
+                    cur_comp_properties.calculate_all_props_v2()
+                    self._composition_data['critical_pressure'][component] = cur_comp_properties.data['p_c']
+                    self._composition_data['critical_temperature'][component] = cur_comp_properties.data['t_c']
+                    self._composition_data['acentric_factor'][component] = cur_comp_properties.data['acentric_factor']
+                    self._composition_data['critical_volume'][component] = cur_comp_properties.data['crit_vol']
+                    self._composition_data['shift_parameter'][component] = cur_comp_properties.data['Cpen']
+                except Exception as e:
+                    raise ValueError(f"Can't create composition: no component {component} in DB!")
+
 
 
     def show_composition_dataframes(self):
@@ -200,7 +212,7 @@ class Composition:
         ## Костыль чтобы убрать bips
         main_data_df = pd.DataFrame.from_dict({k: self._composition_data[k] for k in list(self._composition_data.keys())[:-1]}).to_markdown()
         bips_df = pd.DataFrame.from_dict(self._composition_data['bip']).to_markdown()
-        
+
 
         print(composition_df)
         print('========')

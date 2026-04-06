@@ -120,7 +120,6 @@ class CriticalPressureCorrelation:
                     parameter **a** for component
             '''
             acentric_factor =  - (0.3 - math.exp(-6.252 + 3.64457 * math.pow(M, 0.1)))
-            print(acentric_factor)
             if acentric_factor > 0.49:
                 m = (0.3796 + 1.485 * acentric_factor  - 
                     0.1644 * math.pow(acentric_factor,2) + 
@@ -187,8 +186,15 @@ class CriticalPressureCorrelation:
             zk1 = -math.pow((-qk/2), (1/3)) - bk/3
             zk2 = -math.pow((-qk/2), (1/3)) - bk/3
 
-        print(zk0,zk1,zk2)
-        return [zk0, zk1, zk2]
+        roots_list = [zk0 / 10**6, zk1 / 10**6, zk2 / 10**6]
+
+        condition1 = lambda x: x > 0.0778 * CONSTANT_R * t_c * gamma / M
+        condition2 = lambda x: x < 3.37
+        print(roots_list)
+        filtered1 = filter(condition1, roots_list)
+        filtered2 = filter(condition2, filtered1)
+        result = list(filtered2)
+        return result[0]
 
     @staticmethod
     def twu(Tb, t_c):
@@ -224,8 +230,6 @@ class CriticalPressureCorrelation:
         }
         return params_map.get(method, [])
 
-
-
 class AcentricFactorCorrelation:
 
     @classmethod
@@ -257,7 +261,6 @@ class AcentricFactorCorrelation:
     @staticmethod
     def rizari_al_sahhaf(M):
         return - (0.3 - math.exp(-6.252 + 3.64457 * math.pow(M, 0.1)))
-
 
 class CriticalVolumeCorrelation:
     @classmethod
@@ -298,7 +301,6 @@ class CriticalVolumeCorrelation:
     def pedersen_supposed(M, gamma):
         return 21.573 + 0.015122 *  M - 27.656 * gamma + 0.070615 * M * gamma
 
-
 class KWatson:
 
     @classmethod
@@ -326,7 +328,6 @@ class KWatson:
     @staticmethod
     def k_watson_approx(M, gamma):
         return 4.5579 * math.pow(M, 0.15178) * math.pow(gamma, -0.84573)
-
 
 class ShiftParameterCorrelation:
     @classmethod
@@ -376,10 +377,11 @@ class ShiftParameterCorrelation:
 class PlusComponentProperties:
     '''Main class to calculate all properties.
     '''
-    def __init__(self, component: str,  
+    def __init__(self, component: str,
+                 composition_data: dict,
                  correlations_config: Dict[str, str] ):
         self.component = component
-
+        self.composition_data = composition_data
         self.correlations_config = correlations_config
         
 
@@ -392,13 +394,13 @@ class PlusComponentProperties:
         'shift_parameter': ShiftParameterCorrelation
         }
 
-        jsondbreader = JsonDBReader()
-        self.katz_firuzabadi = jsondbreader.load_database()
+        #jsondbreader = JsonDBReader()
+        #self.katz_firuzabadi = jsondbreader.load_database()
 
 
-        self.data = {'M': self.katz_firuzabadi['molar_mass'][component],
-                    'gamma': self.katz_firuzabadi['gamma'][component],
-                    'Tb': self.katz_firuzabadi['Tb'][component]}
+        self.data = {'M': self.composition_data['molar_mass'][component],
+                    'gamma': self.composition_data['gamma'][component],
+                    'Tb': self.composition_data['Tb'][component]}
         
     
 
@@ -459,13 +461,14 @@ class PlusComponentProperties:
 if __name__ == '__main__':
 
     calculator = PlusComponentProperties('C7', {'critical_temperature': 'pedersen',
-                                                    'critical_pressure': 'twu',
+                                                    'critical_pressure': 'pc_from_eos',
                                                     'acentric_factor': 'rizari_al_sahhaf',
                                                     'critical_volume': 'hall_yarborough',
                                                     'k_watson': 'k_watson',
                                                     'shift_parameter': 'jhaveri_youngren'})
-    
+
+
     calculator.calculate_all_props_v2()
 
     print(calculator.data)
-    
+
