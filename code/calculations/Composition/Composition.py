@@ -226,7 +226,10 @@ class Composition:
 
     @property
     def COMPOSITION_PROPERTIES(self):
-        return pd.DataFrame.from_dict({k: self._composition_data[k] for k in list(self._composition_data.keys())[:-1]})
+        df_composition = pd.DataFrame.from_dict(self._composition, orient= 'index')
+        df_props = pd.DataFrame.from_dict({k: self._composition_data[k] for k in list(self._composition_data.keys())[:-1]})
+        merged_df = pd.merge(left = df_composition, right= df_props, on= df_composition.index, how='left')
+        return merged_df
 
     @property
     def BIPS(self):

@@ -97,8 +97,8 @@ class CriticalPressureCorrelation:
 
     @staticmethod
     def standing(gamma, M):
-        return (8.191 - 2.97 * math.log10(M - 61.1) + (15.99 - 5.87 *
-                                                        math.log10(M - 53.7)) * (gamma - 0.8))
+        return (8.191 - 2.97 * math.log10(M - 61.1) + 
+                (15.99 - 5.87 * math.log10(M - 53.7)) * (gamma - 0.8))
 
     @staticmethod
     def sim_daubert(gamma, Tb):
@@ -199,14 +199,41 @@ class CriticalPressureCorrelation:
     @staticmethod
     def twu(Tb, t_c):
         ksi = 1 - Tb/(t_c * 1.8)
-        print(Tb, t_c)
-        print(ksi)
         return math.pow(3.83354 + 1.19629 * ksi ** 0.5 + 34.8888 * ksi + 36.1952 * math.pow(ksi,2) + 104.193 * math.pow(ksi,4), 2) * 0.00689476
 
 
     @staticmethod
     def mogoulas_tassios(gamma, M):
         return math.pow(math.e,(0.01901 - 0.0048442 * M + 0.13239 * gamma + (227/M) - (1.1663/gamma) + 1.2702 * math.log(M))) * 0.00689476
+
+
+    ##TODO: будто завышает, надо проверить формулы
+    @staticmethod
+    def cavett(Tb, gamma):
+        '''
+        modified by Pedersen from book, Tb in F
+        '''
+        tb_f = (Tb - 273.15) * 9/5 + 32
+        gamma_api = 141.5/gamma - 131.5
+        # lg_pc = (2.8290406 + (0.9412109 * math.pow(10, -3)) * tb_f - (0.30474749 * math.pow(10, -5)) * math.pow(tb_f, 2) - (0.2087611 * math.pow(10, -4)) * tb_f * gamma_api + 
+        #          (0.15184103 * math.pow(10, -8)) * math.pow(tb_f,3) + (0.11047899 * math.pow(10, -7)) * math.pow(tb_f, 2) * gamma_api -
+        #          (0.48271599 * math.pow(10,-7)) * math.pow(gamma_api,2) * tb_f + (0.13949619 * math.pow(10,-9)) * math.pow(tb_f,2) * math.pow(gamma_api, 2))
+        a = 2.829 + (0.9412 * math.pow(10, -3) * tb_f)
+        b = (0.30475 * math.pow(10, -5) * math.pow(tb_f, 2))
+        c = (0.15141 * math.pow(10, -8) * math.pow(tb_f, 3))
+        d = (0.20876 * math.pow(10, -4) * tb_f * gamma_api)
+        e = (0.11048 * math.pow(10, -7) * math.pow(tb_f, 2) * gamma_api)
+        f = (0.1395 * math.pow(10, -9) * math.pow(tb_f, 2) * math.pow(gamma_api, 2))
+        g = (0.4827 * math.pow(10, -7) * tb_f * math.pow(gamma_api, 2))
+        lg_pc = (2.829 + (0.9412 * math.pow(10, -3) * tb_f) - 
+                (0.30475 * math.pow(10, -5) * math.pow(tb_f, 2)) + 
+                (0.15141 * math.pow(10, -8) * math.pow(tb_f, 3)) - 
+                (0.20876 * math.pow(10, -4) * tb_f * gamma_api) + 
+                (0.11048 * math.pow(10, -7) * math.pow(tb_f, 2) * gamma_api) + 
+                (0.1395 * math.pow(10, -9) * math.pow(tb_f, 2) * math.pow(gamma_api, 2)) - 
+                (0.4827 * math.pow(10, -7) * tb_f * math.pow(gamma_api, 2)))
+
+        return math.pow(10, lg_pc) * 0.00689476
 
     @classmethod
     def get_correlation(cls, method: str) -> Callable:
@@ -226,7 +253,8 @@ class CriticalPressureCorrelation:
             'pc_from_eos' : ['gamma', 'M', 't_c'],
             'sim_daubert' : ['gamma', 'Tb'],
             'mogoulas_tassios' : ['gamma', 'M'],
-            'twu' : ['Tb', 't_c']
+            'twu' : ['Tb', 't_c'],
+            'cavett' : ['Tb', 'gamma']
         }
         return params_map.get(method, [])
 
@@ -460,8 +488,9 @@ class PlusComponentProperties:
 # Пример использования
 if __name__ == '__main__':
 
-    calculator = PlusComponentProperties('C7', {'critical_temperature': 'pedersen',
-                                                    'critical_pressure': 'pc_from_eos',
+
+    calculator = PlusComponentProperties('C7', correlations_config={'critical_temperature': 'pedersen',
+                                                    'critical_pressure': 'twu',
                                                     'acentric_factor': 'rizari_al_sahhaf',
                                                     'critical_volume': 'hall_yarborough',
                                                     'k_watson': 'k_watson',
