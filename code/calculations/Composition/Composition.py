@@ -203,6 +203,18 @@ class Composition:
                     raise ValueError(f"Can't create composition: no component {component} in DB!")
 
 
+    def set_property_dict(self, property : str, value_dict : dict):
+        ''' Method allows set dict for property
+        '''
+        avalible_properties = ['molar_mass', 'gamma', 'Tb', 'critical_pressure', 'critical_temperature', 
+                               'acentric_factor', 'shift_parameter', 'critical_volume', 'bip']
+        if property not in avalible_properties:
+            raise KeyError(f'Property {property} not in db!')
+        else:
+            self._composition_data[property] = value_dict
+
+
+
 
     def show_composition_dataframes(self):
 

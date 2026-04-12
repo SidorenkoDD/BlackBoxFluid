@@ -52,6 +52,7 @@ class CompositionalModel:
         print('=====')
         print(f'CALCULATED SATURATION PRESSURE: {self._sat_pres_obj.p_b * 10} bar')
         print(f'TEMPERATURE: {t} C')
+        return self._sat_pres_obj.p_b
 
 
     @property
