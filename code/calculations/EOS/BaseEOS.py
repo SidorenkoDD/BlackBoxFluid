@@ -1,27 +1,24 @@
 from abc import abstractmethod, ABC
+from enum import StrEnum
+
+
+class EOSType(StrEnum):
+    PREOS = 'PREOS'
+    SRKEOS = 'SRKEOS'
+    BRSEOS = 'BRSEOS'
+
 
 class EOS(ABC):
-    '''Abstract class for EOS classes
-    '''
-    def __init__(self, zi, components_properties, p, t):
-        self.zi = zi
-        self.components_properties = components_properties
-        self.p = p
-        self.t = t
-        self._z = 0
-        self._fugacities = {}
+    """
+    Abstract class for EOS classes
+    """
+    def __init__(self, composition, p, t):
 
+        self._z = ...
+        self._fugacities = ...
+        self._p = ...
+        self._t = ...
 
     @abstractmethod
     def calc_eos(self) -> list:
         pass
-    
-
-
-    @abstractmethod
-    def z(self) -> float:
-        return self._z
-    
-    @abstractmethod
-    def fugacities(self) -> dict:
-        return self._fugacities

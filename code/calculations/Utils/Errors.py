@@ -21,3 +21,6 @@ class InvalidExcelComponentType(Exception):
 
 class InvalidExcelValueType(Exception):
     pass
+
+class StopIterationError(Exception):
+    pass

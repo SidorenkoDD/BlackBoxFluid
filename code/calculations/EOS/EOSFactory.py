@@ -1,21 +1,26 @@
 from functools import partial
-
-from calculations.EOS.BaseEOS import EOS
-from calculations.EOS.PREOS import PREOS
-from calculations.EOS.SRKEOS import SRKEOS
-from calculations.EOS.BrusilovskiyEOS import BrusilovskiyEOS
-# from code.calculations.EOS.BRSEOS_vector import BrusilovskiyEOSVectorTest
+from typing import Any
+from .BaseEOS import EOS, EOSType
+from .BrusilovskiyEOS import BrusilovskiyEOS
 
 class EOSFactory:
     @staticmethod
-    def create_eos(eos_name: str) -> EOS:
+    def create_eos(eos): #-> Any[EOS, partial]:
         eos_mapping = {
-            "PREOS": PREOS,
-            "SRKEOS": SRKEOS,
+            # "PREOS": PREOS,
+            # "SRKEOS": SRKEOS,
             "BRSEOS": BrusilovskiyEOS,
-            "BRSEOS_SRK": partial(BrusilovskiyEOS, reduce_eos='SRK'),
-            "BRSEOS_PR": partial(BrusilovskiyEOS, reduce_eos='PR'),
+            "SRKEOS": BrusilovskiyEOS,
+            "PREOS": BrusilovskiyEOS,
+            # "BRSEOSV": BrusilovskiyEOSVectorTest,
+            # "BRSEOSV_SRK": partial(BrusilovskiyEOSVectorTest, reduce_eos='SRK'),
+            # "BRSEOSV_PR": partial(BrusilovskiyEOSVectorTest, reduce_eos='PR'),
         }
-        if eos_name not in eos_mapping:
-            raise ValueError(f"Unknown EOS: {eos_name}")
-        return eos_mapping[eos_name]
+        if isinstance(eos, str):
+            if eos not in eos_mapping:
+                raise ValueError(f"Unknown EOS: {eos}")
+            return eos_mapping[eos]
+        elif issubclass(eos, EOS):
+            return eos
+        else:
+            raise ValueError(f"Unknown EOS: {eos}")

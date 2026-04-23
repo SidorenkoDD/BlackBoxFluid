@@ -1,155 +1,56 @@
 import math
-from calculations.EOS.BaseEOS import EOS
-from calculations.EOS.BRS_EOS_DB import (evaluate_BRS_EOS_component_params, evaluate_BRS_EOS_bip_for_c5_plus,
-                                         evaluate_BRS_EOS_bip_below_c5_plus)
-from calculations.Utils.Constants import CONSTANT_R
-from calculations.Utils.Cardano import cubic_roots_cardano
+from ..Composition.CompositionV2 import Composition
+from .BaseEOS import EOS
+from ..Utils.Constants import CONSTANT_R
+from ..Utils.Cardano import cubic_roots_cardano
 
 
 class BrusilovskiyEOS(EOS):
-    def __init__(self, zi, components_properties, p, t, reduce_eos=None):
-        super().__init__(zi, components_properties, p, t)
+    def __init__(self, composition: Composition, p: float, t: float):
+        super().__init__(composition, p, t)
 
+        # self._composition = composition
+
+        self.shift_parametr = None
         self.choosen_fugacities = None
         self.choosen_eos_root = None
         self.normalized_gibbs_energy = None
         self.fugacity_by_roots = None
         self.fugacity_coef_by_roots = None
         self.real_roots_eos = None
-        self.shift_parametr = 0
 
-        self.zi = zi
-        self.components_properties = components_properties
-        self.p = p
-        self.t = t
-
-        self._reduced_eos = reduce_eos
+        self._zi = composition.composition
+        self._components_properties = composition.composition_data
+        self._p = p
+        self._t = t
 
         self._A_mixture = None
         self._B_mixture = None
         self._C_mixture = None
         self._D_mixture = None
 
-        self._cache_al_bt_gm_dt = {}
-        self._cache_sgmc_zc_psi = {}
-        self._cache_a = {}
-        self._cache_b = {}
-        self._cache_c = {}
-        self._cache_d = {}
         self._cache_A = {}
         self._cache_B = {}
         self._cache_C = {}
         self._cache_D = {}
-        self._cache_bip = {}
 
         self._cache_Aij = {}
         self._cache_dz_dxk = {}
         self._cache_dAm_dxk = {}
+        self._cache_dz_dp = None
 
     #                          |||  РАСЧЕТ КОЭФФИЦИЕНТОВ УРС  |||
     #                          VVV                            VVV
     # =====================================================================================
     # region
 
-    @staticmethod
-    def _calc_alpha_beta_gamma_delta_of_component(sigma_c, Z_c):
-
-        alpha = math.pow(sigma_c, 3)
-        beta = Z_c + sigma_c - 1
-        gamma = - Z_c + sigma_c * (0.5 + math.pow(sigma_c - 0.75, 0.5))
-        delta = - Z_c + sigma_c * (0.5 - math.pow(sigma_c - 0.75, 0.5))
-
-        return [alpha, beta, gamma, delta]
-
-    def _calc_a_of_component(self, component: str):
-        a = self._cache_a.get(component)
-        if a is not None:
-            return a
-
-        p_crit = self.components_properties['critical_pressure'][component]
-        T_crit = self.components_properties['critical_temperature'][component]
-        omega = self.components_properties['acentric_factor'][component]
-        c5_plus_flag = bool(self.components_properties['c5_plus_flag'][component])
-        sigma_c, Z_c, psi = self._cache_sgmc_zc_psi.setdefault(component,
-                                                               evaluate_BRS_EOS_component_params(component, omega,
-                                                                                                 self._reduced_eos,
-                                                                                                 c5_plus_flag))
-        alpha = \
-            self._cache_al_bt_gm_dt.setdefault(component, self._calc_alpha_beta_gamma_delta_of_component(sigma_c, Z_c))[
-                0]
-        phi = math.pow(1 + psi * (1 - math.pow(self.t / T_crit, 0.5)), 2)
-        a_c = alpha * math.pow(CONSTANT_R * T_crit, 2) / p_crit
-        a = a_c * phi
-        self._cache_a[component] = a
-        return a
-
-    def _calc_b_of_component(self, component: str):
-        b = self._cache_b.get(component)
-        if b is not None:
-            return b
-
-        p_crit = self.components_properties['critical_pressure'][component]
-        T_crit = self.components_properties['critical_temperature'][component]
-        omega = self.components_properties['acentric_factor'][component]
-        c5_plus_flag = bool(self.components_properties['c5_plus_flag'][component])
-        sigma_c, Z_c, psi = self._cache_sgmc_zc_psi.setdefault(component,
-                                                               evaluate_BRS_EOS_component_params(component, omega,
-                                                                                                 self._reduced_eos,
-                                                                                                 c5_plus_flag))
-        beta = \
-            self._cache_al_bt_gm_dt.setdefault(component, self._calc_alpha_beta_gamma_delta_of_component(sigma_c, Z_c))[
-                1]
-        b = beta * CONSTANT_R * T_crit / p_crit
-        self._cache_b[component] = b
-        return b
-
-    def _calc_c_of_component(self, component: str):
-        c = self._cache_c.get(component)
-        if c is not None:
-            return c
-
-        p_crit = self.components_properties['critical_pressure'][component]
-        T_crit = self.components_properties['critical_temperature'][component]
-        omega = self.components_properties['acentric_factor'][component]
-        c5_plus_flag = bool(self.components_properties['c5_plus_flag'][component])
-        sigma_c, Z_c, psi = self._cache_sgmc_zc_psi.setdefault(component,
-                                                               evaluate_BRS_EOS_component_params(component, omega,
-                                                                                                 self._reduced_eos,
-                                                                                                 c5_plus_flag))
-        gamma = \
-            self._cache_al_bt_gm_dt.setdefault(component, self._calc_alpha_beta_gamma_delta_of_component(sigma_c, Z_c))[
-                2]
-        c = gamma * CONSTANT_R * T_crit / p_crit
-        self._cache_c[component] = c
-        return c
-
-    def _calc_d_of_component(self, component: str):
-        d = self._cache_d.get(component)
-        if d is not None:
-            return d
-
-        p_crit = self.components_properties['critical_pressure'][component]
-        T_crit = self.components_properties['critical_temperature'][component]
-        omega = self.components_properties['acentric_factor'][component]
-        c5_plus_flag = bool(self.components_properties['c5_plus_flag'][component])
-        sigma_c, Z_c, psi = self._cache_sgmc_zc_psi.setdefault(component,
-                                                               evaluate_BRS_EOS_component_params(component, omega,
-                                                                                                 self._reduced_eos,
-                                                                                                 c5_plus_flag))
-        delta = \
-            self._cache_al_bt_gm_dt.setdefault(component, self._calc_alpha_beta_gamma_delta_of_component(sigma_c, Z_c))[
-                3]
-        d = delta * CONSTANT_R * T_crit / p_crit
-        self._cache_d[component] = d
-        return d
-
     def _calc_A_of_component(self, component: str):
         A = self._cache_A.get(component)
         if A is not None:
             return A
 
-        a = self._cache_a.setdefault(component, self._calc_a_of_component(component))
-        A = a * self.p / math.pow((CONSTANT_R * self.t), 2)
+        a = self._components_properties['a'][component]
+        A = a * self._p / math.pow((CONSTANT_R * self._t), 2)
 
         self._cache_A[component] = A
         return A
@@ -159,8 +60,8 @@ class BrusilovskiyEOS(EOS):
         if B is not None:
             return B
 
-        b = self._cache_b.setdefault(component, self._calc_b_of_component(component))
-        B = b * self.p / (CONSTANT_R * self.t)
+        b = self._components_properties['b'][component]
+        B = b * self._p / (CONSTANT_R * self._t)
 
         self._cache_B[component] = B
         return B
@@ -170,8 +71,8 @@ class BrusilovskiyEOS(EOS):
         if C is not None:
             return C
 
-        c = self._cache_c.setdefault(component, self._calc_c_of_component(component))
-        C = c * self.p / (CONSTANT_R * self.t)
+        c = self._components_properties['c'][component]
+        C = c * self._p / (CONSTANT_R * self._t)
 
         self._cache_C[component] = C
         return C
@@ -181,8 +82,8 @@ class BrusilovskiyEOS(EOS):
         if D is not None:
             return D
 
-        d = self._cache_d.setdefault(component, self._calc_d_of_component(component))
-        D = d * self.p / (CONSTANT_R * self.t)
+        d = self._components_properties['d'][component]
+        D = d * self._p / (CONSTANT_R * self._t)
 
         self._cache_D[component] = D
         return D
@@ -194,7 +95,7 @@ class BrusilovskiyEOS(EOS):
 
         A1 = self._calc_A_of_component(component_i)
         A2 = self._calc_A_of_component(component_j)
-        bip = self._calc_bip(component_i, component_j)
+        bip = self._components_properties['bip'][component_i][component_j]
         A_ij = math.sqrt(A1 * A2) * (1 - bip)
 
         self._cache_Aij.setdefault(component_i, {}).setdefault(component_j, A_ij)
@@ -205,15 +106,15 @@ class BrusilovskiyEOS(EOS):
         if self._A_mixture is not None:
             return self._A_mixture
 
-        first_set_of_comps = list(self.zi.keys())
-        second_set_of_comps = list(self.zi.keys())
+        first_set_of_comps = list(self._zi.keys())
+        second_set_of_comps = list(self._zi.keys())
 
         A_m = 0.0
 
         for comp1 in first_set_of_comps:
             for comp2 in second_set_of_comps:
-                z1 = self.zi[comp1]
-                z2 = self.zi[comp2]
+                z1 = self._zi[comp1]
+                z2 = self._zi[comp2]
                 A_ij = self._calc_Aij(comp1, comp2)
                 A_m += z1 * z2 * A_ij
 
@@ -227,8 +128,8 @@ class BrusilovskiyEOS(EOS):
 
         B_m = 0.0
 
-        for comp in list(self.zi.keys()):
-            z = self.zi[comp]
+        for comp in list(self._zi.keys()):
+            z = self._zi[comp]
             B = self._calc_B_of_component(comp)
             B_m += z * B
 
@@ -241,8 +142,8 @@ class BrusilovskiyEOS(EOS):
 
         C_m = 0.0
 
-        for comp in list(self.zi.keys()):
-            z = self.zi[comp]
+        for comp in list(self._zi.keys()):
+            z = self._zi[comp]
             C = self._calc_C_of_component(comp)
             C_m += z * C
 
@@ -255,45 +156,13 @@ class BrusilovskiyEOS(EOS):
 
         D_m = 0.0
 
-        for comp in list(self.zi.keys()):
-            z = self.zi[comp]
-            D = self._cache_D.setdefault(comp, self._calc_D_of_component(comp))
+        for comp in list(self._zi.keys()):
+            z = self._zi[comp]
+            D = self._calc_D_of_component(comp)
             D_m += z * D
 
         self._D_mixture = D_m
         return self._D_mixture
-
-    def _calc_bip(self, component1: str, component2: str):
-        _cached_bip = self._cache_bip.get(component1, {}).get(component2, None)
-        if _cached_bip is not None:
-            return _cached_bip
-
-        if self._reduced_eos is not None:
-            return self.components_properties['bip'][component1][component2]
-
-        c5_plus_flag1 = self.components_properties['c5_plus_flag'][component1]
-        c5_plus_flag2 = self.components_properties['c5_plus_flag'][component2]
-
-        if any([c5_plus_flag1, c5_plus_flag2]):
-            # comp1 - Из фракции C5+
-            (comp1, _), (comp2, _) = list(sorted([(component1, c5_plus_flag1), (component2, c5_plus_flag2)],
-                                                 key=lambda x: x[1], reverse=True))
-
-            omega = self.components_properties['acentric_factor'][comp1]
-
-            Kw = self.components_properties['Kw'][comp1]
-
-            bip = evaluate_BRS_EOS_bip_for_c5_plus(comp1, comp2, self.t, omega, Kw)
-
-            self._cache_bip.setdefault(comp1, {}).setdefault(comp2, bip)
-            self._cache_bip.setdefault(comp2, {}).setdefault(comp1, bip)
-            return bip
-        else:
-            bip = evaluate_BRS_EOS_bip_below_c5_plus(component1, component2, self.t)
-
-            self._cache_bip.setdefault(component1, {}).setdefault(component2, bip)
-            self._cache_bip.setdefault(component2, {}).setdefault(component1, bip)
-            return bip
 
     def _calc_roots_eos(self):
         A_m = self._calc_A_mixture()
@@ -317,27 +186,25 @@ class BrusilovskiyEOS(EOS):
     # =====================================================================================
     # region
 
-    def _calc_fugacity_logarithm_for_component_BRS(self, component, root, return_log_fug_coef=False):
+    def _calc_fugacity_logarithm_for_component_BRS(self, component, root):
         """
         Возвращает натуральный логарифм летучести компонента для данного к-та сверхсжимаемости z.
         """
 
-        xi = self.zi[component]
-        p = self.p
+        xi = self._zi[component]
+        p = self._p
         z = root
 
         B_m = self._B_mixture
 
         if z <= B_m:
-            return 0.0
+            return 0.0, 0.0
 
         ln_phi_i = self._calc_fugacity_coef_logarithm_for_component_BRS(component, root)
 
         lnfi = ln_phi_i + math.log(xi * p)
 
-        if return_log_fug_coef:
-            return lnfi, ln_phi_i
-        return lnfi
+        return lnfi, ln_phi_i
 
     def _calc_fugacity_coef_logarithm_for_component_BRS(self, component, root):
         """
@@ -375,10 +242,9 @@ class BrusilovskiyEOS(EOS):
             fugacity_by_components = {}
             fugacity_coef_by_components = {}
 
-            for component in self.zi.keys():
+            for component in self._zi.keys():
 
-                ln_fi, ln_phi_i = self._calc_fugacity_logarithm_for_component_BRS(component, root,
-                                                                                  return_log_fug_coef=True)
+                ln_fi, ln_phi_i = self._calc_fugacity_logarithm_for_component_BRS(component, root)
                 fugacity_by_components[component] = ln_fi
                 fugacity_coef_by_components[component] = ln_phi_i
 
@@ -391,7 +257,7 @@ class BrusilovskiyEOS(EOS):
         """
         Метод возвращает словарь {корень УРС: значение приведенной энергии Гиббса}
         """
-        B_m = self._calc_B_mixture()
+        B_m = self._B_mixture
         normalized_gibbs_energy = {}
         for root in self.fugacity_by_roots:
             gibbs_energy_by_roots = []
@@ -404,7 +270,7 @@ class BrusilovskiyEOS(EOS):
 
             else:
                 for component in self.fugacity_by_roots[root].keys():
-                    gibbs_energy_by_roots.append(self.fugacity_by_roots[root][component] * self.zi[component])
+                    gibbs_energy_by_roots.append(self.fugacity_by_roots[root][component] * self._zi[component])
                 normalized_gibbs_energy[root] = sum(gibbs_energy_by_roots)
 
         return normalized_gibbs_energy
@@ -471,9 +337,42 @@ class BrusilovskiyEOS(EOS):
 
         return result
 
-    def calc_dfi_dxk(self, component_i: str, component_k: str):
-        p = self.p
-        xi = self.zi[component_i]
+    def calc_d_log_phi_i_dp(self, component_i: str):
+        z = self._z
+
+        A_m = self._A_mixture
+        B_i = self._cache_B.get(component_i)
+        B_m = self._B_mixture
+        C_i = self._cache_C.get(component_i)
+        C_m = self._C_mixture
+        D_i = self._cache_D.get(component_i)
+        D_m = self._D_mixture
+
+        sum_xj_Aij = 0.5 * self._cache_dAm_dxk.get(component_i)
+
+        dBm_dp = self._B_mixture / self._p
+        dCm_dp = self._C_mixture / self._p
+        dCi_dp = C_i / self._p
+        dDm_dp = self._D_mixture / self._p
+        dDi_dp = D_i / self._p
+
+        dz_dp = self._calc_dz_dp()
+
+        part1 = (1 / (z - B_m)) * ((dz_dp - dBm_dp) * (1 + B_i / (z - B_m)) - dBm_dp)
+
+        part21 = (2 * sum_xj_Aij / A_m - (C_i - D_i) / (C_m - D_m)) * ((dz_dp + dCm_dp) / (z + C_m) - (dz_dp + dDm_dp) / (z + D_m))
+        part22 = 1 / math.pow(z + C_m, 2) * (dCi_dp * (z + C_m) - C_i * (dz_dp + dCm_dp))
+        part23 = 1 / math.pow(z + D_m, 2) * (dDi_dp * (z + D_m) - D_i * (dz_dp + dDm_dp))
+
+        part2 = A_m / (C_m - D_m) * (part21 + part22 - part23)
+
+        result = - part1 - part2
+
+        return result
+
+    def _calc_dfi_dxk(self, component_i: str, component_k: str):
+        p = self._p
+        xi = self._zi[component_i]
         log_phi_i = self.fugacity_coef_by_roots[self._z][component_i]
         d_log_phi_i_dxk = self.calc_d_log_phi_i_dxk(component_i, component_k)
 
@@ -487,23 +386,14 @@ class BrusilovskiyEOS(EOS):
             return dAm_dxk
 
         result = 0.0
-        for component_j in list(self.zi.keys()):
-            z_j = self.zi[component_j]
+        for component_j in list(self._zi.keys()):
+            z_j = self._zi[component_j]
             A_kj = self._cache_Aij[component_k][component_j]
             result += z_j * A_kj
 
         result *= 2
         self._cache_dAm_dxk[component_k] = result
         return result
-
-    def _calc_dB_mixture_dxk(self, component_k: str):
-        return self._cache_B.get(component_k)
-
-    def _calc_dC_mixture_dxk(self, component_k: str):
-        return self._cache_C.get(component_k)
-
-    def _calc_dD_mixture_dxk(self, component_k: str):
-        return self._cache_D.get(component_k)
 
     def _calc_dE0_dxk(self, component_k: str):
         dBm_dxk = self._cache_B.get(component_k)
@@ -562,6 +452,32 @@ class BrusilovskiyEOS(EOS):
         self._cache_dz_dxk[component_k] = dz_dxk
         return dz_dxk
 
+    def _calc_dz_dp(self):
+        if self._cache_dz_dp is not None:
+            return self._cache_dz_dp
+
+        z = self._z
+
+        A_m = self._A_mixture
+        B_m = self._B_mixture
+        C_m = self._C_mixture
+        D_m = self._D_mixture
+
+        E_0 = C_m + D_m - B_m - 1
+        E_1 = A_m - B_m * C_m + C_m * D_m - B_m * D_m - D_m - C_m
+
+        E_00 = C_m + D_m - B_m
+        E_11 = A_m - 2 * B_m * C_m + 2 * C_m * D_m - 2 * B_m * D_m - D_m - C_m
+        E_22 = -(3 * B_m * C_m * D_m + 2 * C_m * D_m + 2 * A_m * B_m)
+
+        numerator = E_00 * math.pow(z, 2) + E_11 * z + E_22
+        numerator /= self._p
+        denominator = 3 * math.pow(z, 2) + 2 * E_0 * z + E_1
+
+        self._cache_dz_dp = -(numerator / denominator)
+        return self._cache_dz_dp
+
+
     # endregion
     # =====================================================================================
 
@@ -579,6 +495,7 @@ class BrusilovskiyEOS(EOS):
         self.normalized_gibbs_energy = self._calc_normalized_gibbs_energy()
         self.choosen_eos_root = self._choose_eos_root_by_gibbs_energy()
         self.choosen_fugacities = self.fugacity_by_roots[self.choosen_eos_root]
+        self.shift_parametr = self._calc_shift_parametr()
 
         self._z = self.choosen_eos_root
         self._fugacities = self.choosen_fugacities
@@ -591,47 +508,42 @@ class BrusilovskiyEOS(EOS):
         self._C_mixture = None
         self._D_mixture = None
 
-        self._cache_al_bt_gm_dt = {}
-        self._cache_sgmc_zc_psi = {}
-        self._cache_a = {}
-        self._cache_b = {}
-        self._cache_c = {}
-        self._cache_d = {}
         self._cache_A = {}
         self._cache_B = {}
         self._cache_C = {}
         self._cache_D = {}
-        self._cache_bip = {}
 
         self._cache_Aij = {}
         self._cache_dz_dxk = {}
         self._cache_dAm_dxk = {}
 
-    # def calc_density(self):
-    #     M = 0.0
-    #     for component in self.zi.keys():
-    #         Mi = self.components_properties['molar_mass'][component]
-    #         xi = self.zi[component]
-    #         M += xi * Mi
-    #
-    #     return M * self.calc_molar_density()
-    #
-    # def calc_molar_density(self):
-    #     if self.choosen_eos_root is None:
-    #         raise ValueError('Отсутствует рассчитанное значение Z-фактора')
-    #
-    #     return self.p / (self.choosen_eos_root * CONSTANT_R * self.t)
+    # Для совместимости
+    def _calc_shift_parametr(self) -> float:
+        '''Calculation of shift parameter  for EOS
+
+        Returns
+        ------
+            shift parameter
+        '''
+        c_to_sum = []
+        for component in self._zi.keys():
+            zi = self._zi[component]
+            bi = self._components_properties['b'][component]
+            shift = self._components_properties['shift_parameter'][component]
+            c_to_sum.append(zi * bi * shift)
+
+        return sum(c_to_sum)
 
     @property
     def z(self):
         """
         Возвращает значение рассчитанного коэффициента сверхсжимаемости
         """
-        return super().z()
+        return self._z
 
     @property
     def fugacities(self):
-        return super().fugacities()
+        return self._fugacities
 
 
 if __name__ == '__main__':
