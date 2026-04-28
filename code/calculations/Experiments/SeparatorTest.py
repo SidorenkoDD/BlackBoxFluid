@@ -7,6 +7,7 @@ from calculations.VLE.flash import FlashFactory
 from calculations.PhaseDiagram.SaturationPressure import SaturationPressureCalculation
 from itertools import accumulate
 import pandas as pd
+import numpy as np
 
 
 class SeparatorTest(PVTExperiment):
@@ -133,7 +134,13 @@ class SeparatorTestModifiedDLE(PVTExperiment):
             corrected_vol.append(liq_vol[i] * cumulative_product)
             cumulative_product *= fl_arr[i]
         self.oil_residual_volume = corrected_vol[-1]
-        return corrected_vol / corrected_vol[-1]
+
+        print(f'corr_vol_arr: {corrected_vol}')
+        print(f'corr_vol_arr_type : {type(corrected_vol)}')
+        
+        print(f' corr_vol_[-1]: {corrected_vol[-1]}')
+        print(f'corr_vol_[-1]_type {type(corrected_vol[-1])}')
+        return np.array(corrected_vol) / np.float64(corrected_vol[-1])
 
     def _gas_vol_to_stc(self, p_stage, t_stage, z_stage, v_stage, z_stc):
         return p_stage * v_stage * z_stc * 293.14 / (0.101325 * z_stage * t_stage)
@@ -169,7 +176,7 @@ class SeparatorTestModifiedDLE(PVTExperiment):
         for i in range(len(cumulative_sum)):
             gas_stc_acc_reverted.append(cumulative_sum[-1] - cumulative_sum[i])
         
-        return gas_stc_acc_reverted / self.oil_residual_volume
+        return np.array(gas_stc_acc_reverted) / np.float64(self.oil_residual_volume)
 
 
     # NOT USED
@@ -193,7 +200,7 @@ class SeparatorTestModifiedDLE(PVTExperiment):
                   pressure_by_stages : list,
                   temperature_by_stages : list,
                   flash_type = 'TwoPhaseFlash'):
-        pb_obj = SaturationPressureCalculation(self._composition,p_max=50, temp= reservoir_temperature)
+        pb_obj = SaturationPressureCalculation(self._composition,p_max=30, temp= reservoir_temperature)
         self.pb = pb_obj.sp_convergence_loop(self._eos)
 
         def _is_strictly_descending() -> None:

@@ -31,7 +31,7 @@ class PREOS(EOS):
 
         Returns:
             --------
-                parameter **a** for component
+                parameter **a** for component 
         '''
         if self.components_properties['acentric_factor'][component] > 0.49:
             m = (0.3796 + 1.485 * self.components_properties['acentric_factor'][component]  - 

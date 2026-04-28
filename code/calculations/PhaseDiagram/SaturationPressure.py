@@ -34,7 +34,7 @@ class SaturationPressureCalculation:
         phase_stability.calculate_phase_stability()
 
 
-        if (phase_stability.S_l - 1) < (TOL_SAT_PRESSURE) and (phase_stability.S_v - 1) < (TOL_SAT_PRESSURE):
+        if (phase_stability.S_l - 1) < (math.pow(10, -5)) and (phase_stability.S_v - 1) < (math.pow(10, -5)):
 
             y_sp = {component: 0 for component in self.zi._composition.keys()}
             return {'s_sp': 0, 'y_sp': y_sp, 'k_sp': None, 'r_sp': None, 
@@ -90,7 +90,7 @@ class SaturationPressureCalculation:
             
             # Проверка на отсутствие решения
 
-            if self.p_max_bub - self.p_min_bub < TOL_SAT_PRESSURE:
+            if self.p_max_bub - self.p_min_bub < math.pow(10, -4):
 
                 return None
             
@@ -113,7 +113,7 @@ class SaturationPressureCalculation:
         self.Ykz = sum(y_sp[component] / self.zi._composition[component] for component in self.zi._composition.keys())
 
 
-        if (abs(1 - self.sum_y_sp) < TOL_SAT_PRESSURE) or (math.pow(self.Ykz, 2) < TOL_SAT_PRESSURE):
+        if (abs(1 - self.sum_y_sp) < math.pow(10, -4)) and (math.pow(self.Ykz, 2) < math.pow(10, -4)):
 
             pass
 
@@ -131,10 +131,10 @@ class SaturationPressureCalculation:
         while ((abs(1 - self.sum_y_sp) < math.pow(10, -4)) == False) and ((math.pow(self.Ykz, 2) < math.pow(10, -4)) == False):
             self.sp_process(eos)
             print(self.p_i)
-            if self.p_max_bub - self.p_min_bub < TOL_SAT_PRESSURE:
+            if self.p_max_bub - self.p_min_bub < math.pow(10, -4):
                 return None
             
-        if self.p_max_bub - self.p_min_bub < TOL_SAT_PRESSURE:
+        if self.p_max_bub - self.p_min_bub < math.pow(10, -4):
             return None
 
         self.p_b = self.p_i

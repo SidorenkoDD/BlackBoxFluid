@@ -85,7 +85,7 @@ class SaturationPressure:
             self.p_i = (self.p_max_bub + self.p_min_bub) / 2
             
             # Проверка на отсутствие решения
-            if self.p_max_bub - self.p_min_bub < math.pow(10, -5):
+            if self.p_max_bub - self.p_min_bub < math.pow(10, -4):
                 return None
             
             cur_s_sp = self.define_s_sp(self.p_i, eos)
@@ -114,12 +114,12 @@ class SaturationPressure:
 
     def sp_convergence_loop(self, eos):
         self.sp_process(eos)
-        if self.p_max_bub - self.p_min_bub < math.pow(10, -5):
+        if self.p_max_bub - self.p_min_bub < math.pow(10, -4):
             return None
         
         while not (abs(1 - self.sum_y_sp) < math.pow(10, -4) or math.pow(self.Ykz, 2) < math.pow(10, -4)):
             self.sp_process(eos)
-            if self.p_max_bub - self.p_min_bub < math.pow(10, -5):
+            if self.p_max_bub - self.p_min_bub < math.pow(10, -4):
                 return None
 
         self.p_b = self.p_i
@@ -183,7 +183,7 @@ class SaturationPressure:
             self.p_i = (self.p_max_dew + self.p_min_dew) / 2
             
             # Проверка на отсутствие решения
-            if self.p_max_dew - self.p_min_dew < math.pow(10, -5):
+            if self.p_max_dew - self.p_min_dew < math.pow(10, -4):
                 return None
             
             cur_s_dp = self.define_s_dp(self.p_i, eos)
@@ -204,7 +204,7 @@ class SaturationPressure:
         
         self.Ykz_dp = sum(y_dp[component] / self.zi._composition[component] for component in self.zi._composition.keys())
 
-        if abs(1 - self.sum_y_dp) < math.pow(10, -3) or math.pow(self.Ykz_dp, 2) < math.pow(10, -3):
+        if abs(1 - self.sum_y_dp) < math.pow(10, -4) or math.pow(self.Ykz_dp, 2) < math.pow(10, -4):
             print(f'Pdew найдено: {self.p_i}')
         else:
             self.p_max_dew = self.p_i
@@ -212,12 +212,12 @@ class SaturationPressure:
 
     def dp_convergence_loop(self, eos):
         self.dp_process(eos)
-        if self.p_max_dew - self.p_min_dew < math.pow(10, -5):
+        if self.p_max_dew - self.p_min_dew < math.pow(10, -4):
             return None
         
-        while not (abs(1 - self.sum_y_dp) < math.pow(10, -3) or math.pow(self.Ykz_dp, 2) < math.pow(10, -3)):
+        while not (abs(1 - self.sum_y_dp) < math.pow(10, -4) or math.pow(self.Ykz_dp, 2) < math.pow(10, -4)):
             self.dp_process(eos)
-            if self.p_max_dew - self.p_min_dew < math.pow(10, -5):
+            if self.p_max_dew - self.p_min_dew < math.pow(10, -4):
                 return None
 
         self.p_dew = self.p_i
