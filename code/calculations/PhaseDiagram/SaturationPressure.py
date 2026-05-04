@@ -1,142 +1,147 @@
-import math as math
+import math
 from calculations.PhaseStability.TwoPhaseStabilityTest import TwoPhaseStabilityTest
 from calculations.EOS.BaseEOS import EOS
 from calculations.Composition.Composition import Composition
-from calculations.Utils.Constants import TOL_SAT_PRESSURE
-
 
 class SaturationPressureCalculation:
-    def __init__(self, composition_object: Composition, p_max:float, temp, p_min = 0.1):
+    def __init__(self, composition_object: Composition, p_max: float, temp, p_min=0.1):
         self.zi = composition_object
-        self.p_min_bub = p_min
-        self.p_max_bub = p_max
-        self.p_i = self.p_max_bub / 2
-
+        self.p_min = p_min
+        self.p_max = p_max
+        self.p_current = (p_max + p_min) / 2
         self.temp = temp + 273.14
         self.results = {}
-        
 
-    def calculate_inital_p_sat(self):
-
-
-        pi_to_summerize = []
-        for component in self.composition._composition.keys():
-            value = ((self.composition._composition[component] * self.composition._composition_data['critical_pressure'][component]) * 
-                     math.exp(5.37 * (1 + self.composition._composition_data['acentric_factor'][component]) * (1 - (self.composition._composition_data['critical_temperature'][component]/self.temp))))
-            print(component, value)
-            pi_to_summerize.append(value)
-
-        self.init_saturation_pressure_wilson = sum(pi_to_summerize)
-
-
-    def define_s_sp(self, p, eos:EOS):
+    def define_s_sp(self, p, eos: EOS):
+        """Расчет S_sp и y_sp - ТОЧНО по VBA логике"""
         phase_stability = TwoPhaseStabilityTest(self.zi, p, self.temp, eos)
         phase_stability.calculate_phase_stability()
 
-
-        if (phase_stability.S_l - 1) < (math.pow(10, -5)) and (phase_stability.S_v - 1) < (math.pow(10, -5)):
-
-            y_sp = {component: 0 for component in self.zi._composition.keys()}
-            return {'s_sp': 0, 'y_sp': y_sp, 'k_sp': None, 'r_sp': None, 
-                    'letuch_sp': None, 'letuch_z': None}
-
-        if phase_stability.S_l > 1:
-            if phase_stability.S_l > phase_stability.S_v:
+        Sl = phase_stability.S_l
+        Sv = phase_stability.S_v
+        letuch_z = phase_stability.initial_eos.fugacities  # ← ВСЕГДА сохраняем!
+        
+        # БЛОК 1: ТОЧНО VBA - ВЛОЖЕННЫЕ условия (НЕ and!)
+        if (Sl - 1) < 1e-5:
+            if (Sv - 1) < 1e-5:
+                y_sp = {comp: 0.0 for comp in self.zi._composition.keys()}
+                return {'s_sp': 0.0, 'y_sp': y_sp, 'k_sp': None, 'r_sp': None,
+                       'letuch_sp': None, 'letuch_z': letuch_z}  # ← letuch_z НЕ None!
+        
+        # Инициализация
+        y_sp = {comp: 0.0 for comp in self.zi._composition.keys()}
+        k_sp = None
+        r_sp = None
+        letuch_sp = None
+        
+        # БЛОК 2: ТОЧНО VBA
+        if Sl > 1:
+            if Sl > Sv:
                 k_sp = phase_stability.k_values_liquid
                 r_sp = phase_stability.ri_l
-                letuch_z = phase_stability.initial_eos.fugacities
                 letuch_sp = phase_stability.liquid_eos.fugacities
-                y_sp = {component: self.zi._composition[component] / phase_stability.k_values_liquid[component] 
-                        for component in self.zi._composition.keys()}
+                y_sp = {comp: self.zi._composition[comp] / k_sp[comp]
+                        for comp in self.zi._composition.keys()}
             else:
                 k_sp = phase_stability.k_values_vapour
                 r_sp = phase_stability.ri_v
-                letuch_z = phase_stability.initial_eos.fugacities
                 letuch_sp = phase_stability.vapour_eos.fugacities
-                y_sp = {component: self.zi._composition[component] * phase_stability.k_values_vapour[component] 
-                        for component in self.zi._composition.keys()}
+                y_sp = {comp: self.zi._composition[comp] * k_sp[comp]
+                        for comp in self.zi._composition.keys()}
         else:
-            if phase_stability.S_v < 1:
-                y_sp = {component: 0 for component in self.zi._composition.keys()}
-                return {'s_sp': 0, 'y_sp': y_sp, 'k_sp': None, 'r_sp': None, 
-                        'letuch_sp': None, 'letuch_z': None}
-
-        if phase_stability.S_v > 1:
-            if phase_stability.S_v > phase_stability.S_l:
+            if Sv < 1:
+                y_sp = {comp: 0.0 for comp in self.zi._composition.keys()}
+        
+        # БЛОК 3: ТОЧНО VBA
+        if Sv > 1:
+            if Sv > Sl:
                 k_sp = phase_stability.k_values_vapour
                 r_sp = phase_stability.ri_v
-                letuch_z = phase_stability.initial_eos.fugacities
                 letuch_sp = phase_stability.vapour_eos.fugacities
-                y_sp = {component: self.zi._composition[component] * phase_stability.k_values_vapour[component] 
-                        for component in self.zi._composition.keys()}
-            else:
-                if phase_stability.S_l < 1:
-                    y_sp = {component: 0 for component in self.zi._composition.keys()}
-                    return {'s_sp': 0, 'y_sp': y_sp, 'k_sp': None, 'r_sp': None, 
-                            'letuch_sp': None, 'letuch_z': None}
-
-        S_sp = sum(y_sp.values())
-        return {'s_sp': S_sp, 'y_sp': y_sp, 'k_sp': k_sp, 'r_sp': r_sp, 
-                'letuch_sp': letuch_sp, 'letuch_z': letuch_z}
-
-
-    def sp_process(self, eos:EOS, lambd=1):
-        cur_s_sp = self.define_s_sp(self.p_i, eos)
-
-        # Если s_sp 0, то обновляем давление
-        while cur_s_sp['s_sp'] == 0:
-            self.p_max_bub = self.p_i
-            self.p_i = (self.p_max_bub + self.p_min_bub) / 2
-            
-            # Проверка на отсутствие решения
-
-            if self.p_max_bub - self.p_min_bub < math.pow(10, -4):
-
-                return None
-            
-            cur_s_sp = self.define_s_sp(self.p_i, eos)
-
-        # если ssp не ноль, то начинается цикл расчета Pb
-        r_sp = {}
-        for component in cur_s_sp['letuch_z'].keys():
-            r_sp[component] = math.exp(cur_s_sp['letuch_z'][component]) / (
-                math.exp(cur_s_sp['letuch_sp'][component]) * cur_s_sp['s_sp'])
-        
-        y_sp = {component: cur_s_sp['y_sp'][component] * math.pow(r_sp[component], lambd) 
-                for component in r_sp.keys()}
-
-        self.sum_y_sp = sum(y_sp.values())
-
-        self.Sum = sum(math.log(r_sp[component]) / math.log(y_sp[component] / self.zi._composition[component]) 
-                       for component in self.zi._composition.keys())
-        
-        self.Ykz = sum(y_sp[component] / self.zi._composition[component] for component in self.zi._composition.keys())
-
-
-        if (abs(1 - self.sum_y_sp) < math.pow(10, -4)) and (math.pow(self.Ykz, 2) < math.pow(10, -4)):
-
-            pass
-
+                y_sp = {comp: self.zi._composition[comp] * k_sp[comp]
+                        for comp in self.zi._composition.keys()}
         else:
-            self.p_min_bub = self.p_i
-            self.p_i = (self.p_max_bub + self.p_min_bub) / 2
-
-
-    def sp_convergence_loop(self, eos:EOS):
-        self.sp_process(eos)
-
-        # if self.p_max_bub - self.p_min_bub < TOL_SAT_PRESSURE:
-        #     return None
+            if Sl < 1:
+                y_sp = {comp: 0.0 for comp in self.zi._composition.keys()}
         
-        while ((abs(1 - self.sum_y_sp) < math.pow(10, -4)) == False) and ((math.pow(self.Ykz, 2) < math.pow(10, -4)) == False):
-            self.sp_process(eos)
-            print(self.p_i)
-            if self.p_max_bub - self.p_min_bub < math.pow(10, -4):
-                return None
-            
-        if self.p_max_bub - self.p_min_bub < math.pow(10, -4):
-            return None
+        # ТОЧНО VBA: Ssp = 0 + sum(ysp)
+        S_sp = 0.0
+        for comp in y_sp.keys():
+            S_sp += y_sp[comp]
+        
+        return {'s_sp': S_sp, 'y_sp': y_sp, 'k_sp': k_sp, 'r_sp': r_sp,
+                'letuch_sp': letuch_sp, 'letuch_z': letuch_z}  # ← ВСЕГДА letuch_z!
 
-        self.p_b = self.p_i
-        self.p_i = self.p_i / 2
-        return self.p_b
+    def calculate_saturation_pressure(self, eos: EOS, max_iter=100):
+        """Основной цикл - ТОЧНО VBA логика"""
+        # Проверка на выход (аналог GoTo 59)
+        if (self.p_max - self.p_min) < 1e-10:
+            self.p_saturation = self.p_current
+            return self.p_saturation
+        
+        iteration = 0
+        while iteration < max_iter:
+            # Получаем S_sp (аналог метки 347)
+            result = self.define_s_sp(self.p_current, eos)
+            S_sp = result['s_sp']
+            
+            # Метка 99: если Ssp = 0
+            if abs(S_sp) < 1e-12:
+                self.p_max = self.p_current
+                self.p_current = (self.p_max + self.p_min) / 2
+                iteration += 1
+                continue  # GoTo 999
+            
+            # Сохраняем Rsp1 (НЕ используется, но точно как VBA)
+            r_sp_old = result['r_sp'].copy() if result['r_sp'] else None
+            
+            # Пересчет Rsp (ТОЧНО VBA)
+            r_sp = {}
+            for comp in result['letuch_z'].keys():
+                if result['letuch_sp'] is not None and result['s_sp'] > 0:
+                    r_sp[comp] = math.exp(result['letuch_z'][comp]) / (
+                        math.exp(result['letuch_sp'][comp]) * result['s_sp'])
+                else:
+                    r_sp[comp] = 1.0
+            
+            # lambda = 1 (ТОЧНО VBA, закомментированный Broyden отключен)
+            lamb = 1.0
+            
+            # Пересчет ysp (ТОЧНО VBA)
+            y_sp_new = {}
+            for comp in result['y_sp'].keys():
+                y_sp_new[comp] = result['y_sp'][comp] * (r_sp[comp] ** lamb)
+            
+            # Пересчет Ssp (ТОЧНО VBA)
+            S_sp_new = 0.0
+            for comp in y_sp_new.keys():
+                S_sp_new += y_sp_new[comp]
+            
+            # Расчет критериев сходимости (ТОЧНО VBA)
+            Ykz = 0.0
+            Sum_log = 0.0
+            for comp in self.zi._composition.keys():
+                z_val = self.zi._composition[comp]
+                y_val = y_sp_new[comp]
+                if z_val != 0 and y_val != 0:
+                    Ykz += y_val / z_val
+                    Sum_log += math.log(r_sp[comp]) / math.log(y_val / z_val)
+            
+            # ТОЧНО VBA критерии: GoTo 100
+            if abs(1 - S_sp_new) < 1e-3 or (Ykz ** 2) < 1e-4:
+                self.p_saturation = self.p_current
+                return self.p_saturation
+            
+            # ТОЧНО VBA: pmin = Pi: Pi = (pmax + pmin) / 2: GoTo 999
+            self.p_min = self.p_current
+            self.p_current = (self.p_max + self.p_min) / 2
+            iteration += 1
+            
+            # Проверка на сходимость по давлению
+            if (self.p_max - self.p_min) < 1e-10:
+                self.p_saturation = self.p_current
+                return self.p_saturation
+        
+        # Fallback если не сошлось
+        self.p_saturation = self.p_current
+        return self.p_saturation

@@ -103,7 +103,7 @@ class SaturationPressure:
 
         self.Sum = sum(math.log(r_sp[component]) / math.log(y_sp[component] / self.zi._composition[component]) 
                        for component in self.zi._composition.keys())
-        
+
         self.Ykz = sum(y_sp[component] / self.zi._composition[component] for component in self.zi._composition.keys())
 
         if (abs(1 - self.sum_y_sp) < math.pow(10, -4)) or (math.pow(self.Ykz, 2) < math.pow(10, -4)):
