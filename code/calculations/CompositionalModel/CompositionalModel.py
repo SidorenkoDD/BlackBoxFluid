@@ -45,14 +45,14 @@ class CompositionalModel:
         print(self._phase_diagram_obj.get_phase_diagram_data())
 
 
-    def saturation_pressure(self,t, p_max= 40, debug = True):
+    def saturation_pressure(self,t, p_max= 80, debug = True):
         self._sat_pres_obj = SaturationPressureCalculation(self._composition, p_max, t)
         self._sat_pres_obj.calculate_saturation_pressure(eos = self._eos)
         print('SATURATION PRESSURE CALCULATION')
         print('=====')
         print(f'CALCULATED SATURATION PRESSURE: {self._sat_pres_obj.p_saturation * 10} bar')
         print(f'TEMPERATURE: {t} C')
-        print(self._sat_pres_obj.get_debug_info())
+        # print(self._sat_pres_obj.get_debug_info())
         return self._sat_pres_obj.p_saturation
 
 
