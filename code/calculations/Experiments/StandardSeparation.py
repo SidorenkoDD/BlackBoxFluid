@@ -33,7 +33,7 @@ class StandardSeparation(PVTExperiment):
 
     def calculate(self, p_res: float, t_res:float, flash_type = 'TwoPhaseFlash'):
         pb_obj = SaturationPressureCalculation(self._composition,p_max= 40, temp= t_res)
-        pb = pb_obj.sp_convergence_loop(self._eos)
+        pb = pb_obj.calculate_saturation_pressure(self._eos)
 
         self._flash_object = FlashFactory(self._composition, self._eos)
         self._reservoir_conditions = Conditions(p_res, t_res)

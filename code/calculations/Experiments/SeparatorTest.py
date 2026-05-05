@@ -201,7 +201,7 @@ class SeparatorTestModifiedDLE(PVTExperiment):
                   temperature_by_stages : list,
                   flash_type = 'TwoPhaseFlash'):
         pb_obj = SaturationPressureCalculation(self._composition,p_max=30, temp= reservoir_temperature)
-        self.pb = pb_obj.sp_convergence_loop(self._eos)
+        self.pb = pb_obj.calculate_saturation_pressure(self._eos)
 
         def _is_strictly_descending() -> None:
             '''Method checks descending values for pressure_list'''
