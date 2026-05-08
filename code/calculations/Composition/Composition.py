@@ -61,7 +61,6 @@ class Composition:
         if not 0.999 <= sum_of_components <=1.001:
             raise CompositionSumError(f'Sum of components {sum_of_components}\n not equal to 1!')
 
-
     def _validate_c6_plus_components(self):
         '''Метод определяет, есть ли С6+ компоненты в составе.
         Если есть, то рассчитывается и формируется единый словарь свойств для конкретного состава.
@@ -75,8 +74,7 @@ class Composition:
 
         _c6_plus_components = [item for item in self._composition.keys() if extract_number_from_end(item) > 6]
         self._c6_plus_components = _c6_plus_components
-        
-    
+
     def _create_composition_db(self):
         '''Method creates component properties for composition,  loading from json
         '''
@@ -102,7 +100,6 @@ class Composition:
                 except Exception as e:
                     raise ValueError(f"Can't create composition: no component {component} in DB!")
 
-
     def _chueh_prausnitz_bip(self, component_i, component_j, A = 0.18, B = 6):
         '''Chew-Parusnitz correlation for BIPS
         '''
@@ -115,7 +112,6 @@ class Composition:
     def _make_all_bips_zero_for_C6_plus(self):
         '''returns 0 for bips'''
         return 0
-
 
     def  _calculate_bips(self):
         if len(self._c6_plus_components) > 0:
@@ -132,7 +128,6 @@ class Composition:
                     comp_dict[component] = round(self._make_all_bips_zero_for_C6_plus(), 3)
                 
                 self._composition_data['bip'][plus_component] = comp_dict
-
 
     def _prepare_composition_data(self):
         '''Method generates composition db with C6+ components
@@ -164,7 +159,6 @@ class Composition:
             filtered_data['bip'] = filtered_bip
 
         self._composition_data = filtered_data
-
 
     def edit_component_properties(self, component: str, properties:dict):
         '''Method allows to change component properties
@@ -202,7 +196,6 @@ class Composition:
                 except Exception as e:
                     raise ValueError(f"Can't create composition: no component {component} in DB!")
 
-
     def set_property_dict(self, property : str, value_dict : dict):
         ''' Method allows set dict for property
         '''
@@ -213,8 +206,16 @@ class Composition:
         else:
             self._composition_data[property] = value_dict
 
+    def edit_bip(self, component_i : str, component_j : str, value: float):
+        self._composition_data['bip'][component_i][component_j] = value
+        self._composition_data['bip'][component_j][component_i] = value
 
-
+    def edit_bip_for_component(self,component : str, value: float):
+        if len(self._c6_plus_components) > 0:
+            # Этот цикл добавляет в уже существующие словари тяжелые компоненты
+            for plus_component in self._c6_plus_components:
+                self._composition_data['bip'][component][plus_component] = value
+                self._composition_data['bip'][plus_component][component] = value
 
     def show_composition_dataframes(self):
 
