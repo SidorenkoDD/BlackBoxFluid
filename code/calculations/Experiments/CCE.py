@@ -33,7 +33,7 @@ class CCE(PVTExperiment):
         '''
         result = {}
         pb_obj = SaturationPressureCalculation(self._composition,p_max=50, temp= temperature)
-        pb = pb_obj.sp_convergence_loop(self._eos)
+        pb = pb_obj.calculate_saturation_pressure(self._eos)
 
         def _is_strictly_descending() -> bool:
             '''Method checks descending values for pressure_list'''
