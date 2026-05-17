@@ -39,7 +39,7 @@ class CoreBridge(QObject):
             'shift_parameter': ['Jhaveri_Youngren']
         }
         
-        self.available_eos = ['Peng-Robinson', 'SRK', 'PRSV']
+        self.available_eos = ['PR', 'SRK']
     
     def import_composition_from_excel(self, file_path: str, sheet_name: str = 'Sheet1', has_header: bool = True) -> Dict[str, float]:
         """Импорт состава из Excel файла с использованием вашего CompositionExcelLoader"""
@@ -49,23 +49,12 @@ class CoreBridge(QObject):
             # Используем ваш существующий загрузчик
             loader = CompositionExcelLoader(file_path)
             composition_dict = loader.load(header=has_header, sheet=sheet_name)
+            self.status_update.emit(f'Состав словаря: {composition_dict}')
+
             
-            # Создаем объект Composition с вашими корреляциями по умолчанию
-            default_correlations = {
-                'critical_temperature': 'Kesler_Lee',
-                'critical_pressure': 'Riazi_Daubert',
-                'acentric_factor': 'Edmister',
-                'critical_volume': 'Hall_Yarborough',
-                'k_watson': 'k_watson',
-                'shift_parameter': 'Jhaveri_Youngren'
-            }
-            
-            self.composition = Composition(
-                zi=composition_dict,
-                c6_plus_bips_correlation=None,
-                c6_plus_correlations=default_correlations
-            )
-            
+            self.composition = Composition(zi=composition_dict)
+
+            self.status_update.emit('Состав создан')
             # Сохраняем данные для отображения
             self.composition_data = {
                 'mole_fractions': composition_dict,
