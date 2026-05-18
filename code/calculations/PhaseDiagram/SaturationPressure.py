@@ -167,12 +167,12 @@ class SaturationPressureCalculation:
             logger.info(f"Секущие {secant_iter:2d} | P={p_next:8.3f} | F={f_next:10.3e} | dP={abs(p_next-p_curr):.3e}")
             
             # Проверка сходимости
-            if abs(f_next) < 1e-7:
+            if abs(f_next) < 1e-5:
                 self.p_saturation = p_next
                 logger.info(f"✅ Сходимость методом секущих: P_sat = {self.p_saturation:.3f} bar")
                 return self.p_saturation
             
-            if abs(p_next - p_curr) < 1e-10:
+            if abs(p_next - p_curr) < 1e-6:
                 self.p_saturation = p_next
                 logger.info(f"✅ Сходимость по давлению: P_sat = {self.p_saturation:.3f} bar")
                 return self.p_saturation
@@ -185,29 +185,29 @@ class SaturationPressureCalculation:
             if abs(p_high - p_low) < 1e-10:
                 break
         
-        # ============= ФИНАЛЬНАЯ БИСЕКЦИЯ ДЛЯ ГАРАНТИИ =============
-        logger.info(f"Этап 3: Финальная бисекция для гарантии")
+        # # ============= ФИНАЛЬНАЯ БИСЕКЦИЯ ДЛЯ ГАРАНТИИ =============
+        # logger.info(f"Этап 3: Финальная бисекция для гарантии")
         
-        p_low = max(p_low, p_curr - abs(p_high - p_low))
-        p_high = min(p_high, p_curr + abs(p_high - p_low))
+        # p_low = max(p_low, p_curr - abs(p_high - p_low))
+        # p_high = min(p_high, p_curr + abs(p_high - p_low))
         
-        for final_iter in range(20):
-            p_mid = (p_low + p_high) / 2
-            f_mid = self._get_residual(p_mid, eos)
+        # for final_iter in range(20):
+        #     p_mid = (p_low + p_high) / 2
+        #     f_mid = self._get_residual(p_mid, eos)
             
-            if abs(f_mid) < 1e-7:
-                self.p_saturation = p_mid
-                logger.info(f"✅ Финальная сходимость: P_sat = {self.p_saturation:.3f} bar")
-                return self.p_saturation
+        #     if abs(f_mid) < 1e-5:
+        #         self.p_saturation = p_mid
+        #         logger.info(f"✅ Финальная сходимость: P_sat = {self.p_saturation:.3f} bar")
+        #         return self.p_saturation
             
-            if f_mid * self._get_residual(p_low, eos) < 0:
-                p_high = p_mid
-            else:
-                p_low = p_mid
+        #     if f_mid * self._get_residual(p_low, eos) < 0:
+        #         p_high = p_mid
+        #     else:
+        #         p_low = p_mid
             
-            if (p_high - p_low) < 1e-10:
-                self.p_saturation = p_mid
-                break
+        #     if (p_high - p_low) < 1e-10:
+        #         self.p_saturation = p_mid
+        #         break
         
         self.p_saturation = (p_low + p_high) / 2
         logger.info(f"✅ P_sat = {self.p_saturation:.3f} bar")

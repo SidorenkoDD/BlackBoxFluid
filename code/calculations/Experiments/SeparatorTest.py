@@ -126,11 +126,14 @@ class SeparatorTestModifiedDLE(PVTExperiment):
         self._result_dict = {}
 
     def _calculate_bo(self, liq_vol, fl_arr):
-
+        
         fl_arr = [1 if x is None else x for x in fl_arr]
+        print(f'Fl_arr in _calculate_bo: {fl_arr}')
+        print(f'liq_vol_arr_inp: {liq_vol}')
         corrected_vol = []
         cumulative_product = 1
         for i in range(len(fl_arr)):
+            print(f'cum_prod_i: {cumulative_product}')
             corrected_vol.append(liq_vol[i] * cumulative_product)
             cumulative_product *= fl_arr[i]
         self.oil_residual_volume = corrected_vol[-1]

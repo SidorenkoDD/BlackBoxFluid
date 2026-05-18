@@ -42,7 +42,7 @@ class CCE(PVTExperiment):
         def _is_p_sat_in_pressure_by_stages_list() -> list:
             '''Method checks is p_sat in list, if no, append p_sat in list'''
             pb_obj = SaturationPressureCalculation(self._composition,p_max=50, temp= temperature)
-            pb = pb_obj.sp_convergence_loop(self._eos)
+            pb = pb_obj.calculate_saturation_pressure(self._eos)
             if pb in pressure_by_stages:
                 pass
             else:
